@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="org.dbgsprw.view.AndroidBuilderFactory">
+  <grid id="27dc6" binding="mAndroidBuilderContent" layout-manager="GridLayoutManager" row-count="4" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+    <margin top="10" left="10" bottom="10" right="10"/>
+    <constraints>
+      <xy x="20" y="20" width="512" height="664"/>
+    </constraints>
+    <properties/>
+    <border type="none">
+      <title-color color="-16777216"/>
+    </border>
+    <children>
+      <vspacer id="3005e">
+        <constraints>
+          <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="6" hsize-policy="1" anchor="0" fill="2" indent="0" use-parent-layout="false"/>
+        </constraints>
+      </vspacer>
+      <component id="afe37" class="javax.swing.JButton" binding="mMakeButton" default-binding="true">
+        <constraints>
+          <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <text value="make"/>
+        </properties>
+      </component>
+      <grid id="8ab99" binding="mMakeOptionPanel" layout-manager="GridLayoutManager" row-count="6" column-count="6" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+        <margin top="10" left="10" bottom="10" right="10"/>
+        <constraints>
+          <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties/>
+        <border type="line">
+          <color color="-16777216"/>
+        </border>
+        <children>
+          <component id="4fd92" class="javax.swing.JLabel" binding="mTargetLabel">
+            <constraints>
+              <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <labelFor value="26016"/>
+              <text value="Target"/>
+            </properties>
+          </component>
+          <component id="bcfb2" class="javax.swing.JLabel" binding="mProductLabel">
+            <constraints>
+              <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <labelFor value="e94d6"/>
+              <text value="Product"/>
+            </properties>
+          </component>
+          <component id="26016" class="javax.swing.JComboBox" binding="mTargetComboBox">
+            <constraints>
+              <grid row="1" column="1" row-span="1" col-span="5" vsize-policy="0" hsize-policy="2" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <editable value="true"/>
+            </properties>
+          </component>
+          <component id="e94d6" class="javax.swing.JComboBox" binding="mProductComboBox">
+            <constraints>
+              <grid row="2" column="1" row-span="1" col-span="5" vsize-policy="0" hsize-policy="2" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties/>
+          </component>
+          <component id="8d7e7" class="javax.swing.JComboBox" binding="mJobNumberComboBox">
+            <constraints>
+              <grid row="3" column="1" row-span="1" col-span="5" vsize-policy="0" hsize-policy="2" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties/>
+          </component>
+          <component id="d07ca" class="javax.swing.JLabel" binding="mJobNumberLabel">
+            <constraints>
+              <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <labelFor value="8d7e7"/>
+              <text value="Job Number"/>
+            </properties>
+          </component>
+          <component id="461c7" class="javax.swing.JLabel" binding="mResultPathLabel">
+            <constraints>
+              <grid row="4" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <labelFor value="c5200"/>
+              <text value="Result Path"/>
+            </properties>
+          </component>
+          <component id="c5200" class="javax.swing.JComboBox" binding="mResultPathComboBox">
+            <constraints>
+              <grid row="4" column="1" row-span="1" col-span="4" vsize-policy="0" hsize-policy="3" anchor="8" fill="1" indent="0" use-parent-layout="false">
+                <preferred-size width="279" height="28"/>
+              </grid>
+            </constraints>
+            <properties/>
+          </component>
+          <component id="90499" class="javax.swing.JLabel">
+            <constraints>
+              <grid row="5" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <text value="Command"/>
+            </properties>
+          </component>
+          <component id="78514" class="javax.swing.JLabel" binding="mMakeLabel">
+            <constraints>
+              <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <text value="Make"/>
+            </properties>
+          </component>
+          <component id="849e9" class="javax.swing.JButton" binding="mChooseDirButton">
+            <constraints>
+              <grid row="4" column="5" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false">
+                <preferred-size width="38" height="34"/>
+              </grid>
+            </constraints>
+            <properties>
+              <text value="Choose"/>
+            </properties>
+          </component>
+          <grid id="7a392" layout-manager="GridLayoutManager" row-count="1" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+            <margin top="0" left="0" bottom="0" right="0"/>
+            <constraints>
+              <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties/>
+            <border type="line">
+              <color color="-6974059"/>
+            </border>
+            <children>
+              <component id="cdc70" class="javax.swing.JRadioButton" binding="mMmRadioButton" default-binding="true">
+                <constraints>
+                  <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                </constraints>
+                <properties>
+                  <text value="mm"/>
+                </properties>
+              </component>
+              <component id="2e28a" class="javax.swing.JRadioButton" binding="mMakeRadioButton" default-binding="true">
+                <constraints>
+                  <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                </constraints>
+                <properties>
+                  <text value="make"/>
+                </properties>
+              </component>
+            </children>
+          </grid>
+          <component id="397dc" class="javax.swing.JTextArea" binding="mCommandTextArea">
+            <constraints>
+              <grid row="5" column="1" row-span="1" col-span="5" vsize-policy="7" hsize-policy="7" anchor="0" fill="3" indent="0" use-parent-layout="false">
+                <minimum-size width="50" height="16"/>
+              </grid>
+            </constraints>
+            <properties>
+              <editable value="false"/>
+              <lineWrap value="true"/>
+            </properties>
+          </component>
+        </children>
+      </grid>
+      <component id="bf5c6" class="javax.swing.JLabel" binding="mStatusLabel">
+        <constraints>
+          <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <text value=""/>
+        </properties>
+      </component>
+    </children>
+  </grid>
+</form>
