@@ -8,13 +8,13 @@ import java.util.ArrayList;
 
 /**
  * Copyright 2016 dbgsprw / dbgsprw@gmail.com
- *
+ * <p/>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- *
+ * <p/>
  * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p/>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -29,20 +29,29 @@ public class Builder {
     private String mTargetProduct;
     private String mTargetBuildVariant;
     private String mOutDir;
+    private String mTarget;
+
     private ArrayList<MakeDoneListener> mMakeDoneListeners;
+
+
+    private String mOneShotMakefile;
 
 
     private int numberOfProcess;
 
     private String mJobNumber;
+    private Thread mMakeThread;
+
+
+    private boolean mIsAOSPPath;
 
 
     public Builder(String projectPath) {
         mProcessBuilder = new ProcessBuilder();
         mLunchMenuList = new ArrayList<>();
         mProjectPath = projectPath;
-        //     mProcessBuilder.directory(new File(mProjectPath));
-        mProcessBuilder.directory(new File("/home/myoo/WORKING_DIRECTORY/"));
+        mProjectPath = new String("/home/myoo/WORKSPACE");
+        mProcessBuilder.directory(new File(mProjectPath));
         mMakeDoneListeners = new ArrayList<>();
 
 
@@ -50,10 +59,20 @@ public class Builder {
         updateNumberOfProcess();
     }
 
-    public void executeMake() {
+
+    /*public void executeMm(String currentPath) {
         final ArrayList<String> makeCommandLine;
+        // bash -x -c "source build/envsetup.sh ; cd development/tools/idegen; mm"
+
+        mProcessBuilder.redirectOutput(ProcessBuilder.Redirect.INHERIT);
+        mProcessBuilder.redirectError(ProcessBuilder.Redirect.INHERIT);
         makeCommandLine = new ArrayList<>();
         makeCommandLine.add("make");
+        makeCommandLine.add("-C");
+        makeCommandLine.add(mProjectPath);
+        makeCommandLine.add("-f");
+        makeCommandLine.add("build/core/main.mk");
+        makeCommandLine.add("all_modules");
         if (mJobNumber != null) {
             makeCommandLine.add("-j" + mJobNumber);
         }
@@ -66,13 +85,60 @@ public class Builder {
         if (mOutDir != null) {
             makeCommandLine.add("OUT_DIR=" + mOutDir);
         }
-        new Thread(new Runnable() {
+        mMakeThread = new Thread(new Runnable() {
             @Override
             public void run() {
                 executeShellCommand(makeCommandLine);
                 Builder.this.notifyMakeDone();
             }
-        }).start();
+        });
+        mMakeThread.start();
+    }*/
+
+    public void executeMake() {
+        final ArrayList<String> makeCommandLine;
+
+        mProcessBuilder.redirectOutput(ProcessBuilder.Redirect.INHERIT);
+        mProcessBuilder.redirectError(ProcessBuilder.Redirect.INHERIT);
+        makeCommandLine = new ArrayList<>();
+        makeCommandLine.add("make");
+        if (mJobNumber != null) {
+            makeCommandLine.add("-j" + mJobNumber);
+        }
+        if (mTarget != null) {
+            makeCommandLine.add(mTarget);
+        }
+        if (mTargetProduct != null) {
+            makeCommandLine.add("TARGET_PRODUCT=" + mTargetProduct);
+        }
+        if (mTargetBuildVariant != null) {
+            makeCommandLine.add("TARGET_BUILD_VARIANT=" + mTargetBuildVariant);
+        }
+        if (mOutDir != null) {
+            makeCommandLine.add("OUT_DIR=" + mOutDir);
+        }
+        if (mOneShotMakefile != null) {
+            makeCommandLine.add("-C");
+            makeCommandLine.add(mProjectPath);
+            makeCommandLine.add("-f");
+            makeCommandLine.add("build/core/main.mk");
+            makeCommandLine.add("all_modules");
+            makeCommandLine.add("ONE_SHOT_MAKEFILE=" + mOneShotMakefile);
+        }
+        mMakeThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                executeShellCommand(makeCommandLine);
+                Builder.this.notifyMakeDone();
+            }
+        });
+        mMakeThread.start();
+    }
+
+    public void stopMake() {
+        if (mMakeThread != null) {
+            mMakeThread.interrupt();
+        }
     }
 
     public int getNumberOfProcess() {
@@ -81,6 +147,30 @@ public class Builder {
 
     public ArrayList<String> getLunchMenuList() {
         return mLunchMenuList;
+    }
+
+    public void setOneShotMakefile(String oneShotMakefile) {
+        mOneShotMakefile = oneShotMakefile;
+    }
+
+    public void setTargetBuildVariant(String targetBuildVariant) {
+        mTargetBuildVariant = targetBuildVariant;
+    }
+
+    public void setTargetProduct(String targetProduct) {
+        mTargetProduct = targetProduct;
+    }
+
+    public void setJobNumber(String jobNumber) {
+        mJobNumber = jobNumber;
+    }
+
+    public void setOutDir(String outDir) {
+        mOutDir = outDir;
+    }
+
+    public void setTarget(String target) {
+        mTarget = target;
     }
 
     public void setMakeOptions(String jobNumber, String outDir, String targetProduct, String targetBuildVariant) {
@@ -102,26 +192,51 @@ public class Builder {
     }
 
     private void updateNumberOfProcess() {
-        ArrayList<String> getConfCommand = new ArrayList<String>();
+        ArrayList<String> getConfCommand = new ArrayList<>();
         getConfCommand.add("getconf");
         getConfCommand.add("_NPROCESSORS_ONLN");
-        ArrayList<String> outList = executeShellCommand(getConfCommand).getOutList();
+        ArrayList<String> outList = executeShellCommandResult(getConfCommand).getOutList();
         numberOfProcess = Integer.parseInt(outList.get(0));
     }
 
     private void updateLunchMenu() {
-        ArrayList<String> lunchCommand = new ArrayList<String>();
+        ArrayList<String> lunchCommand = new ArrayList<>();
         lunchCommand.add("bash");
         lunchCommand.add("-c");
         lunchCommand.add("source build/envsetup.sh > /dev/null ;" + "echo ${LUNCH_MENU_CHOICES[*]}");
-        ArrayList<String> outList = executeShellCommand(lunchCommand).getOutList();
+        ArrayList<String> outList = executeShellCommandResult(lunchCommand).getOutList();
         String line = outList.get(0);
-
+        if("".equals(line)) {
+            mIsAOSPPath = false;
+            return;
+        }
+        mIsAOSPPath = true;
         String[] lunchMenus = line.split(" ");
         for (String lunchMenu : lunchMenus) mLunchMenuList.add(lunchMenu);
     }
 
-    private ShellCommandResult executeShellCommand(ArrayList<String> command) {
+    public boolean isAOSPPath() {
+        return mIsAOSPPath;
+    }
+
+
+    private void executeShellCommand(ArrayList<String> command) {
+
+        System.out.println("Execute...");
+        mProcessBuilder.command(command);
+        try {
+            Process process = mProcessBuilder.start();
+            process.waitFor();
+
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        System.out.println("Execute Done");
+    }
+
+    private ShellCommandResult executeShellCommandResult(ArrayList<String> command) {
         ArrayList<String> outList = new ArrayList<>();
         ArrayList<String> errList = new ArrayList<>();
 
@@ -136,18 +251,17 @@ public class Builder {
             String inputLine, errorLine;
 
             while (true) {
-                if ((inputLine = bufferedInputReader.readLine()) != null) {
-                    outList.add(inputLine);
-                    System.out.println(inputLine);
-                } else if ((errorLine = bufferedErrorReader.readLine()) != null) {
+                if ((errorLine = bufferedErrorReader.readLine()) != null) {
                     errList.add(errorLine);
                     System.out.println(errorLine);
+                } else if ((inputLine = bufferedInputReader.readLine()) != null) {
+                    outList.add(inputLine);
+                    System.out.println(inputLine);
                 } else {
                     System.out.println("nothing to out");
                     break;
                 }
             }
-            // maybe need thread
             process.waitFor();
 
 

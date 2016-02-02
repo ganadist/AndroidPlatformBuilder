@@ -1,7 +1,11 @@
 package org.dbgsprw.view;
 
+import com.intellij.openapi.editor.Document;
+import com.intellij.openapi.fileEditor.FileDocumentManager;
+import com.intellij.openapi.fileEditor.FileEditorManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowFactory;
 import com.intellij.ui.content.Content;
@@ -32,6 +36,7 @@ import java.util.ArrayList;
  */
 
 public class AndroidBuilderFactory implements ToolWindowFactory {
+    private static AndroidBuilderFactory mAndroidBuilderFactory;
     private JPanel mAndroidBuilderContent;
     private JButton mMakeButton;
     private JComboBox mTargetComboBox;
@@ -50,14 +55,17 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
     private JRadioButton mMmRadioButton;
     private JTextArea mCommandTextArea;
     private JLabel mStatusLabel;
+    private JButton mStopButton;
     private ToolWindow mToolWindow;
     private String mProjectPath;
 
     private Builder mBuilder;
     private Project mProject;
 
-    public AndroidBuilderFactory() {
+    private boolean mIsCreated;
 
+    public AndroidBuilderFactory() {
+        mAndroidBuilderFactory = this;
     }
 
     @Override
@@ -65,6 +73,11 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
 
         mProjectPath = project.getBasePath();
         mBuilder = new Builder(mProjectPath);
+        if (!mBuilder.isAOSPPath()) {
+            Messages.showMessageDialog(mProject, "This Project is Not AOSP.", "Android Builder",
+                    Messages.getInformationIcon());
+            return;
+        }
 
         mProject = project;
         mToolWindow = toolWindow;
@@ -77,13 +90,24 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
         initButtons();
         initRadioButtons();
         writeCommand();
+        mIsCreated = true;
+    }
+    public boolean isCreated() {
+        return mIsCreated;
+    }
 
+    synchronized public static AndroidBuilderFactory getInstance() {
+        if (mAndroidBuilderFactory != null ) {
+            return mAndroidBuilderFactory;
+        }
+        return null;
     }
 
     private void writeCommand() {
         String[] product = mProductComboBox.getSelectedItem().toString().split("-");
         if (mMakeRadioButton.isSelected()) {
-            mCommandTextArea.setText("make -j" + mJobNumberComboBox.getSelectedItem() + " " + mTargetComboBox.getSelectedItem()
+            mCommandTextArea.setText("make -j" + mJobNumberComboBox.getSelectedItem() + " " +
+                    mTargetComboBox.getSelectedItem()
                     + " OUT_DIR=" + mResultPathComboBox.getSelectedItem()
                     + " TARGET_PRODUCT=" + product[0]
                     + " TARGET_BUILD_VARIANT=" + product[1]);
@@ -96,8 +120,6 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
     }
 
     private void initButtons() {
-
-
         final JFileChooser jFileChooser = new JFileChooser();
         jFileChooser.setCurrentDirectory(new File(mProjectPath + "/out"));
         jFileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
@@ -131,20 +153,65 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
                 mStatusLabel.setText("Making... Please Wait");
+                mBuilder.setOneShotMakefile(null);
+                mBuilder.setTarget(null);
                 String[] product = mProductComboBox.getSelectedItem().toString().split("-");
                 mBuilder.setMakeOptions(mJobNumberComboBox.getSelectedItem().toString(),
                         mResultPathComboBox.getSelectedItem().toString(),
                         product[0], product[1]);
+
+                if (mMmRadioButton.isSelected()) {
+                    Document currentDoc = FileEditorManager.getInstance(mProject).getSelectedTextEditor().getDocument();
+                    VirtualFile currentDir = FileDocumentManager.getInstance().getFile(currentDoc).getParent();
+                    String path = currentDir.getPath();
+
+                    if(path != mProjectPath) {
+                        while (true) {
+                            if(new File(path+File.separator+"Android.mk").exists()) {
+                                path = path.replace(mProjectPath + File.separator, "");
+                                mBuilder.setOneShotMakefile(path+File.separator+"Android.mk");
+                                break;
+                            } else if (path == mProjectPath) {
+                                Messages.showMessageDialog(mProject, "Android.mk is not exist", "Android Builder",
+                                        Messages.getInformationIcon());
+                                return;
+                            }
+                            currentDir = currentDir.getParent();
+                            path = currentDir.getPath();
+                        }
+                    }
+
+                }
+                else {
+                    mBuilder.setTarget(mTargetComboBox.getSelectedItem().toString());
+                }
+                mBuilder.executeMake();
+
+                mMakeButton.setEnabled(false);
+                mStopButton.setEnabled(true);
                 mBuilder.addMakeDoneListener(new Builder.MakeDoneListener() {
                     @Override
                     public void makeDone() {
-                        mStatusLabel.setText("Make Done");
+                        mStatusLabel.setText("");
+                        mMakeButton.setEnabled(true);
+                        mStopButton.setEnabled(false);
                     }
                 });
-                mBuilder.executeMake();
             }
         });
+        mStopButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                mBuilder.stopMake();
+                mMakeButton.setEnabled(true);
+                mStopButton.setEnabled(false);
+            }
+        });
+    }
 
+    public void doMm() {
+        mMmRadioButton.doClick();
+        mMakeButton.doClick();
     }
 
     private void initRadioButtons() {
@@ -210,7 +277,7 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
             }
         });
 
-        mResultPathComboBox.addItem(mProjectPath + "/out");
+        mResultPathComboBox.addItem(mProjectPath + File.separator + "out");
         mResultPathComboBox.setPrototypeDisplayValue("XXXXXXXXX");
         mResultPathComboBox.addActionListener(new ActionListener() {
             @Override
