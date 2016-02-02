@@ -34,7 +34,7 @@
     <!-- Add your actions here -->
     <action id="ActionId" class="org.dbgsprw.action.MmAction" text="Android Make Current File" description="Description">
       <add-to-group group-id="ToolsMenu" anchor="last"/>
-      <keyboard-shortcut keymap="$default" first-keystroke="ctrl M"/>
+      <keyboard-shortcut keymap="$default" first-keystroke="ctrl alt shift M"/>
     </action>
   </actions>
 

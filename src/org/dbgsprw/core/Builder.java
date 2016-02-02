@@ -1,5 +1,7 @@
 package org.dbgsprw.core;
 
+import com.android.ddmlib.AndroidDebugBridge;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -23,15 +25,13 @@ import java.util.ArrayList;
  */
 
 public class Builder {
-    private ProcessBuilder mProcessBuilder;
+
     private ArrayList<String> mLunchMenuList;
     private String mProjectPath;
     private String mTargetProduct;
     private String mTargetBuildVariant;
     private String mOutDir;
     private String mTarget;
-
-    private ArrayList<MakeDoneListener> mMakeDoneListeners;
 
 
     private String mOneShotMakefile;
@@ -41,18 +41,17 @@ public class Builder {
 
     private String mJobNumber;
     private Thread mMakeThread;
+    ShellCommandExecutor mShellCommandExecutor;
 
 
     private boolean mIsAOSPPath;
 
 
     public Builder(String projectPath) {
-        mProcessBuilder = new ProcessBuilder();
         mLunchMenuList = new ArrayList<>();
         mProjectPath = projectPath;
-        mProjectPath = new String("/home/myoo/WORKSPACE");
-        mProcessBuilder.directory(new File(mProjectPath));
-        mMakeDoneListeners = new ArrayList<>();
+        mShellCommandExecutor = new ShellCommandExecutor();
+        mShellCommandExecutor.directory(new File(mProjectPath));
 
 
         updateLunchMenu();
@@ -95,11 +94,9 @@ public class Builder {
         mMakeThread.start();
     }*/
 
-    public void executeMake() {
+    public void executeMake(ShellCommandExecutor.ShellThreadDoneListener shellThreadDoneListener) {
         final ArrayList<String> makeCommandLine;
 
-        mProcessBuilder.redirectOutput(ProcessBuilder.Redirect.INHERIT);
-        mProcessBuilder.redirectError(ProcessBuilder.Redirect.INHERIT);
         makeCommandLine = new ArrayList<>();
         makeCommandLine.add("make");
         if (mJobNumber != null) {
@@ -125,14 +122,7 @@ public class Builder {
             makeCommandLine.add("all_modules");
             makeCommandLine.add("ONE_SHOT_MAKEFILE=" + mOneShotMakefile);
         }
-        mMakeThread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                executeShellCommand(makeCommandLine);
-                Builder.this.notifyMakeDone();
-            }
-        });
-        mMakeThread.start();
+        mMakeThread = mShellCommandExecutor.executeShellCommandInThread(makeCommandLine, shellThreadDoneListener);
     }
 
     public void stopMake() {
@@ -180,22 +170,11 @@ public class Builder {
         mTargetBuildVariant = targetBuildVariant;
     }
 
-    public void addMakeDoneListener(MakeDoneListener makeDoneListener) {
-        mMakeDoneListeners.add(makeDoneListener);
-
-    }
-
-    private void notifyMakeDone() {
-        for (MakeDoneListener makeDoneListener : mMakeDoneListeners) {
-            makeDoneListener.makeDone();
-        }
-    }
-
     private void updateNumberOfProcess() {
         ArrayList<String> getConfCommand = new ArrayList<>();
         getConfCommand.add("getconf");
         getConfCommand.add("_NPROCESSORS_ONLN");
-        ArrayList<String> outList = executeShellCommandResult(getConfCommand).getOutList();
+        ArrayList<String> outList = mShellCommandExecutor.executeShellCommandResult(getConfCommand).getOutList();
         numberOfProcess = Integer.parseInt(outList.get(0));
     }
 
@@ -204,7 +183,7 @@ public class Builder {
         lunchCommand.add("bash");
         lunchCommand.add("-c");
         lunchCommand.add("source build/envsetup.sh > /dev/null ;" + "echo ${LUNCH_MENU_CHOICES[*]}");
-        ArrayList<String> outList = executeShellCommandResult(lunchCommand).getOutList();
+        ArrayList<String> outList = mShellCommandExecutor.executeShellCommandResult(lunchCommand).getOutList();
         String line = outList.get(0);
         if("".equals(line)) {
             mIsAOSPPath = false;
@@ -219,61 +198,4 @@ public class Builder {
         return mIsAOSPPath;
     }
 
-
-    private void executeShellCommand(ArrayList<String> command) {
-
-        System.out.println("Execute...");
-        mProcessBuilder.command(command);
-        try {
-            Process process = mProcessBuilder.start();
-            process.waitFor();
-
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        System.out.println("Execute Done");
-    }
-
-    private ShellCommandResult executeShellCommandResult(ArrayList<String> command) {
-        ArrayList<String> outList = new ArrayList<>();
-        ArrayList<String> errList = new ArrayList<>();
-
-        mProcessBuilder.command(command);
-
-        try {
-            Process process = mProcessBuilder.start();
-
-            BufferedReader bufferedInputReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-
-            BufferedReader bufferedErrorReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
-            String inputLine, errorLine;
-
-            while (true) {
-                if ((errorLine = bufferedErrorReader.readLine()) != null) {
-                    errList.add(errorLine);
-                    System.out.println(errorLine);
-                } else if ((inputLine = bufferedInputReader.readLine()) != null) {
-                    outList.add(inputLine);
-                    System.out.println(inputLine);
-                } else {
-                    System.out.println("nothing to out");
-                    break;
-                }
-            }
-            process.waitFor();
-
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        return new ShellCommandResult(outList, errList);
-    }
-
-    public interface MakeDoneListener {
-        void makeDone();
-    }
 }
