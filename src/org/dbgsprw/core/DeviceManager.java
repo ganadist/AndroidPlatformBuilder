@@ -104,7 +104,7 @@ public class DeviceManager {
         command.add("-s");
         command.add(device.getSerialNumber());
         command.add("root");
-        mShellCommandExecutor.executeShellCommand(command);
+      //  mShellCommandExecutor.executeShellCommand(command);
     }
 
     public void adbSync(IDevice device, String argument,
@@ -127,7 +127,7 @@ public class DeviceManager {
         command.add("-s");
         command.add(deviceSerialNumber);
         command.add("reboot");
-        mShellCommandExecutor.executeShellCommand(command);
+        //mShellCommandExecutor.executeShellCommand(command);
     }
 
     /*

@@ -1,9 +1,13 @@
 package org.dbgsprw.core;
 
+import com.android.ddmlib.IDevice;
+import com.android.ddmlib.IShellOutputReceiver;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Map;
 
@@ -38,9 +42,9 @@ public class ShellCommandExecutor {
         return mProcessBuilder.environment();
     }
 
-    public void executeShellCommand(ArrayList<String> command) {
-        mProcessBuilder.redirectOutput(ProcessBuilder.Redirect.INHERIT);
-        mProcessBuilder.redirectError(ProcessBuilder.Redirect.INHERIT);
+    public void executeShellCommand(ArrayList<String> command, IShellOutputReceiver iShellOutputReceiver) {
+    //    mProcessBuilder.redirectOutput(ProcessBuilder.Redirect.INHERIT);
+    //    mProcessBuilder.redirectError(ProcessBuilder.Redirect.INHERIT);
         mProcessBuilder.command(command);
         Process process = null;
 
@@ -50,9 +54,25 @@ public class ShellCommandExecutor {
             e.printStackTrace();
         }
         try {
+            BufferedReader bufferedInputReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            mProcessBuilder.redirectError(mProcessBuilder.redirectInput());
+            String inputLine, errorLine;
+
+            boolean hasAnythingOut = true;
+            while (hasAnythingOut) {
+                hasAnythingOut = false;
+                if ((inputLine = bufferedInputReader.readLine()) != null) {
+                    iShellOutputReceiver.addOutput(inputLine.getBytes(), 0 , inputLine.length());
+                    iShellOutputReceiver.flush();
+                    hasAnythingOut = true;
+                }
+
+            }
             process.waitFor();
         } catch (InterruptedException e) {
             process.destroy();
+            e.printStackTrace();
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
@@ -62,7 +82,7 @@ public class ShellCommandExecutor {
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
-                executeShellCommand(command);
+            //    executeShellCommand(command);
                 shellThreadDoneListener.shellThreadDone();
             }
         });
