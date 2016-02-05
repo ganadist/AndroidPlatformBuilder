@@ -1,6 +1,5 @@
 package org.dbgsprw.view;
 
-import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.IDevice;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
@@ -20,13 +19,9 @@ import org.dbgsprw.exception.AndroidHomeNotFoundException;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import javax.swing.text.BadLocationException;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.PrintStream;
 import java.util.ArrayList;
 
 /**
@@ -80,12 +75,10 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
     private JPanel mFlashOptionPanel;
     private JLabel mDeviceListLabel;
     private JComboBox mDeviceListComboBox;
-    private JLabel mDeviceStatusLabel;
     private JLabel mFlashCommandLabel;
     private JLabel mModeLabel;
     private JTextArea mFlashCommandTextArea;
     private JButton mFlashStopButton;
-    private JLabel mDeviceStatus;
     private JLabel mOutDirLabel;
     private JComboBox mOutDirComboBox;
     private JButton mChooseOutDirButton;
@@ -98,6 +91,7 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
     private JLabel mFastBootArgumentLabel;
     private JCheckBox mWipeCheckBox;
     private JScrollPane mLogScroll;
+    private JCheckBox mVerboseCheckBox;
     private JFileChooser jFlashFileChooser;
 
     private ToolWindow mToolWindow;
@@ -166,255 +160,6 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
         mIsCreated = true;
 
     }
-
-    private void initFlashButtons() {
-        mOutDirComboBox.setPrototypeDisplayValue("XXXXXXXXX");
-        jFlashFileChooser.setCurrentDirectory(new File(mProjectPath + "/out"));
-        jFlashFileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-        jFlashFileChooser.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent actionEvent) {
-                File selectedDir = jFlashFileChooser.getSelectedFile();
-                if (selectedDir == null) return;
-                if (selectedDir.exists()) {
-                    mOutDirComboBox.addItem(selectedDir);
-                    mOutDirComboBox.setSelectedItem(selectedDir);
-                    jFlashFileChooser.setCurrentDirectory(selectedDir);
-                    mDeviceManager.setTargetProductPath(selectedDir);
-                } else {
-                    Messages.showMessageDialog(mProject, "Please select exist dir", "Android Builder",
-                            Messages.getInformationIcon());
-                }
-            }
-        });
-
-        mChooseOutDirButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent actionEvent) {
-                jFlashFileChooser.showDialog(mAndroidBuilderContent, "Choose");
-            }
-        });
-
-        mFlashButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent actionEvent) {
-                if (mOutDirComboBox.getSelectedItem() == null) {
-                    Messages.showMessageDialog(mProject, "Please choose out directory", "Android Builder",
-                            Messages.getInformationIcon());
-
-                } else if (mDeviceListComboBox.getSelectedItem() == null) {
-                    Messages.showMessageDialog(mProject, "Can't find device", "Android Builder",
-                            Messages.getInformationIcon());
-                } else {
-                    boolean wipe = mWipeCheckBox.isSelected();
-                    mDeviceManager.flash(mDeviceListComboBox.getSelectedItem().toString().split(" ")[1], wipe,
-                            fastBootArgumentComboBoxInterpreter(mFastBootArgumentComboBox.getSelectedItem()
-                                    .toString()), new ShellCommandExecutor.ThreadResultReceiver() {
-                                @Override
-                                public void newOut(String line) {
-                                    printLog(line);
-
-                                }
-
-                                @Override
-                                public void newError(String line) {
-                                    printLog(line);
-                                }
-
-                                @Override
-                                public void shellThreadDone() {
-                                    mFlashButton.setEnabled(true);
-                                    mSyncButton.setEnabled(true);
-                                    mFlashStopButton.setEnabled(false);
-                                }
-                            });
-                    mFlashButton.setEnabled(false);
-                    mSyncButton.setEnabled(false);
-                    mFlashStopButton.setEnabled(true);
-                }
-            }
-        });
-
-        mSyncButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent actionEvent) {
-                if (mOutDirComboBox.getSelectedItem() == null) {
-                    Messages.showMessageDialog(mProject, "Please choose out directory", "Android Builder",
-                            Messages.getInformationIcon());
-                } else if (mDeviceListComboBox.getSelectedItem() == null) {
-                    Messages.showMessageDialog(mProject, "Can't find device", "Android Builder",
-                            Messages.getInformationIcon());
-                } else {
-                    String argument = mAdbSyncArgumentComboBox.getSelectedItem().toString();
-                    if ("All".equals(argument)) {
-                        argument = null;
-                    }
-                    mDeviceManager.adbSync((IDevice) mDeviceListComboBox.getSelectedItem(),
-                            argument, new ShellCommandExecutor.ThreadResultReceiver() {
-                                @Override
-                                public void newOut(String line) {
-                                    printLog(line);
-
-                                }
-
-                                @Override
-                                public void newError(String line) {
-                                    printLog(line);
-
-                                }
-                                @Override
-                                public void shellThreadDone() {
-                                    mFlashButton.setEnabled(true);
-                                    mSyncButton.setEnabled(true);
-                                    mFlashStopButton.setEnabled(false);
-                                }
-
-                            });
-                            mFlashButton.setEnabled(false);
-                    mSyncButton.setEnabled(false);
-                    mFlashStopButton.setEnabled(true);
-                }
-            }
-        });
-
-        mRebootBootloaderButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent actionEvent) {
-                mDeviceManager.rebootDeviceBootloader((IDevice) mDeviceListComboBox.getSelectedItem());
-              /*  for (String fastBootDevice : mDeviceManager.getFastBootDevices()) {
-                    mDeviceListComboBox.addItem("fastboot " + fastBootDevice);
-                }*/
-            }
-        });
-
-        mRebootButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent actionEvent) {
-                mDeviceManager.rebootDevice(mDeviceListComboBox.getSelectedItem().toString());
-            }
-        });
-
-        mFlashStopButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent actionEvent) {
-                mDeviceManager.stopFlash();
-                mDeviceManager.stopAdbSync();
-                mFlashButton.setEnabled(true);
-                mSyncButton.setEnabled(true);
-                mFlashStopButton.setEnabled(false);
-            }
-        });
-
-    }
-
-
-    private void initFlashPanelComboBoxes() {
-        mDeviceListComboBox.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent actionEvent) {
-                changeFlashButton();
-            }
-        });
-        mDeviceManager.addDeviceChangeListener(new FastBootMonitor.DeviceChangeListener() {
-            @Override
-            public void deviceConnected(IDevice device) {
-                mDeviceListComboBox.addItem(device);
-                printLog("device connected : " + device);
-            }
-
-            @Override
-            public void deviceDisconnected(IDevice device) {
-                mDeviceListComboBox.removeItem(device);
-                printLog("device disconnected : " + device);
-            }
-
-            @Override
-            public void deviceChanged(IDevice device, int changeMask) {
-
-            }
-
-            @Override
-            public void fastBootDeviceConnected(String serialNumber) {
-                mDeviceListComboBox.addItem("fastboot " + serialNumber);
-                printLog("fastboot device connected : " + serialNumber);
-
-            }
-
-            @Override
-            public void fastBootDeviceDisconnected(String serialNumber) {
-                mDeviceListComboBox.removeItem("fastboot " +serialNumber);
-                printLog("fastboot device disconnected : " + serialNumber);
-            }
-        });
-
-        mFastBootArgumentComboBox.addItem("flashall");
-        mFastBootArgumentComboBox.addItem("update");
-        mFastBootArgumentComboBox.addItem("boot");
-        mFastBootArgumentComboBox.addItem("cache");
-        mFastBootArgumentComboBox.addItem("oem");
-        mFastBootArgumentComboBox.addItem("recovery");
-        mFastBootArgumentComboBox.addItem("system");
-        mFastBootArgumentComboBox.addItem("userdata");
-        mFastBootArgumentComboBox.addItem("vendor");
-
-        mAdbSyncArgumentComboBox.addItem("All");
-        mAdbSyncArgumentComboBox.addItem("system");
-        mAdbSyncArgumentComboBox.addItem("vendor");
-        mAdbSyncArgumentComboBox.addItem("oem");
-        mAdbSyncArgumentComboBox.addItem("data");
-    }
-
-    private String[] fastBootArgumentComboBoxInterpreter(String argument) {
-        String[] arguments = null;
-        if ("update".equals(argument))
-            arguments = new String[]{"update", "update.zip"};
-        else if ("boot".equals(argument))
-            arguments = new String[]{"flash", "boot", "boot.img"};
-        else if ("cache".equals(argument))
-            arguments = new String[]{"flash", "cache", "cache.img"};
-        else if ("oem".equals(argument))
-            arguments = new String[]{"flash", "oem", "oem.img"};
-        else if ("recovery".equals(argument))
-            arguments = new String[]{"flash", "recovery", "recovery.img"};
-        else if ("system".equals(argument))
-            arguments = new String[]{"flash", "system", "system.img"};
-        else if ("userdata".equals(argument))
-            arguments = new String[]{"flash", "userdata", "userdata.img"};
-        else if ("vendor".equals(argument))
-            arguments = new String[]{"flash", "vendor", "vendor.img"};
-        else
-            arguments = new String[]{argument};
-
-        return arguments;
-    }
-
-    private void changeFlashButton() {
-        if (mDeviceListComboBox.getSelectedItem() == null) return;
-        if (mFastbootRadioButton.isSelected()) {
-            mRebootButton.setVisible(false);
-            mSyncButton.setVisible(false);
-            if (mDeviceListComboBox.getSelectedItem().toString().contains("fastboot")) {
-                mRebootBootloaderButton.setVisible(false);
-                mFlashButton.setVisible(true);
-            } else {
-                mRebootBootloaderButton.setVisible(true);
-                mFlashButton.setVisible(false);
-            }
-        } else {
-            mRebootBootloaderButton.setVisible(false);
-            mFlashButton.setVisible(false);
-            if (mDeviceListComboBox.getSelectedItem().toString().contains("fastboot")) {
-                mRebootButton.setVisible(true);
-                mSyncButton.setVisible(false);
-            } else {
-                mRebootButton.setVisible(false);
-                mSyncButton.setVisible(true);
-            }
-        }
-
-
-    }
-
 
     public boolean isCreated() {
         return mIsCreated;
@@ -486,9 +231,9 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
         mMakeButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
-                mMakeStatusLabel.setText("Making... Please Wait");
                 mBuilder.setOneShotMakefile(null);
                 mBuilder.setTarget(null);
+                mBuilder.setVerbose(mVerboseCheckBox.isSelected());
                 String[] product = mProductComboBox.getSelectedItem().toString().split("-");
                 mBuilder.setMakeOptions(mJobNumberComboBox.getSelectedItem().toString(),
                         mResultPathComboBox.getSelectedItem().toString(),
@@ -547,25 +292,26 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
                         printLog(line);
 
                     }
+
                     public void shellThreadDone() {
-                        mMakeStatusLabel.setText("");
-                        mMakeButton.setEnabled(true);
-                        mMakeStopButton.setEnabled(false);
+                        mMakeButton.setVisible(true);
+                        mMakeStopButton.setVisible(false);
                     }
                 });
 
-                mMakeButton.setEnabled(false);
-                mMakeStopButton.setEnabled(true);
+                mMakeButton.setVisible(false);
+                mMakeStopButton.setVisible(true);
             }
         });
         mMakeStopButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
                 mBuilder.stopMake();
-                mMakeButton.setEnabled(true);
-                mMakeStopButton.setEnabled(false);
+                mMakeButton.setVisible(true);
+                mMakeStopButton.setVisible(false);
             }
         });
+        mMakeStopButton.setVisible(false);
     }
 
     private void initMakePanelRadioButtons() {
@@ -686,6 +432,280 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
             }
         });
         mFastbootRadioButton.doClick();
+    }
+
+    private void initFlashButtons() {
+        mOutDirComboBox.setPrototypeDisplayValue("XXXXXXXXX");
+        jFlashFileChooser.setCurrentDirectory(new File(mProjectPath + "/out"));
+        jFlashFileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+        jFlashFileChooser.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                File selectedDir = jFlashFileChooser.getSelectedFile();
+                if (selectedDir == null) return;
+                if (selectedDir.exists()) {
+                    mOutDirComboBox.addItem(selectedDir);
+                    mOutDirComboBox.setSelectedItem(selectedDir);
+                    jFlashFileChooser.setCurrentDirectory(selectedDir);
+                    mDeviceManager.setTargetProductPath(selectedDir);
+                } else {
+                    Messages.showMessageDialog(mProject, "Please select exist dir", "Android Builder",
+                            Messages.getInformationIcon());
+                }
+            }
+        });
+
+        mChooseOutDirButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                jFlashFileChooser.showDialog(mAndroidBuilderContent, "Choose");
+            }
+        });
+
+        mFlashButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                if (mOutDirComboBox.getSelectedItem() == null) {
+                    Messages.showMessageDialog(mProject, "Please choose out directory", "Android Builder",
+                            Messages.getInformationIcon());
+
+                } else if (mDeviceListComboBox.getSelectedItem() == null) {
+                    Messages.showMessageDialog(mProject, "Can't find device", "Android Builder",
+                            Messages.getInformationIcon());
+                } else {
+                    boolean wipe = mWipeCheckBox.isSelected();
+                    mDeviceManager.flash(mDeviceListComboBox.getSelectedItem().toString().split(" ")[1], wipe,
+                            fastBootArgumentComboBoxInterpreter(mFastBootArgumentComboBox.getSelectedItem()
+                                    .toString()), new ShellCommandExecutor.ThreadResultReceiver() {
+                                @Override
+                                public void newOut(String line) {
+                                    printLog(line);
+
+                                }
+
+                                @Override
+                                public void newError(String line) {
+                                    printLog(line);
+                                }
+
+                                @Override
+                                public void shellThreadDone() {
+                                    boolean isFastBootRadioButtonClicked = mFastbootRadioButton.isSelected();
+                                    mFlashButton.setVisible(isFastBootRadioButtonClicked);
+                                    mSyncButton.setVisible(!isFastBootRadioButtonClicked);
+                                    mFlashStopButton.setVisible(false);
+                                }
+                            });
+                    mFlashButton.setVisible(false);
+                    mSyncButton.setVisible(false);
+                    mFlashStopButton.setVisible(true);
+                }
+            }
+        });
+
+        mSyncButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                if (mOutDirComboBox.getSelectedItem() == null) {
+                    Messages.showMessageDialog(mProject, "Please choose out directory", "Android Builder",
+                            Messages.getInformationIcon());
+                } else if (mDeviceListComboBox.getSelectedItem() == null) {
+                    Messages.showMessageDialog(mProject, "Can't find device", "Android Builder",
+                            Messages.getInformationIcon());
+                } else {
+                    String argument = mAdbSyncArgumentComboBox.getSelectedItem().toString();
+                    if ("All".equals(argument)) {
+                        argument = null;
+                    }
+                    mDeviceManager.adbSync((IDevice) mDeviceListComboBox.getSelectedItem(),
+                            argument, new ShellCommandExecutor.ThreadResultReceiver() {
+                                @Override
+                                public void newOut(String line) {
+                                    printLog(line);
+
+                                }
+
+                                @Override
+                                public void newError(String line) {
+                                    printLog(line);
+
+                                }
+
+                                @Override
+                                public void shellThreadDone() {
+                                    boolean isFastBootRadioButtonClicked = mFastbootRadioButton.isSelected();
+                                    mFlashButton.setVisible(isFastBootRadioButtonClicked);
+                                    mSyncButton.setVisible(!isFastBootRadioButtonClicked);
+                                    mFlashStopButton.setVisible(false);
+                                }
+                            });
+                    mFlashButton.setVisible(false);
+                    mSyncButton.setVisible(false);
+                    mFlashStopButton.setVisible(true);
+                }
+            }
+        });
+
+        mRebootBootloaderButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                mDeviceManager.rebootDeviceBootloader((IDevice) mDeviceListComboBox.getSelectedItem());
+              /*  for (String fastBootDevice : mDeviceManager.getFastBootDevices()) {
+                    mDeviceListComboBox.addItem("fastboot " + fastBootDevice);
+                }*/
+            }
+        });
+
+        mRebootButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                mDeviceManager.rebootDevice(mDeviceListComboBox.getSelectedItem().toString().split(" ")[1],
+                        new ShellCommandExecutor.ResultReceiver() {
+                            @Override
+                            public void newOut(String line) {
+                                printLog(line);
+                            }
+
+                            @Override
+                            public void newError(String line) {
+                                printLog(line);
+                            }
+                        });
+            }
+        });
+
+        mFlashStopButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                mDeviceManager.stopFlash();
+                mDeviceManager.stopAdbSync();
+                boolean isFastBootRadioButtonClicked = mFastbootRadioButton.isSelected();
+                mFlashButton.setVisible(isFastBootRadioButtonClicked);
+                mSyncButton.setVisible(!isFastBootRadioButtonClicked);
+
+                mFlashStopButton.setVisible(false);
+            }
+        });
+        mFlashStopButton.setVisible(false);
+
+    }
+
+    private void initFlashPanelComboBoxes() {
+        mDeviceListComboBox.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                changeFlashButton();
+            }
+        });
+        mDeviceManager.addDeviceChangeListener(new FastBootMonitor.DeviceChangeListener() {
+            @Override
+            public void deviceConnected(IDevice device) {
+                mDeviceListComboBox.addItem(device);
+                mDeviceManager.adbRoot(device, new ShellCommandExecutor.ResultReceiver() {
+                    @Override
+                    public void newOut(String line) {
+
+                    }
+
+                    @Override
+                    public void newError(String line) {
+
+                    }
+                });
+                printLog("device connected : " + device);
+            }
+
+            @Override
+            public void deviceDisconnected(IDevice device) {
+                mDeviceListComboBox.removeItem(device);
+                printLog("device disconnected : " + device);
+            }
+
+            @Override
+            public void deviceChanged(IDevice device, int changeMask) {
+
+            }
+
+            @Override
+            public void fastBootDeviceConnected(String serialNumber) {
+                mDeviceListComboBox.addItem("fastboot " + serialNumber);
+                printLog("fastboot device connected : " + serialNumber);
+
+            }
+
+            @Override
+            public void fastBootDeviceDisconnected(String serialNumber) {
+                mDeviceListComboBox.removeItem("fastboot " + serialNumber);
+                printLog("fastboot device disconnected : " + serialNumber);
+            }
+        });
+
+        mFastBootArgumentComboBox.addItem("flashall");
+        mFastBootArgumentComboBox.addItem("update");
+        mFastBootArgumentComboBox.addItem("boot");
+        mFastBootArgumentComboBox.addItem("cache");
+        mFastBootArgumentComboBox.addItem("oem");
+        mFastBootArgumentComboBox.addItem("recovery");
+        mFastBootArgumentComboBox.addItem("system");
+        mFastBootArgumentComboBox.addItem("userdata");
+        mFastBootArgumentComboBox.addItem("vendor");
+
+        mAdbSyncArgumentComboBox.addItem("All");
+        mAdbSyncArgumentComboBox.addItem("system");
+        mAdbSyncArgumentComboBox.addItem("vendor");
+        mAdbSyncArgumentComboBox.addItem("oem");
+        mAdbSyncArgumentComboBox.addItem("data");
+    }
+
+    private String[] fastBootArgumentComboBoxInterpreter(String argument) {
+        String[] arguments = null;
+        if ("update".equals(argument))
+            arguments = new String[]{"update", "update.zip"};
+        else if ("boot".equals(argument))
+            arguments = new String[]{"flash", "boot", "boot.img"};
+        else if ("cache".equals(argument))
+            arguments = new String[]{"flash", "cache", "cache.img"};
+        else if ("oem".equals(argument))
+            arguments = new String[]{"flash", "oem", "oem.img"};
+        else if ("recovery".equals(argument))
+            arguments = new String[]{"flash", "recovery", "recovery.img"};
+        else if ("system".equals(argument))
+            arguments = new String[]{"flash", "system", "system.img"};
+        else if ("userdata".equals(argument))
+            arguments = new String[]{"flash", "userdata", "userdata.img"};
+        else if ("vendor".equals(argument))
+            arguments = new String[]{"flash", "vendor", "vendor.img"};
+        else
+            arguments = new String[]{argument};
+
+        return arguments;
+    }
+
+    private void changeFlashButton() {
+        if (mDeviceListComboBox.getSelectedItem() == null) return;
+        if (mFastbootRadioButton.isSelected()) {
+            mRebootButton.setVisible(false);
+            mSyncButton.setVisible(false);
+            if (mDeviceListComboBox.getSelectedItem().toString().contains("fastboot")) {
+                mRebootBootloaderButton.setVisible(false);
+                mFlashButton.setVisible(true);
+            } else {
+                mRebootBootloaderButton.setVisible(true);
+                mFlashButton.setVisible(false);
+            }
+        } else {
+            mRebootBootloaderButton.setVisible(false);
+            mFlashButton.setVisible(false);
+            if (mDeviceListComboBox.getSelectedItem().toString().contains("fastboot")) {
+                mRebootButton.setVisible(true);
+                mSyncButton.setVisible(false);
+            } else {
+                mRebootButton.setVisible(false);
+                mSyncButton.setVisible(true);
+            }
+        }
+
+
     }
 
     private void printLog(String log) {

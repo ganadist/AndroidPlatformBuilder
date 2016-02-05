@@ -24,7 +24,7 @@ public class FilteredTextArea {
 
     private final JScrollPane mJScrollPanel;
     private JTextArea mJTextArea;
-    private int lineSize = 500;
+    private int lineSize = 1000;
 
     private int autoDownHeight = 500;
 

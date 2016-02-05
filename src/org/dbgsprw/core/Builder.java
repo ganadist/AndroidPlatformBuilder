@@ -27,6 +27,7 @@ public class Builder {
     private String mTargetBuildVariant;
     private String mOutDir;
     private String mTarget;
+    private boolean mIsVerbose;
 
 
     private String mOneShotMakefile;
@@ -116,6 +117,9 @@ public class Builder {
         if (mOutDir != null) {
             makeCommandLine.add("OUT_DIR=" + mOutDir);
         }
+        if (mIsVerbose) {
+            makeCommandLine.add("showcommands");
+        }
         mMakeThread = mShellCommandExecutor.executeShellCommandInThread(makeCommandLine, threadResultReceiver);
     }
 
@@ -155,6 +159,10 @@ public class Builder {
 
     public void setTarget(String target) {
         mTarget = target;
+    }
+
+    public void setVerbose(boolean isVerbose) {
+        mIsVerbose = isVerbose;
     }
 
     public void setMakeOptions(String jobNumber, String outDir, String targetProduct, String targetBuildVariant) {

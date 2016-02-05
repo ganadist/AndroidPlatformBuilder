@@ -98,13 +98,13 @@ public class DeviceManager {
         }
     }
 
-    public void adbRoot(IDevice device) {
+    public void adbRoot(IDevice device, ShellCommandExecutor.ResultReceiver resultReceiver) {
         ArrayList<String> command = new ArrayList<>();
         command.add("adb");
         command.add("-s");
         command.add(device.getSerialNumber());
         command.add("root");
-      //  mShellCommandExecutor.executeShellCommand(command);
+        mShellCommandExecutor.executeShellCommand(command, resultReceiver);
     }
 
     public void adbSync(IDevice device, String argument, ShellCommandExecutor.ThreadResultReceiver threadResultReceiver) {
@@ -120,13 +120,13 @@ public class DeviceManager {
     }
 
 
-    public void rebootDevice(String deviceSerialNumber) {
+    public void rebootDevice(String deviceSerialNumber, ShellCommandExecutor.ResultReceiver resultReceiver) {
         ArrayList<String> command = new ArrayList<>();
         command.add("fastboot");
         command.add("-s");
         command.add(deviceSerialNumber);
         command.add("reboot");
-        //mShellCommandExecutor.executeShellCommand(command);
+        mShellCommandExecutor.executeShellCommand(command, resultReceiver);
     }
 
     /*
