@@ -115,7 +115,6 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
 
         // set Make configuration
         mProjectPath = project.getBasePath();
-        mProjectPath = "/home/myoo/WORKSPACE";
         mBuilder = new Builder(mProjectPath);
         if (!mBuilder.isAOSPPath()) {
             Messages.showMessageDialog(mProject, "This Project is Not AOSP.", "Android Builder",
