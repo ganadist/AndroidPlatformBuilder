@@ -22,7 +22,7 @@
         </properties>
         <border type="none"/>
         <children>
-          <scrollpane id="e1126">
+          <scrollpane id="e1126" binding="mLogScroll">
             <constraints>
               <splitpane position="right"/>
             </constraints>

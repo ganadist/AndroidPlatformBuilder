@@ -71,6 +71,7 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
     private JRadioButton mFastbootRadioButton;
     private JRadioButton mAdbSyncRadioButton;
     private JTextArea mLogArea;
+    private FilteredTextArea mFilteredLogArea;
     private JPanel mMakeOptionPanel;
     private JLabel mProductLabel;
     private JLabel mJobNumberLabel;
@@ -96,6 +97,7 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
     private JComboBox mFastBootArgumentComboBox;
     private JLabel mFastBootArgumentLabel;
     private JCheckBox mWipeCheckBox;
+    private JScrollPane mLogScroll;
     private JFileChooser jFlashFileChooser;
 
     private ToolWindow mToolWindow;
@@ -116,8 +118,8 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
     @Override
     public void createToolWindowContent(@NotNull final Project project, @NotNull ToolWindow toolWindow) {
 
-        // set Make configuration
 
+        // set Make configuration
         mProjectPath = project.getBasePath();
         mProjectPath = "/home/myoo/WORKSPACE";
         mBuilder = new Builder(mProjectPath);
@@ -145,6 +147,7 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
         ContentFactory contentFactory = ContentFactory.SERVICE.getInstance();
         Content content = contentFactory.createContent(mAndroidBuilderContent, "", false);
         toolWindow.getContentManager().addContent(content);
+        mFilteredLogArea = new FilteredTextArea(mLogArea, mLogScroll);
 
         // make panel init
 
@@ -160,8 +163,8 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
         initFlashPanelComboBoxes();
         initFlashButtons();
 
-
         mIsCreated = true;
+
     }
 
     private void initFlashButtons() {
@@ -206,13 +209,23 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
                     boolean wipe = mWipeCheckBox.isSelected();
                     mDeviceManager.flash(mDeviceListComboBox.getSelectedItem().toString().split(" ")[1], wipe,
                             fastBootArgumentComboBoxInterpreter(mFastBootArgumentComboBox.getSelectedItem()
-                                    .toString()), new ShellCommandExecutor.ShellThreadDoneListener() {
+                                    .toString()), new ShellCommandExecutor.ThreadResultReceiver() {
+                                @Override
+                                public void newOut(String line) {
+                                    printLog(line);
+
+                                }
+
+                                @Override
+                                public void newError(String line) {
+                                    printLog(line);
+                                }
+
                                 @Override
                                 public void shellThreadDone() {
                                     mFlashButton.setEnabled(true);
                                     mSyncButton.setEnabled(true);
                                     mFlashStopButton.setEnabled(false);
-
                                 }
                             });
                     mFlashButton.setEnabled(false);
@@ -237,15 +250,27 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
                         argument = null;
                     }
                     mDeviceManager.adbSync((IDevice) mDeviceListComboBox.getSelectedItem(),
-                            argument, new ShellCommandExecutor.ShellThreadDoneListener() {
+                            argument, new ShellCommandExecutor.ThreadResultReceiver() {
+                                @Override
+                                public void newOut(String line) {
+                                    printLog(line);
+
+                                }
+
+                                @Override
+                                public void newError(String line) {
+                                    printLog(line);
+
+                                }
                                 @Override
                                 public void shellThreadDone() {
                                     mFlashButton.setEnabled(true);
                                     mSyncButton.setEnabled(true);
                                     mFlashStopButton.setEnabled(false);
                                 }
+
                             });
-                    mFlashButton.setEnabled(false);
+                            mFlashButton.setEnabled(false);
                     mSyncButton.setEnabled(false);
                     mFlashStopButton.setEnabled(true);
                 }
@@ -508,8 +533,18 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
                 } else {
                     mBuilder.setTarget(mTargetComboBox.getSelectedItem().toString());
                 }
-                mBuilder.executeMake(new ShellCommandExecutor.ShellThreadDoneListener() {
+                mBuilder.executeMake(new ShellCommandExecutor.ThreadResultReceiver() {
                     @Override
+                    public void newOut(String line) {
+                        printLog(line);
+
+                    }
+
+                    @Override
+                    public void newError(String line) {
+                        printLog(line);
+
+                    }
                     public void shellThreadDone() {
                         mMakeStatusLabel.setText("");
                         mMakeButton.setEnabled(true);
@@ -652,11 +687,8 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
     }
 
     private void printLog(String log) {
-        mLogArea.append(log + "\n");
+        mFilteredLogArea.filteringAppend(log + "\n");
     }
 
 
-    private void createUIComponents() {
-        // TODO: place custom component creation code here
-    }
 }

@@ -94,7 +94,7 @@ public class Builder {
         mMakeThread.start();
     }*/
 
-    public void executeMake(ShellCommandExecutor.ShellThreadDoneListener shellThreadDoneListener) {
+    public void executeMake(ShellCommandExecutor.ThreadResultReceiver threadResultReceiver) {
         final ArrayList<String> makeCommandLine;
 
         makeCommandLine = new ArrayList<>();
@@ -122,7 +122,7 @@ public class Builder {
             makeCommandLine.add("all_modules");
             makeCommandLine.add("ONE_SHOT_MAKEFILE=" + mOneShotMakefile);
         }
-        mMakeThread = mShellCommandExecutor.executeShellCommandInThread(makeCommandLine, shellThreadDoneListener);
+        mMakeThread = mShellCommandExecutor.executeShellCommandInThread(makeCommandLine, threadResultReceiver);
     }
 
     public void stopMake() {
@@ -174,8 +174,18 @@ public class Builder {
         ArrayList<String> getConfCommand = new ArrayList<>();
         getConfCommand.add("getconf");
         getConfCommand.add("_NPROCESSORS_ONLN");
-        ArrayList<String> outList = mShellCommandExecutor.executeShellCommandResult(getConfCommand).getOutList();
-        numberOfProcess = Integer.parseInt(outList.get(0));
+        mShellCommandExecutor.executeShellCommand(getConfCommand,
+                new ShellCommandExecutor.ResultReceiver() {
+            @Override
+            public void newOut(String line) {
+                numberOfProcess = Integer.parseInt(line);
+            }
+
+            @Override
+            public void newError(String line) {
+
+            }
+        });
     }
 
     private void updateLunchMenu() {
@@ -183,15 +193,25 @@ public class Builder {
         lunchCommand.add("bash");
         lunchCommand.add("-c");
         lunchCommand.add("source build/envsetup.sh > /dev/null ;" + "echo ${LUNCH_MENU_CHOICES[*]}");
-        ArrayList<String> outList = mShellCommandExecutor.executeShellCommandResult(lunchCommand).getOutList();
-        String line = outList.get(0);
-        if("".equals(line)) {
-            mIsAOSPPath = false;
-            return;
-        }
-        mIsAOSPPath = true;
-        String[] lunchMenus = line.split(" ");
-        for (String lunchMenu : lunchMenus) mLunchMenuList.add(lunchMenu);
+        mShellCommandExecutor.executeShellCommand(lunchCommand,
+                new ShellCommandExecutor.ResultReceiver() {
+            @Override
+            public void newOut(String line) {
+                if("".equals(line)) {
+                    mIsAOSPPath = false;
+                    return;
+                }
+                mIsAOSPPath = true;
+                String[] lunchMenus = line.split(" ");
+                for (String lunchMenu : lunchMenus) mLunchMenuList.add(lunchMenu);
+            }
+
+            @Override
+            public void newError(String line) {
+
+            }
+        });
+
     }
 
     public boolean isAOSPPath() {

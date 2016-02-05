@@ -107,8 +107,7 @@ public class DeviceManager {
       //  mShellCommandExecutor.executeShellCommand(command);
     }
 
-    public void adbSync(IDevice device, String argument,
-                        ShellCommandExecutor.ShellThreadDoneListener shellThreadDoneListener) {
+    public void adbSync(IDevice device, String argument, ShellCommandExecutor.ThreadResultReceiver threadResultReceiver) {
         ArrayList<String> command = new ArrayList<>();
         command.add("adb");
         command.add("-s");
@@ -117,7 +116,7 @@ public class DeviceManager {
         if (argument != null) {
             command.add(argument);
         }
-        mAdbSyncThread = mShellCommandExecutor.executeShellCommandInThread(command, shellThreadDoneListener);
+        mAdbSyncThread = mShellCommandExecutor.executeShellCommandInThread(command, threadResultReceiver);
     }
 
 
@@ -136,7 +135,7 @@ public class DeviceManager {
     @param wipe -w option
     */
     public void flash(String deviceSerialNumber, boolean wipe, String[] arguments,
-                      ShellCommandExecutor.ShellThreadDoneListener shellThreadDoneListener) {
+                      ShellCommandExecutor.ThreadResultReceiver threadResultReceiver) {
         ArrayList<String> command = new ArrayList<>();
         command.add("fastboot");
         command.add("-s");
@@ -148,7 +147,7 @@ public class DeviceManager {
         for (String argument :arguments) {
             command.add(argument);
         }
-        mFlashThread = mShellCommandExecutor.executeShellCommandInThread(command, shellThreadDoneListener);
+        mFlashThread = mShellCommandExecutor.executeShellCommandInThread(command, threadResultReceiver);
     }
 
     public void setTargetProductPath(File directory) {
