@@ -472,7 +472,8 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
                 if (mMmRadioButton.isSelected()) {
                     String selectedPath = mTargetDirComboBox.getSelectedItem().toString();
                     if (CURRENT_PATH.equals(selectedPath)) {
-                        Document currentDoc = FileEditorManager.getInstance(mProject).getSelectedTextEditor().getDocument();
+                        Document currentDoc = FileEditorManager.getInstance(mProject).getSelectedTextEditor().
+                                getDocument();
                         VirtualFile currentDir = FileDocumentManager.getInstance().getFile(currentDoc).getParent();
                         String path = currentDir.getPath();
 
@@ -503,6 +504,7 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
                     } else {
                         mBuilder.setOneShotMakefile(selectedPath + File.separator + "Android.mk");
                     }
+                    mBuilder.setTarget("all_modules");
 
 
                 } else {

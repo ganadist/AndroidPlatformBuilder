@@ -99,11 +99,18 @@ public class Builder {
 
         makeCommandLine = new ArrayList<>();
         makeCommandLine.add("make");
+        makeCommandLine.add("-C");
+        makeCommandLine.add(mProjectPath);
+        makeCommandLine.add("-f");
+        makeCommandLine.add("build/core/main.mk");
         if (mJobNumber != null) {
             makeCommandLine.add("-j" + mJobNumber);
         }
         if (mTarget != null) {
             makeCommandLine.add(mTarget);
+        }
+        if (mOneShotMakefile != null) {
+            makeCommandLine.add("ONE_SHOT_MAKEFILE=" + mOneShotMakefile);
         }
         if (mTargetProduct != null) {
             makeCommandLine.add("TARGET_PRODUCT=" + mTargetProduct);
@@ -113,14 +120,6 @@ public class Builder {
         }
         if (mOutDir != null) {
             makeCommandLine.add("OUT_DIR=" + mOutDir);
-        }
-        if (mOneShotMakefile != null) {
-            makeCommandLine.add("-C");
-            makeCommandLine.add(mProjectPath);
-            makeCommandLine.add("-f");
-            makeCommandLine.add("build/core/main.mk");
-            makeCommandLine.add("all_modules");
-            makeCommandLine.add("ONE_SHOT_MAKEFILE=" + mOneShotMakefile);
         }
         mMakeThread = mShellCommandExecutor.executeShellCommandInThread(makeCommandLine, shellThreadDoneListener);
     }

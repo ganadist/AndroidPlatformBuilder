@@ -56,12 +56,12 @@ public class FastBootMonitor {
                             isExist[sDeviceSerialNumbers.indexOf(deviceSerialNumber)] = true;
                         }
                     }
-                    for (int i = 0; i < length; i++) {
+                    for (int i = 0, serialNumberIndex = 0; i < length; i++) {
                         if (!isExist[i]) {
-                            deviceDisconnected(sDeviceSerialNumbers.get(i));
-                            sDeviceSerialNumbers.remove(i);
-                            length--;
-                            i--;
+                            deviceDisconnected(sDeviceSerialNumbers.get(serialNumberIndex));
+                            sDeviceSerialNumbers.remove(serialNumberIndex);
+                        } else {
+                            serialNumberIndex++;
                         }
                     }
                     try {
