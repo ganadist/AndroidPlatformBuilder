@@ -38,9 +38,7 @@ public class ShellCommandExecutor {
         return mProcessBuilder.environment();
     }
 
-    public void executeShellCommand(ArrayList<String> command) {
-        mProcessBuilder.redirectOutput(ProcessBuilder.Redirect.INHERIT);
-        mProcessBuilder.redirectError(ProcessBuilder.Redirect.INHERIT);
+    public void executeShellCommand(ArrayList<String> command, final ResultReceiver resultReceiver) {
         mProcessBuilder.command(command);
         Process process = null;
 
@@ -49,6 +47,39 @@ public class ShellCommandExecutor {
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        final Process finalProcess = process;
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                BufferedReader bufferedErrorReader = new BufferedReader(new InputStreamReader(finalProcess.getErrorStream()));
+                String errorLine;
+                try {
+                    while ((errorLine = bufferedErrorReader.readLine()) != null) {
+                        resultReceiver.newError(errorLine);
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+            }
+        }).start();
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                BufferedReader bufferedInputReader = new BufferedReader(new InputStreamReader(finalProcess.getInputStream()));
+                String inputLine;
+                try {
+                    while ((inputLine = bufferedInputReader.readLine()) != null) {
+                        resultReceiver.newOut(inputLine);
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+            }
+        }).start();
         try {
             process.waitFor();
         } catch (InterruptedException e) {
@@ -58,12 +89,12 @@ public class ShellCommandExecutor {
     }
 
     public Thread executeShellCommandInThread(final ArrayList<String> command,
-                                              final ShellThreadDoneListener shellThreadDoneListener) {
+                                              final ThreadResultReceiver threadResultReceiver) {
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
-                executeShellCommand(command);
-                shellThreadDoneListener.shellThreadDone();
+                executeShellCommand(command, threadResultReceiver);
+                threadResultReceiver.shellThreadDone();
             }
         });
         thread.start();
@@ -71,6 +102,7 @@ public class ShellCommandExecutor {
 
     }
 
+    /*
     public ShellCommandResult executeShellCommandResult(ArrayList<String> command) {
         ArrayList<String> outList = new ArrayList<>();
         ArrayList<String> errList = new ArrayList<>();
@@ -84,12 +116,16 @@ public class ShellCommandExecutor {
             BufferedReader bufferedErrorReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
             String inputLine, errorLine;
 
+            boolean hasError;
             while (true) {
+                hasError = false;
                 if ((errorLine = bufferedErrorReader.readLine()) != null) {
+                    hasError = true;
                     errList.add(errorLine);
-                } else if ((inputLine = bufferedInputReader.readLine()) != null) {
+                }
+                if ((inputLine = bufferedInputReader.readLine()) != null) {
                     outList.add(inputLine);
-                } else {
+                } else if (hasError == false) {
                     break;
                 }
             }
@@ -104,9 +140,17 @@ public class ShellCommandExecutor {
         return new ShellCommandResult(outList, errList);
 
 
+    }*/
+
+    public interface ResultReceiver {
+        void newOut(String line);
+
+        void newError(String line);
     }
 
-    public interface ShellThreadDoneListener {
+    public interface ThreadResultReceiver extends ResultReceiver {
+
         void shellThreadDone();
     }
+
 }

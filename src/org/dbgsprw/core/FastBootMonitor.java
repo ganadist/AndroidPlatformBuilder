@@ -43,8 +43,19 @@ public class FastBootMonitor {
                     ArrayList<String> command = new ArrayList<>();
                     command.add("fastboot");
                     command.add("devices");
-                    ShellCommandResult shellCommandResult = sShellCommandExecutor.executeShellCommandResult(command);
-                    ArrayList<String> outList = shellCommandResult.getOutList();
+                    final ArrayList<String> outList = new ArrayList<>();
+                    sShellCommandExecutor.executeShellCommand(command,
+                            new ShellCommandExecutor.ResultReceiver() {
+                        @Override
+                        public void newOut(String line) {
+                            outList.add(line);
+                        }
+
+                        @Override
+                        public void newError(String line) {
+
+                        }
+                    });
                     boolean[] isExist = new boolean[sDeviceSerialNumbers.size()];
                     int length = isExist.length;
                     for (String out : outList) {
