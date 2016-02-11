@@ -30,10 +30,11 @@ public class Builder {
     private String mTarget;
     private boolean mIsVerbose;
     private String mOneShotMakefile;
-    private int numberOfProcess;
+    private int mNumberOfProcess;
     private String mJobNumber;
     private Thread mMakeThread;
     private boolean mIsAOSPPath;
+    private String mProductOutPath;
 
 
     public Builder(String projectPath) {
@@ -114,6 +115,7 @@ public class Builder {
             makeCommandLine.add("showcommands");
         }
         mMakeThread = mShellCommandExecutor.executeShellCommandInThread(makeCommandLine, threadResultReceiver);
+
     }
 
     public void stopMake() {
@@ -123,7 +125,7 @@ public class Builder {
     }
 
     public int getNumberOfProcess() {
-        return numberOfProcess;
+        return mNumberOfProcess;
     }
 
     public ArrayList<String> getLunchMenuList() {
@@ -172,7 +174,7 @@ public class Builder {
         mShellCommandExecutor.executeShellCommand(getConfCommand, new ShellCommandExecutor.ResultReceiver() {
             @Override
             public void newOut(String line) {
-                numberOfProcess = Integer.parseInt(line);
+                mNumberOfProcess = Integer.parseInt(line);
             }
 
             @Override
@@ -210,4 +212,11 @@ public class Builder {
         return mIsAOSPPath;
     }
 
+    public void findOriginalProductOutPath(String lunchMenu, ShellCommandExecutor.ThreadResultReceiver threadResultReceiver) {
+        ArrayList<String> command = new ArrayList<>();
+        command.add("bash");
+        command.add("-c");
+        command.add("source build/envsetup.sh > /dev/null;" + " lunch " + lunchMenu + " > /dev/null; echo $ANDROID_PRODUCT_OUT");
+        mShellCommandExecutor.executeShellCommandInThread(command, threadResultReceiver);
+    }
 }

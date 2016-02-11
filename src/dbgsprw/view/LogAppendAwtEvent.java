@@ -1,6 +1,7 @@
 package dbgsprw.view;
 
-import java.awt.*;
+
+import java.awt.AWTEvent;
 
 /**
  * Copyright 2016 dbgsprw / dbgsprw@gmail.com
@@ -20,17 +21,16 @@ import java.awt.*;
 
 public class LogAppendAwtEvent extends AWTEvent {
 
-    public static final int EVENT_ID = AWTEvent.RESERVED_ID_MAX + 1;
-    private String str;
-    private int percent;
+    public static final int EVENT_ID = AWTEvent.RESERVED_ID_MAX + 427;
+    private String mTextLine;
 
-    LogAppendAwtEvent(Object target, String str) {
+    LogAppendAwtEvent(Object target, String textLine) {
         super(target, EVENT_ID);
-        this.str = str;
+        this.mTextLine = textLine;
     }
 
-    public String getStr() {
-        return (str);
+    public String getString() {
+        return (mTextLine);
     }
 
 

@@ -1,8 +1,9 @@
 package dbgsprw.view;
 
-import javax.swing.*;
-import javax.swing.text.Document;
-import java.awt.*;
+
+import javax.swing.JTextArea;
+import java.awt.Toolkit;
+import java.awt.AWTEvent;
 
 /**
  * Copyright 2016 dbgsprw / dbgsprw@gmail.com
@@ -22,34 +23,12 @@ import java.awt.*;
 
 public class FilteredTextArea extends JTextArea {
 
-    int caretPosition;
-    private JScrollPane mJScrollPanel;
-    private int lineSize = 1000;
-    private boolean isMousePressing;
-    private Document mDocument;
-    private JScrollBar mJScrollBar;
-    private boolean mIsViewingBottom;
-    private EventQueue mEventQueue;
+    private int mLineSize = 1000;
+    private java.awt.EventQueue mEventQueue;
 
     public FilteredTextArea() {
-
-        mDocument = getDocument();
-
+        setLineWrap(true);
         mEventQueue = Toolkit.getDefaultToolkit().getSystemEventQueue();
-    }
-
-    public void setScroll(JScrollPane scrollPane) {
-        mJScrollPanel = scrollPane;
-        mJScrollBar = mJScrollPanel.getVerticalScrollBar();
-        /*
-        mJScrollBar.addAdjustmentListener(new AdjustmentListener() {
-            @Override
-            public void adjustmentValueChanged(AdjustmentEvent adjustmentEvent) {
-                if (mIsViewingBottom) {
-                    setCaretPosition(getDocument().getLength());
-                }
-            }
-        });*/
     }
 
     public void postAppendEvent(String text) {
@@ -60,7 +39,7 @@ public class FilteredTextArea extends JTextArea {
 
     private void filteringAppend(String log) {
 
-        int excessLine = getLineCount() - lineSize;
+        int excessLine = getLineCount() - mLineSize;
         if (excessLine >= 1) {
             replaceRange("", 0, excessLine);
             setCaretPosition(getDocument().getLength());
@@ -73,7 +52,7 @@ public class FilteredTextArea extends JTextArea {
     protected void processEvent(AWTEvent event) {
         if (event instanceof LogAppendAwtEvent) {
             LogAppendAwtEvent logAppendAwtEvent = (LogAppendAwtEvent) event;
-            filteringAppend(logAppendAwtEvent.getStr());
+            filteringAppend(logAppendAwtEvent.getString());
         } else {
             super.processEvent(event);
         }
@@ -85,11 +64,11 @@ public class FilteredTextArea extends JTextArea {
     }
 
     public int getLineSize() {
-        return lineSize;
+        return mLineSize;
     }
 
     public void setLineSize(int lineSize) {
-        this.lineSize = lineSize;
+        this.mLineSize = lineSize;
     }
 
 }

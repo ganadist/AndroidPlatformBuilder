@@ -20,7 +20,6 @@ import dbgsprw.exception.AndroidHomeNotFoundException;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -106,9 +105,6 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
 
     public AndroidBuilderFactory() {
         mAndroidBuilderFactory = this;
-
-        Window[] window = Window.getWindows();
-        //   window[0].dispatchEvent();
     }
 
     synchronized public static AndroidBuilderFactory getInstance() {
@@ -165,7 +161,6 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
         initFlashPanelComboBoxes();
         initFlashButtons();
 
-        mFilteredLogArea.setScroll(mLogScroll);
         mIsCreated = true;
 
     }
@@ -303,6 +298,29 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
 
                 mMakeButton.setVisible(false);
                 mMakeStopButton.setVisible(true);
+
+                mBuilder.findOriginalProductOutPath(mProductComboBox.getSelectedItem().toString(),
+                        new ShellCommandExecutor.ThreadResultReceiver() {
+                    @Override
+                    public void shellThreadDone() {
+
+                    }
+
+                    @Override
+                    public void newOut(String line) {
+                        String outDirectoryPath = mResultPathComboBox.getSelectedItem().toString() + File.separator
+                                + "target" + line.split("target")[1];
+                        mOutDirComboBox.addItem(outDirectoryPath);
+                        mOutDirComboBox.setSelectedItem(outDirectoryPath);
+                        jFlashFileChooser.setCurrentDirectory(new File(outDirectoryPath));
+                        mDeviceManager.setTargetProductPath(new File(outDirectoryPath));
+                    }
+
+                    @Override
+                    public void newError(String line) {
+
+                    }
+                });
             }
         });
         mMakeStopButton.addActionListener(new ActionListener() {
@@ -597,6 +615,7 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
                 changeFlashButton();
+
             }
         });
         mDeviceManager.addDeviceChangeListener(new FastBootMonitor.DeviceChangeListener() {
@@ -644,6 +663,14 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
             }
         });
 
+        mOutDirComboBox.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                jFlashFileChooser.setCurrentDirectory(new File(mOutDirComboBox.getSelectedItem().toString()));
+                mDeviceManager.setTargetProductPath(new File(mOutDirComboBox.getSelectedItem().toString()));
+            }
+        });
+
         mFastBootArgumentComboBox.addItem("flashall");
         mFastBootArgumentComboBox.addItem("update");
         mFastBootArgumentComboBox.addItem("boot");
@@ -686,8 +713,12 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
     }
 
     private void changeFlashButton() {
-        if (mDeviceListComboBox.getSelectedItem() == null) return;
-        if (mFastbootRadioButton.isSelected()) {
+        if (mDeviceListComboBox.getSelectedItem() == null) {
+            mRebootButton.setVisible(false);
+            mSyncButton.setVisible(false);
+            mRebootBootloaderButton.setVisible(false);
+            mFlashButton.setVisible(false);
+        } else if (mFastbootRadioButton.isSelected()) {
             mRebootButton.setVisible(false);
             mSyncButton.setVisible(false);
             if (mDeviceListComboBox.getSelectedItem().toString().contains("fastboot")) {
