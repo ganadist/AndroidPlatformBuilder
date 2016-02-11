@@ -1,4 +1,4 @@
-package org.dbgsprw.core;
+package dbgsprw.core;
 
 import com.android.ddmlib.AdbCommandRejectedException;
 import com.android.ddmlib.AndroidDebugBridge;
@@ -7,7 +7,7 @@ import com.android.ddmlib.TimeoutException;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkTypeId;
-import org.dbgsprw.exception.AndroidHomeNotFoundException;
+import dbgsprw.exception.AndroidHomeNotFoundException;
 
 import java.io.File;
 import java.io.IOException;
@@ -190,7 +190,7 @@ public class DeviceManager {
     }
 
     public interface FastBootStateChangeListener {
-        public void stateChanged(FastBootState fastBootState);
+        void stateChanged(FastBootState fastBootState);
 
     }
 

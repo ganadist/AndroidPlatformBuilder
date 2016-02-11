@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="org.dbgsprw.view.AndroidBuilderFactory">
+<form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="dbgsprw.view.AndroidBuilderFactory">
   <grid id="27dc6" binding="mAndroidBuilderContent" layout-manager="GridLayoutManager" row-count="1" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
     <margin top="10" left="10" bottom="10" right="10"/>
     <constraints>
@@ -31,12 +31,9 @@
             </properties>
             <border type="none" title="Log"/>
             <children>
-              <component id="c19a1" class="javax.swing.JTextArea" binding="mLogArea">
+              <component id="a1e2c" class="dbgsprw.view.FilteredTextArea" binding="mFilteredLogArea">
                 <constraints/>
-                <properties>
-                  <editable value="false"/>
-                  <lineWrap value="true"/>
-                </properties>
+                <properties/>
               </component>
             </children>
           </scrollpane>

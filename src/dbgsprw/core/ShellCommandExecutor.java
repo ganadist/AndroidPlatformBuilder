@@ -1,4 +1,4 @@
-package org.dbgsprw.core;
+package dbgsprw.core;
 
 import java.io.BufferedReader;
 import java.io.File;

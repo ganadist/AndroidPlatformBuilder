@@ -1,6 +1,7 @@
-package org.dbgsprw.view;
+package dbgsprw.view;
 
 import com.android.ddmlib.IDevice;
+import com.intellij.execution.impl.ConsoleViewImpl;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileEditor.FileEditorManager;
@@ -11,14 +12,15 @@ import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowFactory;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
-import org.dbgsprw.core.Builder;
-import org.dbgsprw.core.DeviceManager;
-import org.dbgsprw.core.FastBootMonitor;
-import org.dbgsprw.core.ShellCommandExecutor;
-import org.dbgsprw.exception.AndroidHomeNotFoundException;
+import dbgsprw.core.Builder;
+import dbgsprw.core.DeviceManager;
+import dbgsprw.core.FastBootMonitor;
+import dbgsprw.core.ShellCommandExecutor;
+import dbgsprw.exception.AndroidHomeNotFoundException;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -41,6 +43,7 @@ import java.util.ArrayList;
  */
 
 public class AndroidBuilderFactory implements ToolWindowFactory {
+    private final static String CURRENT_PATH = "Current Path";
     private static AndroidBuilderFactory mAndroidBuilderFactory;
     private JPanel mAndroidBuilderContent;
     private JButton mMakeButton;
@@ -59,13 +62,11 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
     private JLabel mMakeCommandLabel;
     private JComboBox mTargetDirComboBox;
     private JLabel mTargetDirLabel;
-
     private ButtonGroup mFlashButtonGroup;
     private JButton mSyncButton;
     private JButton mFlashButton;
     private JRadioButton mFastbootRadioButton;
     private JRadioButton mAdbSyncRadioButton;
-    private JTextArea mLogArea;
     private FilteredTextArea mFilteredLogArea;
     private JPanel mMakeOptionPanel;
     private JLabel mProductLabel;
@@ -92,12 +93,10 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
     private JCheckBox mWipeCheckBox;
     private JScrollPane mLogScroll;
     private JCheckBox mVerboseCheckBox;
+    private ConsoleViewImpl mConsoleView;
     private JFileChooser jFlashFileChooser;
-
     private ToolWindow mToolWindow;
     private String mProjectPath;
-    private final static String CURRENT_PATH = "Current Path";
-
     private Builder mBuilder;
     private Project mProject;
 
@@ -107,6 +106,16 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
 
     public AndroidBuilderFactory() {
         mAndroidBuilderFactory = this;
+
+        Window[] window = Window.getWindows();
+        //   window[0].dispatchEvent();
+    }
+
+    synchronized public static AndroidBuilderFactory getInstance() {
+        if (mAndroidBuilderFactory != null) {
+            return mAndroidBuilderFactory;
+        }
+        return null;
     }
 
     @Override
@@ -141,9 +150,8 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
         ContentFactory contentFactory = ContentFactory.SERVICE.getInstance();
         Content content = contentFactory.createContent(mAndroidBuilderContent, "", false);
         toolWindow.getContentManager().addContent(content);
-        mFilteredLogArea = new FilteredTextArea(mLogArea, mLogScroll);
 
-        // make panel init
+        // make panel setScroll
 
         initMakePanelComboBoxes();
         initMakePanelButtons();
@@ -151,25 +159,19 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
         writeMakeCommand();
 
 
-        // flash panel init
+        // flash panel setScroll
 
         initFlashPanelRadioButtons();
         initFlashPanelComboBoxes();
         initFlashButtons();
 
+        mFilteredLogArea.setScroll(mLogScroll);
         mIsCreated = true;
 
     }
 
     public boolean isCreated() {
         return mIsCreated;
-    }
-
-    synchronized public static AndroidBuilderFactory getInstance() {
-        if (mAndroidBuilderFactory != null) {
-            return mAndroidBuilderFactory;
-        }
-        return null;
     }
 
     private void writeMakeCommand() {
@@ -628,6 +630,8 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
 
             @Override
             public void fastBootDeviceConnected(String serialNumber) {
+
+
                 mDeviceListComboBox.addItem("fastboot " + serialNumber);
                 printLog("fastboot device connected : " + serialNumber);
 
@@ -709,8 +713,9 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
     }
 
     private void printLog(String log) {
-        mFilteredLogArea.filteringAppend(log + "\n");
+        //   EventQueue mEventQueue = Toolkit.getDefaultToolkit().getSystemEventQueue();
+        //  mEventQueue.postEvent( new LogAppendAwtEvent( this, "Hello GUI", 1 ));
+        //   enableEvents( SimpleAWTEvent.EVENT_ID);
+        mFilteredLogArea.postAppendEvent(log + "\n");
     }
-
-
 }
