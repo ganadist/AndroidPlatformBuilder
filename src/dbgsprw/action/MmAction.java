@@ -1,9 +1,9 @@
-package org.dbgsprw.action;
+package dbgsprw.action;
 
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.ui.Messages;
-import org.dbgsprw.view.AndroidBuilderFactory;
+import dbgsprw.view.AndroidBuilderFactory;
 
 /**
  * Copyright 2016 dbgsprw / dbgsprw@gmail.com

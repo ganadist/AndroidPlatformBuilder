@@ -1,18 +1,18 @@
 <idea-plugin version="2">
-  <id>com.your.company.unique.plugin.id</id>
-  <name>Plugin display name here</name>
-  <version>1.0</version>
-  <vendor email="support@yourcompany.com" url="http://www.yourcompany.com">YourCompany</vendor>
+  <id>dbgsprw.ab</id>
+  <name>Android Builder</name>
+  <version>0.9</version>
+  <vendor email="dbgsprw@gmail.com" url="">dbgsprw</vendor>
 
   <description><![CDATA[
-      Enter short description for your plugin here.<br>
-      <em>most HTML tags may be used</em>
+      Android build & flash with Intellij plugin<br>
+      <em></em>
     ]]></description>
 
-  <change-notes><![CDATA[
+  <change-notes><!--<![CDATA[
       Add change notes here.<br>
       <em>most HTML tags may be used</em>
-    ]]>
+    ]]>-->
   </change-notes>
 
   <!-- please see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/build_number_ranges.html for description -->
@@ -27,12 +27,12 @@
   <extensions defaultExtensionNs="com.intellij" >
     <!-- Did not add icon -->
     <toolWindow id="Android Builder" secondary="true" anchor="right"
-                factoryClass="org.dbgsprw.view.AndroidBuilderFactory"/>
+                factoryClass="dbgsprw.view.AndroidBuilderFactory"/>
   </extensions>
 
   <actions>
     <!-- Add your actions here -->
-    <action id="ActionId" class="org.dbgsprw.action.MmAction" text="Android Make Current File" description="Description">
+    <action id="ActionId" class="dbgsprw.action.MmAction" text="Android Make Current File" description="Description">
       <add-to-group group-id="ToolsMenu" anchor="last"/>
       <keyboard-shortcut keymap="$default" first-keystroke="ctrl alt shift M"/>
     </action>

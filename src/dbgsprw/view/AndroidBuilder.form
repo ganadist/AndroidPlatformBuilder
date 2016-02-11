@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="org.dbgsprw.view.AndroidBuilderFactory">
+<form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="dbgsprw.view.AndroidBuilderFactory">
   <grid id="27dc6" binding="mAndroidBuilderContent" layout-manager="GridLayoutManager" row-count="1" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
     <margin top="10" left="10" bottom="10" right="10"/>
     <constraints>
@@ -17,7 +17,7 @@
           </grid>
         </constraints>
         <properties>
-          <dividerLocation value="650"/>
+          <dividerLocation value="600"/>
           <orientation value="0"/>
         </properties>
         <border type="none"/>
@@ -31,11 +31,10 @@
             </properties>
             <border type="none" title="Log"/>
             <children>
-              <component id="c19a1" class="javax.swing.JTextArea" binding="mLogArea">
+              <component id="a1e2c" class="dbgsprw.view.FilteredTextArea" binding="mFilteredLogArea">
                 <constraints/>
                 <properties>
                   <editable value="false"/>
-                  <lineWrap value="true"/>
                 </properties>
               </component>
             </children>
@@ -400,6 +399,7 @@
                     </constraints>
                     <properties>
                       <text value="Reboot"/>
+                      <visible value="false"/>
                     </properties>
                   </component>
                   <component id="98e59" class="javax.swing.JButton" binding="mRebootBootloaderButton" default-binding="true">
@@ -408,6 +408,7 @@
                     </constraints>
                     <properties>
                       <text value="Reboot Bootloader"/>
+                      <visible value="false"/>
                     </properties>
                   </component>
                   <component id="1b365" class="javax.swing.JButton" binding="mFlashButton">
@@ -415,8 +416,10 @@
                       <grid row="7" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
                     </constraints>
                     <properties>
+                      <enabled value="true"/>
                       <hideActionText value="false"/>
                       <text value="Flash"/>
+                      <visible value="false"/>
                     </properties>
                   </component>
                   <component id="7d470" class="javax.swing.JButton" binding="mSyncButton" default-binding="true">
@@ -425,6 +428,7 @@
                     </constraints>
                     <properties>
                       <text value="Sync"/>
+                      <visible value="false"/>
                     </properties>
                   </component>
                   <component id="8c949" class="javax.swing.JLabel" binding="mFlashStatusLabel">
@@ -452,7 +456,7 @@
                     <properties>
                       <enabled value="true"/>
                       <text value="Stop"/>
-                      <visible value="true"/>
+                      <visible value="false"/>
                     </properties>
                   </component>
                 </children>

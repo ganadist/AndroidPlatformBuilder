@@ -1,4 +1,4 @@
-package org.dbgsprw.core;
+package dbgsprw.core;
 
 import com.android.ddmlib.AndroidDebugBridge;
 import com.android.ddmlib.IDevice;
@@ -31,7 +31,7 @@ public class FastBootMonitor {
     private static boolean sIsTerminate;
 
 
-    public static void init() {
+    synchronized public static void init() {
         sIsTerminate = false;
         sIDeviceChangeListeners = new ArrayList<>();
         sShellCommandExecutor = new ShellCommandExecutor();
@@ -56,6 +56,11 @@ public class FastBootMonitor {
 
                         }
                     });
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
                     boolean[] isExist = new boolean[sDeviceSerialNumbers.size()];
                     int length = isExist.length;
                     for (String out : outList) {
@@ -75,37 +80,32 @@ public class FastBootMonitor {
                             serialNumberIndex++;
                         }
                     }
-                    try {
-                        Thread.sleep(1000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
                 }
             }
 
-        });
+        }, "Fastboot Monitor Thread");
         sThread.start();
     }
 
-    public static ArrayList<String> getDeviceSerialNumbers() {
+    synchronized public static ArrayList<String> getDeviceSerialNumbers() {
         return sDeviceSerialNumbers;
     }
 
-    public static void terminate() {
+    synchronized public static void terminate() {
         sIsTerminate = true;
     }
 
-    public static void addDeviceChangeListener(DeviceChangeListener deviceChangeListener) {
+    synchronized public static void addDeviceChangeListener(DeviceChangeListener deviceChangeListener) {
         sIDeviceChangeListeners.add(deviceChangeListener);
     }
 
-    private static void deviceConnected(String serialNumber) {
+    synchronized private static void deviceConnected(String serialNumber) {
         for (DeviceChangeListener deviceChangeListener : sIDeviceChangeListeners) {
             deviceChangeListener.fastBootDeviceConnected(serialNumber);
         }
     }
 
-    private static void deviceDisconnected(String serialNumber) {
+    synchronized private static void deviceDisconnected(String serialNumber) {
         for (DeviceChangeListener deviceChangeListener : sIDeviceChangeListeners) {
             deviceChangeListener.fastBootDeviceDisconnected(serialNumber);
         }
@@ -119,17 +119,17 @@ public class FastBootMonitor {
 
     public interface DeviceChangeListener extends AndroidDebugBridge.IDeviceChangeListener {
         @Override
-        public void deviceConnected(IDevice device);
+        void deviceConnected(IDevice device);
 
         @Override
-        public void deviceDisconnected(IDevice device);
+        void deviceDisconnected(IDevice device);
 
         @Override
-        public void deviceChanged(IDevice device, int changeMask);
+        void deviceChanged(IDevice device, int changeMask);
 
-        public void fastBootDeviceConnected(String serialNumber);
+        void fastBootDeviceConnected(String serialNumber);
 
-        public void fastBootDeviceDisconnected(String serialNumber);
+        void fastBootDeviceDisconnected(String serialNumber);
 
     //    public void fastBootDeviceChanged(String serialNumber);
     }

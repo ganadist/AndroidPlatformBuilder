@@ -1,4 +1,4 @@
-package org.dbgsprw.exception;
+package dbgsprw.exception;
 
 /**
  * Copyright 2016 dbgsprw / dbgsprw@gmail.com
