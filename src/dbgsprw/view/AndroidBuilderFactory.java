@@ -142,11 +142,6 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
         mDeviceManager = new DeviceManager();
         jFlashFileChooser = new JFileChooser();
 
-        try {
-            mDeviceManager.adbInit();
-        } catch (AndroidHomeNotFoundException e) {
-            e.printStackTrace();
-        }
 
         mProject = project;
         mToolWindow = toolWindow;
@@ -160,16 +155,23 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
         initMakePanelButtons();
         initMakePanelRadioButtons();
         writeMakeCommand();
+        mIsCreated = true;
 
+        try {
+            mDeviceManager.adbInit();
+            mDeviceManager.fastBootMonitorInit();
+        } catch (AndroidHomeNotFoundException e) {
+            mOutDirComboBox.setPrototypeDisplayValue("XXXXXXXXX");
+            printLog("Can't find Android Home. Can't use flash function");
+            e.printStackTrace();
+            return;
+        }
 
         // flash panel setScroll
 
         initFlashPanelRadioButtons();
         initFlashPanelComboBoxes();
         initFlashButtons();
-
-
-        mIsCreated = true;
     }
 
     public boolean isCreated() {
@@ -253,7 +255,7 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
                     mResultPathComboBox.setSelectedItem(selectedDir);
                     jFileChooser.setCurrentDirectory(selectedDir);
                     if (mOutDirComboBox.getSelectedItem() == null) {
-                        String path = pathJoin(selectedDir, "target", "product");
+                        String path = pathJoin(selectedDir.toString() , "target", "product");
                         jFlashFileChooser.setCurrentDirectory(new File(path));
                     }
                 } else {
@@ -845,12 +847,12 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
         mFilteredLogArea.postAppendEvent(log + "\n");
     }
 
-    private static String pathJoin (String ... filepath) {
+    private static String pathJoin (String... filepath) {
         StringBuilder sb = new StringBuilder();
-        for (String path: filepath) {
+        for (String path : filepath) {
             sb.append(path).append(File.separator);
         }
-        sb.delete(sb.length() -1);
+        sb.delete(sb.length() - 1, sb.length() - 1);
         return sb.toString();
     }
 }

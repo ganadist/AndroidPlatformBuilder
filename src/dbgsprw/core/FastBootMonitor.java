@@ -31,7 +31,7 @@ public class FastBootMonitor {
     private static boolean sIsTerminate;
 
 
-    synchronized public static void init() {
+    synchronized public static void init(final String fastbootPath) {
         sIsTerminate = false;
         sIDeviceChangeListeners = new ArrayList<>();
         sShellCommandExecutor = new ShellCommandExecutor();
@@ -41,7 +41,7 @@ public class FastBootMonitor {
             public void run() {
                 while(!sIsTerminate) {
                     ArrayList<String> command = new ArrayList<>();
-                    command.add("fastboot");
+                    command.add(fastbootPath);
                     command.add("devices");
                     final ArrayList<String> outList = new ArrayList<>();
                     sShellCommandExecutor.executeShellCommand(command,
