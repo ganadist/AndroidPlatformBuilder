@@ -48,6 +48,7 @@ import java.util.ArrayList;
 
 public class AndroidBuilderFactory implements ToolWindowFactory {
     private final static String CURRENT_PATH = "Current Path";
+    private final static String ANDROID_MK = "Android.mk";
     private static AndroidBuilderFactory mAndroidBuilderFactory;
     private JPanel mAndroidBuilderContent;
     private JButton mMakeButton;
@@ -289,9 +290,9 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
 
                         if (path != mProjectPath) {
                             while (true) {
-                                if (new File(path + File.separator + "Android.mk").exists()) {
+                                if (new File(path + File.separator + ANDROID_MK).exists()) {
                                     path = path.replace(mProjectPath + File.separator, "");
-                                    mBuilder.setOneShotMakefile(path + File.separator + "Android.mk");
+                                    mBuilder.setOneShotMakefile(path + File.separator + ANDROID_MK);
                                     int i;
                                     for (i = 0; i < mTargetDirComboBox.getItemCount(); i++) {
                                         if (mTargetDirComboBox.getItemAt(i).equals(path)) {
@@ -312,7 +313,7 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
                             }
                         }
                     } else {
-                        mBuilder.setOneShotMakefile(selectedPath + File.separator + "Android.mk");
+                        mBuilder.setOneShotMakefile(selectedPath + File.separator + ANDROID_MK);
                     }
                     mBuilder.setTarget("all_modules");
 
