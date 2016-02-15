@@ -64,9 +64,9 @@ public class DeviceManager {
         if (androidHome == null) {
             throw new AndroidHomeNotFoundException();
         }
-
         AndroidDebugBridge.initIfNeeded(false);
         File adbPath = new File(androidHome, "platform-tools" + File.separator + "adb");
+        mShellCommandExecutor.directory(new File(androidHome, "platform-tools"));
         try {
             mAndroidDebugBridge = AndroidDebugBridge.createBridge(adbPath.getCanonicalPath(), true);
 
@@ -188,7 +188,6 @@ public class DeviceManager {
     }
 
     public void setTargetProductPath(File directory) {
-        mShellCommandExecutor.directory(directory);
         mShellCommandExecutor.environment().put("ANDROID_PRODUCT_OUT", directory.getAbsolutePath());
     }
 
