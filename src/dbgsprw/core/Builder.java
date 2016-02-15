@@ -48,42 +48,6 @@ public class Builder {
         updateNumberOfProcess();
     }
 
-
-    /*public void executeMm(String currentPath) {
-        final ArrayList<String> makeCommandLine;
-        // bash -x -c "source build/envsetup.sh ; cd development/tools/idegen; mm"
-
-        mProcessBuilder.redirectOutput(ProcessBuilder.Redirect.INHERIT);
-        mProcessBuilder.redirectError(ProcessBuilder.Redirect.INHERIT);
-        makeCommandLine = new ArrayList<>();
-        makeCommandLine.add("make");
-        makeCommandLine.add("-C");
-        makeCommandLine.add(mProjectPath);
-        makeCommandLine.add("-f");
-        makeCommandLine.add("build/core/main.mk");
-        makeCommandLine.add("all_modules");
-        if (mJobNumber != null) {
-            makeCommandLine.add("-j" + mJobNumber);
-        }
-        if (mTargetProduct != null) {
-            makeCommandLine.add("TARGET_PRODUCT=" + mTargetProduct);
-        }
-        if (mTargetBuildVariant != null) {
-            makeCommandLine.add("TARGET_BUILD_VARIANT=" + mTargetBuildVariant);
-        }
-        if (mOutDir != null) {
-            makeCommandLine.add("OUT_DIR=" + mOutDir);
-        }
-        mMakeThread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                executeShellCommand(makeCommandLine);
-                Builder.this.notifyMakeDone();
-            }
-        });
-        mMakeThread.start();
-    }*/
-
     public void executeMake(ShellCommandExecutor.ThreadResultReceiver threadResultReceiver) {
         final ArrayList<String> makeCommandLine;
 
