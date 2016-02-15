@@ -107,6 +107,15 @@ public class DeviceManager {
         mShellCommandExecutor.executeShellCommand(command, resultReceiver);
     }
 
+    public void adbRemount(IDevice device, ShellCommandExecutor.ResultReceiver resultReceiver) {
+        ArrayList<String> command = new ArrayList<>();
+        command.add("adb");
+        command.add("-s");
+        command.add(device.getSerialNumber());
+        command.add("remount");
+        mShellCommandExecutor.executeShellCommand(command, resultReceiver);
+    }
+
     public void adbSync(IDevice device, String argument, ShellCommandExecutor.ThreadResultReceiver threadResultReceiver) {
         ArrayList<String> command = new ArrayList<>();
         command.add("adb");

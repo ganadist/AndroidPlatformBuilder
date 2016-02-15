@@ -29,11 +29,11 @@ public class FilteredTextArea extends JTextArea {
     public FilteredTextArea() {
         setLineWrap(true);
         mEventQueue = Toolkit.getDefaultToolkit().getSystemEventQueue();
+        enableEvents(LogAppendAwtEvent.EVENT_ID);
     }
 
     public void postAppendEvent(String text) {
         mEventQueue.postEvent(new LogAppendAwtEvent(this, text));
-        enableEvents(LogAppendAwtEvent.EVENT_ID);
     }
 
 

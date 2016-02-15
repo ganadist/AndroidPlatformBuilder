@@ -102,46 +102,6 @@ public class ShellCommandExecutor {
 
     }
 
-    /*
-    public ShellCommandResult executeShellCommandResult(ArrayList<String> command) {
-        ArrayList<String> outList = new ArrayList<>();
-        ArrayList<String> errList = new ArrayList<>();
-        mProcessBuilder.command(command);
-
-        try {
-            Process process = mProcessBuilder.start();
-
-            BufferedReader bufferedInputReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-
-            BufferedReader bufferedErrorReader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
-            String inputLine, errorLine;
-
-            boolean hasError;
-            while (true) {
-                hasError = false;
-                if ((errorLine = bufferedErrorReader.readLine()) != null) {
-                    hasError = true;
-                    errList.add(errorLine);
-                }
-                if ((inputLine = bufferedInputReader.readLine()) != null) {
-                    outList.add(inputLine);
-                } else if (hasError == false) {
-                    break;
-                }
-            }
-            process.waitFor();
-
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        return new ShellCommandResult(outList, errList);
-
-
-    }*/
-
     public interface ResultReceiver {
         void newOut(String line);
 
