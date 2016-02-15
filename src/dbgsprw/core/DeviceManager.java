@@ -1,9 +1,6 @@
 package dbgsprw.core;
 
-import com.android.ddmlib.AdbCommandRejectedException;
-import com.android.ddmlib.AndroidDebugBridge;
-import com.android.ddmlib.IDevice;
-import com.android.ddmlib.TimeoutException;
+import com.android.ddmlib.*;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkTypeId;
@@ -98,7 +95,38 @@ public class DeviceManager {
         }
     }
 
+    public boolean isRootMode(IDevice device) {
+        ArrayList<String> command = new ArrayList<>();
+        command.add("adb");
+        command.add("-s");
+        command.add(device.getSerialNumber());
+        command.add("shell");
+        command.add("id");
+        command.add("-u");
+        final boolean[] isRootMode = new boolean[1];
+        mShellCommandExecutor.executeShellCommand(command, new ShellCommandExecutor.ResultReceiver() {
+            @Override
+            public void newOut(String line) {
+                if("0".equals(line)) {
+                    isRootMode[0] = true;
+                } else {
+                    isRootMode[0] = false;
+                }
+            }
+
+            @Override
+            public void newError(String line) {
+
+            }
+        });
+        return isRootMode[0];
+    }
+
+
     public void adbRoot(IDevice device, ShellCommandExecutor.ResultReceiver resultReceiver) {
+        if (isRootMode(device) || !IDevice.DeviceState.ONLINE.equals(device.getState())) {
+            return;
+        }
         ArrayList<String> command = new ArrayList<>();
         command.add("adb");
         command.add("-s");

@@ -20,8 +20,13 @@ import dbgsprw.exception.AndroidHomeNotFoundException;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import javax.swing.event.AncestorEvent;
+import javax.swing.event.AncestorListener;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 import java.io.File;
 import java.util.ArrayList;
 
@@ -161,8 +166,8 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
         initFlashPanelComboBoxes();
         initFlashButtons();
 
-        mIsCreated = true;
 
+        mIsCreated = true;
     }
 
     public boolean isCreated() {
@@ -182,6 +187,44 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
                     + " OUT_DIR=" + mResultPathComboBox.getSelectedItem()
                     + " TARGET_PRODUCT=" + product[0]
                     + " TARGET_BUILD_VARIANT=" + product[1]);
+        }
+    }
+
+    private void writeFlashCommand() {
+        if (mRebootButton.isVisible()) {
+            mFlashCommandTextArea.setText("fastboot -s " +
+                    mDeviceListComboBox.getSelectedItem().toString().split(" ")[1] +
+                    " reboot");
+        }
+        else if (mRebootBootloaderButton.isVisible()) {
+            mFlashCommandTextArea.setText("adb -s " + mDeviceListComboBox.getSelectedItem().toString() +
+                    " reboot");
+        }
+        else if (mFlashButton.isVisible()) {
+            String arguments = "";
+            if (mWipeCheckBox.isSelected()) {
+                arguments = "-w ";
+            }
+            for(String argument :
+                    fastBootArgumentComboBoxInterpreter(mFastBootArgumentComboBox.getSelectedItem().toString())){
+                arguments += argument + " ";
+            }
+
+            mFlashCommandTextArea.setText("fastboot -s " +
+                    mDeviceListComboBox.getSelectedItem().toString().split(" ")[1] + " " +
+                    arguments);
+        }
+        else if (mSyncButton.isVisible()) {
+            if ("All".equals(mAdbSyncArgumentComboBox.getSelectedItem().toString())) {
+                mFlashCommandTextArea.setText("adb -s " + mDeviceListComboBox.getSelectedItem().toString() +
+                        " sync");
+            } else {
+                mFlashCommandTextArea.setText("adb -s " + mDeviceListComboBox.getSelectedItem().toString() +
+                        " sync " +
+                        mAdbSyncArgumentComboBox.getSelectedItem().toString());
+            }
+        } else {
+            mFlashCommandTextArea.setText("");
         }
     }
 
@@ -301,26 +344,26 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
 
                 mBuilder.findOriginalProductOutPath(mProductComboBox.getSelectedItem().toString(),
                         new ShellCommandExecutor.ThreadResultReceiver() {
-                    @Override
-                    public void shellThreadDone() {
+                            @Override
+                            public void shellThreadDone() {
 
-                    }
+                            }
 
-                    @Override
-                    public void newOut(String line) {
-                        String outDirectoryPath = mResultPathComboBox.getSelectedItem().toString() + File.separator
-                                + "target" + line.split("target")[1];
-                        mOutDirComboBox.addItem(outDirectoryPath);
-                        mOutDirComboBox.setSelectedItem(outDirectoryPath);
-                        jFlashFileChooser.setCurrentDirectory(new File(outDirectoryPath));
-                        mDeviceManager.setTargetProductPath(new File(outDirectoryPath));
-                    }
+                            @Override
+                            public void newOut(String line) {
+                                String outDirectoryPath = mResultPathComboBox.getSelectedItem().toString() + File.separator
+                                        + "target" + line.split("target")[1];
+                                mOutDirComboBox.addItem(outDirectoryPath);
+                                mOutDirComboBox.setSelectedItem(outDirectoryPath);
+                                jFlashFileChooser.setCurrentDirectory(new File(outDirectoryPath));
+                                mDeviceManager.setTargetProductPath(new File(outDirectoryPath));
+                            }
 
-                    @Override
-                    public void newError(String line) {
+                            @Override
+                            public void newError(String line) {
 
-                    }
-                });
+                            }
+                        });
             }
         });
         mMakeStopButton.addActionListener(new ActionListener() {
@@ -344,7 +387,6 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
             public void actionPerformed(ActionEvent actionEvent) {
                 mTargetComboBox.setVisible(true);
                 mTargetLabel.setVisible(true);
-                mMakeCommandTextArea.setVisible(true);
                 mMakeCommandLabel.setVisible(true);
                 mTargetDirLabel.setVisible(false);
                 mTargetDirComboBox.setVisible(false);
@@ -357,7 +399,6 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
             public void actionPerformed(ActionEvent actionEvent) {
                 mTargetComboBox.setVisible(false);
                 mTargetLabel.setVisible(false);
-                mMakeCommandTextArea.setVisible(true);
                 mMakeCommandLabel.setVisible(true);
                 mTargetDirLabel.setVisible(true);
                 mTargetDirComboBox.setVisible(true);
@@ -435,6 +476,7 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
                 mFastBootArgumentLabel.setVisible(true);
                 mWipeCheckBox.setVisible(true);
                 changeFlashButton();
+                writeFlashCommand();
 
             }
         });
@@ -448,9 +490,17 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
                 mFastBootArgumentLabel.setVisible(false);
                 mWipeCheckBox.setVisible(false);
                 changeFlashButton();
-
+                writeFlashCommand();
             }
         });
+
+        mWipeCheckBox.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                writeFlashCommand();
+            }
+        });
+
         mFastbootRadioButton.doClick();
     }
 
@@ -472,6 +522,7 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
                     Messages.showMessageDialog(mProject, "Please select exist dir", "Android Builder",
                             Messages.getInformationIcon());
                 }
+                writeFlashCommand();
             }
         });
 
@@ -479,6 +530,7 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
                 jFlashFileChooser.showDialog(mAndroidBuilderContent, "Choose");
+                writeFlashCommand();
             }
         });
 
@@ -629,6 +681,7 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
                 changeFlashButton();
+                writeFlashCommand();
 
             }
         });
@@ -636,6 +689,7 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
             @Override
             public void deviceConnected(IDevice device) {
                 mDeviceListComboBox.addItem(device);
+                printLog("device connected : " + device);
                 mDeviceManager.adbRoot(device, new ShellCommandExecutor.ResultReceiver() {
                     @Override
                     public void newOut(String line) {
@@ -647,7 +701,8 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
                         printLog(line);
                     }
                 });
-                printLog("device connected : " + device);
+
+
             }
 
             @Override
@@ -658,7 +713,17 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
 
             @Override
             public void deviceChanged(IDevice device, int changeMask) {
+                mDeviceManager.adbRoot(device, new ShellCommandExecutor.ResultReceiver() {
+                    @Override
+                    public void newOut(String line) {
+                        printLog(line);
+                    }
 
+                    @Override
+                    public void newError(String line) {
+                        printLog(line);
+                    }
+                });
             }
 
             @Override
@@ -695,11 +760,25 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
         mFastBootArgumentComboBox.addItem("userdata");
         mFastBootArgumentComboBox.addItem("vendor");
 
+        mFastBootArgumentComboBox.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                writeFlashCommand();
+            }
+        });
+
         mAdbSyncArgumentComboBox.addItem("All");
         mAdbSyncArgumentComboBox.addItem("system");
         mAdbSyncArgumentComboBox.addItem("vendor");
         mAdbSyncArgumentComboBox.addItem("oem");
         mAdbSyncArgumentComboBox.addItem("data");
+
+        mAdbSyncArgumentComboBox.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                writeFlashCommand();
+            }
+        });
     }
 
     private String[] fastBootArgumentComboBoxInterpreter(String argument) {
