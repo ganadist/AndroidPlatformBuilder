@@ -536,6 +536,20 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
                     if ("All".equals(argument)) {
                         argument = null;
                     }
+
+                    mDeviceManager.adbRemount((IDevice) mDeviceListComboBox.getSelectedItem(),
+                            new ShellCommandExecutor.ResultReceiver() {
+                                @Override
+                                public void newOut(String line) {
+                                    printLog(line);
+                                }
+
+                                @Override
+                                public void newError(String line) {
+                                    printLog(line);
+                                }
+                            });
+
                     mDeviceManager.adbSync((IDevice) mDeviceListComboBox.getSelectedItem(),
                             argument, new ShellCommandExecutor.ThreadResultReceiver() {
                                 @Override
@@ -624,12 +638,12 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
                 mDeviceManager.adbRoot(device, new ShellCommandExecutor.ResultReceiver() {
                     @Override
                     public void newOut(String line) {
-
+                        printLog(line);
                     }
 
                     @Override
                     public void newError(String line) {
-
+                        printLog(line);
                     }
                 });
                 printLog("device connected : " + device);
@@ -743,9 +757,6 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
     }
 
     private void printLog(String log) {
-        //   EventQueue mEventQueue = Toolkit.getDefaultToolkit().getSystemEventQueue();
-        //  mEventQueue.postEvent( new LogAppendAwtEvent( this, "Hello GUI", 1 ));
-        //   enableEvents( SimpleAWTEvent.EVENT_ID);
         mFilteredLogArea.postAppendEvent(log + "\n");
     }
 }
