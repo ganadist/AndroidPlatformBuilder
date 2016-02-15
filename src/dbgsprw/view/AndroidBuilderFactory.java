@@ -352,7 +352,10 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
                             public void newOut(String line) {
                                 String outDirectoryPath = mResultPathComboBox.getSelectedItem().toString() + File.separator
                                         + "target" + line.split("target")[1];
-                                mOutDirComboBox.addItem(outDirectoryPath);
+                                if(((DefaultComboBoxModel)mOutDirComboBox.getModel()).getIndexOf(outDirectoryPath)
+                                        == -1) {
+                                    mOutDirComboBox.addItem(outDirectoryPath);
+                                }
                                 mOutDirComboBox.setSelectedItem(outDirectoryPath);
                                 jFlashFileChooser.setCurrentDirectory(new File(outDirectoryPath));
                                 mDeviceManager.setTargetProductPath(new File(outDirectoryPath));
