@@ -48,6 +48,8 @@ import java.util.ArrayList;
 
 public class AndroidBuilderFactory implements ToolWindowFactory {
     private final static String CURRENT_PATH = "Current Path";
+    private final static String ANDROID_MK = "Android.mk";
+    private final static String OUT_DIR = "out";
     private static AndroidBuilderFactory mAndroidBuilderFactory;
     private JPanel mAndroidBuilderContent;
     private JButton mMakeButton;
@@ -132,7 +134,7 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
                     Messages.getInformationIcon());
             return;
         }
-        new File(mProjectPath + "/out").mkdir();
+        new File(pathJoin(mProjectPath, OUT_DIR)).mkdir();
 
         // set FastBoot configuration
 
@@ -236,7 +238,7 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
     private void initMakePanelButtons() {
         final JFileChooser jFileChooser;
         jFileChooser = new JFileChooser();
-        jFileChooser.setCurrentDirectory(new File(mProjectPath + "/out"));
+        jFileChooser.setCurrentDirectory(new File(pathJoin(mProjectPath, OUT_DIR)));
         jFileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
         jFileChooser.addActionListener(new ActionListener() {
             @Override
@@ -251,7 +253,7 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
                     mResultPathComboBox.setSelectedItem(selectedDir);
                     jFileChooser.setCurrentDirectory(selectedDir);
                     if (mOutDirComboBox.getSelectedItem() == null) {
-                        String path = selectedDir + File.separator + "target" + File.separator + "product";
+                        String path = pathJoin(selectedDir, "target", "product");
                         jFlashFileChooser.setCurrentDirectory(new File(path));
                     }
                 } else {
@@ -289,9 +291,9 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
 
                         if (path != mProjectPath) {
                             while (true) {
-                                if (new File(path + File.separator + "Android.mk").exists()) {
+                                if (new File(pathJoin(path, ANDROID_MK)).exists()) {
                                     path = path.replace(mProjectPath + File.separator, "");
-                                    mBuilder.setOneShotMakefile(path + File.separator + "Android.mk");
+                                    mBuilder.setOneShotMakefile(pathJoin(path, ANDROID_MK));
                                     int i;
                                     for (i = 0; i < mTargetDirComboBox.getItemCount(); i++) {
                                         if (mTargetDirComboBox.getItemAt(i).equals(path)) {
@@ -312,7 +314,7 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
                             }
                         }
                     } else {
-                        mBuilder.setOneShotMakefile(selectedPath + File.separator + "Android.mk");
+                        mBuilder.setOneShotMakefile(pathJoin(selectedPath, ANDROID_MK));
                     }
                     mBuilder.setTarget("all_modules");
 
@@ -455,7 +457,7 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
             }
         });
 
-        mResultPathComboBox.addItem(mProjectPath + File.separator + "out");
+        mResultPathComboBox.addItem(pathJoin(mProjectPath, OUT_DIR));
         mResultPathComboBox.setPrototypeDisplayValue("XXXXXXXXX");
         mResultPathComboBox.addActionListener(new ActionListener() {
             @Override
@@ -509,7 +511,7 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
 
     private void initFlashButtons() {
         mOutDirComboBox.setPrototypeDisplayValue("XXXXXXXXX");
-        jFlashFileChooser.setCurrentDirectory(new File(mProjectPath + "/out"));
+        jFlashFileChooser.setCurrentDirectory(new File(pathJoin(mProjectPath, OUT_DIR)));
         jFlashFileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
         jFlashFileChooser.addActionListener(new ActionListener() {
             @Override
@@ -841,5 +843,14 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
 
     private void printLog(String log) {
         mFilteredLogArea.postAppendEvent(log + "\n");
+    }
+
+    private static String pathJoin (String ... filepath) {
+        StringBuilder sb = new StringBuilder();
+        for (String path: filepath) {
+            sb.append(path).append(File.separator);
+        }
+        sb.delete(sb.length() -1);
+        return sb.toString();
     }
 }
