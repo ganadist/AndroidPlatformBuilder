@@ -204,6 +204,7 @@ public class DeviceManager {
     }
 
     public void setTargetProductPath(File directory) {
+        mShellCommandExecutor.directory(directory);
         mShellCommandExecutor.environment().put("ANDROID_PRODUCT_OUT", directory.getAbsolutePath());
     }
 

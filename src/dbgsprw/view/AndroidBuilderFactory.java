@@ -20,14 +20,9 @@ import dbgsprw.exception.AndroidHomeNotFoundException;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import javax.swing.event.AncestorEvent;
-import javax.swing.event.AncestorListener;
-import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.ComponentEvent;
-import java.awt.event.ComponentListener;
-import java.io.File;
+import java.io.*;
 import java.util.ArrayList;
 
 /**
@@ -110,8 +105,23 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
 
     private boolean mIsCreated;
 
+    private final static String ADB_PROPERTIES_PATH = "adb_sync_argument.properties";
+    private final static String FASTBOOT_PROPERTIES_PATH = "fastboot_argument.properties";
+    private final static String TARGET_PROPERTIES_PATH = "target_argument.properties";
+
+    private ArgumentProperties mAdbSyncProperties;
+    private ArgumentProperties mFastbootProperties;
+    private ArgumentProperties mTargetProperties;
+
+
     public AndroidBuilderFactory() {
         mAndroidBuilderFactory = this;
+
+        ArgumentPropertiesManager argumentPropertiesManager = new ArgumentPropertiesManager();
+        mAdbSyncProperties = argumentPropertiesManager.loadProperties(ADB_PROPERTIES_PATH);
+        mFastbootProperties = argumentPropertiesManager.loadProperties(FASTBOOT_PROPERTIES_PATH);
+        mTargetProperties = argumentPropertiesManager.loadProperties(TARGET_PROPERTIES_PATH);
+
     }
 
     synchronized public static AndroidBuilderFactory getInstance() {
@@ -162,7 +172,7 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
             mDeviceManager.fastBootMonitorInit();
         } catch (AndroidHomeNotFoundException e) {
             mOutDirComboBox.setPrototypeDisplayValue("XXXXXXXXX");
-            printLog("Can't find Android Home. Can't use flash function");
+            printLog("Can't find Android Home. Can't use flash function.\n Please set Android SDK or Android Home");
             e.printStackTrace();
             return;
         }
@@ -416,13 +426,15 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
         mMakeRadioButton.doClick();
     }
 
-    private void initMakePanelComboBoxes() {
+    public void addPropertiesToComboBox(ArgumentProperties properties, JComboBox jComboBox) {
+        for (String name : properties.getPropertyNames()) {
+            jComboBox.addItem(name);
+        }
+    }
 
-        mTargetComboBox.addItem("droid");
-        mTargetComboBox.addItem("snod");
-        mTargetComboBox.addItem("bootimage");
-        mTargetComboBox.addItem("updatepackage");
-        mTargetComboBox.addItem("clean");
+    private void initMakePanelComboBoxes() {
+        addPropertiesToComboBox(mTargetProperties, mTargetComboBox);
+        mTargetComboBox.setSelectedItem("droid");
 
         mTargetComboBox.addActionListener(new ActionListener() {
             @Override
@@ -757,15 +769,9 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
             }
         });
 
-        mFastBootArgumentComboBox.addItem("flashall");
-        mFastBootArgumentComboBox.addItem("update");
-        mFastBootArgumentComboBox.addItem("boot");
-        mFastBootArgumentComboBox.addItem("cache");
-        mFastBootArgumentComboBox.addItem("oem");
-        mFastBootArgumentComboBox.addItem("recovery");
-        mFastBootArgumentComboBox.addItem("system");
-        mFastBootArgumentComboBox.addItem("userdata");
-        mFastBootArgumentComboBox.addItem("vendor");
+        addPropertiesToComboBox(mFastbootProperties, mFastBootArgumentComboBox);
+        mFastBootArgumentComboBox.setSelectedItem("flashall");
+
 
         mFastBootArgumentComboBox.addActionListener(new ActionListener() {
             @Override
@@ -774,11 +780,8 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
             }
         });
 
-        mAdbSyncArgumentComboBox.addItem("All");
-        mAdbSyncArgumentComboBox.addItem("system");
-        mAdbSyncArgumentComboBox.addItem("vendor");
-        mAdbSyncArgumentComboBox.addItem("oem");
-        mAdbSyncArgumentComboBox.addItem("data");
+        addPropertiesToComboBox(mAdbSyncProperties, mAdbSyncArgumentComboBox);
+
 
         mAdbSyncArgumentComboBox.addActionListener(new ActionListener() {
             @Override
@@ -789,27 +792,7 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
     }
 
     private String[] fastBootArgumentComboBoxInterpreter(String argument) {
-        String[] arguments = null;
-        if ("update".equals(argument))
-            arguments = new String[]{"update", "update.zip"};
-        else if ("boot".equals(argument))
-            arguments = new String[]{"flash", "boot", "boot.img"};
-        else if ("cache".equals(argument))
-            arguments = new String[]{"flash", "cache", "cache.img"};
-        else if ("oem".equals(argument))
-            arguments = new String[]{"flash", "oem", "oem.img"};
-        else if ("recovery".equals(argument))
-            arguments = new String[]{"flash", "recovery", "recovery.img"};
-        else if ("system".equals(argument))
-            arguments = new String[]{"flash", "system", "system.img"};
-        else if ("userdata".equals(argument))
-            arguments = new String[]{"flash", "userdata", "userdata.img"};
-        else if ("vendor".equals(argument))
-            arguments = new String[]{"flash", "vendor", "vendor.img"};
-        else
-            arguments = new String[]{argument};
-
-        return arguments;
+        return mFastbootProperties.getArguments(argument, "/");
     }
 
     private void changeFlashButton() {
@@ -852,7 +835,7 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
         for (String path : filepath) {
             sb.append(path).append(File.separator);
         }
-        sb.delete(sb.length() - 1, sb.length() - 1);
+        sb.setLength(sb.length() - 1);
         return sb.toString();
     }
 }
