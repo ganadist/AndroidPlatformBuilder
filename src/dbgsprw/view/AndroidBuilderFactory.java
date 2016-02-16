@@ -20,14 +20,9 @@ import dbgsprw.exception.AndroidHomeNotFoundException;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import javax.swing.event.AncestorEvent;
-import javax.swing.event.AncestorListener;
-import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.ComponentEvent;
-import java.awt.event.ComponentListener;
-import java.io.File;
+import java.io.*;
 import java.util.ArrayList;
 
 /**
@@ -48,6 +43,8 @@ import java.util.ArrayList;
 
 public class AndroidBuilderFactory implements ToolWindowFactory {
     private final static String CURRENT_PATH = "Current Path";
+    private final static String ANDROID_MK = "Android.mk";
+    private final static String OUT_DIR = "out";
     private static AndroidBuilderFactory mAndroidBuilderFactory;
     private JPanel mAndroidBuilderContent;
     private JButton mMakeButton;
@@ -108,8 +105,23 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
 
     private boolean mIsCreated;
 
+    private final static String ADB_PROPERTIES_PATH = "adb_sync_argument.properties";
+    private final static String FASTBOOT_PROPERTIES_PATH = "fastboot_argument.properties";
+    private final static String TARGET_PROPERTIES_PATH = "target_argument.properties";
+
+    private ArgumentProperties mAdbSyncProperties;
+    private ArgumentProperties mFastbootProperties;
+    private ArgumentProperties mTargetProperties;
+
+
     public AndroidBuilderFactory() {
         mAndroidBuilderFactory = this;
+
+        ArgumentPropertiesManager argumentPropertiesManager = new ArgumentPropertiesManager();
+        mAdbSyncProperties = argumentPropertiesManager.loadProperties(ADB_PROPERTIES_PATH);
+        mFastbootProperties = argumentPropertiesManager.loadProperties(FASTBOOT_PROPERTIES_PATH);
+        mTargetProperties = argumentPropertiesManager.loadProperties(TARGET_PROPERTIES_PATH);
+
     }
 
     synchronized public static AndroidBuilderFactory getInstance() {
@@ -131,7 +143,7 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
                     Messages.getInformationIcon());
             return;
         }
-        new File(mProjectPath + "/out").mkdir();
+        new File(pathJoin(mProjectPath, OUT_DIR)).mkdir();
 
         // set FastBoot configuration
 
@@ -139,11 +151,6 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
         mDeviceManager = new DeviceManager();
         jFlashFileChooser = new JFileChooser();
 
-        try {
-            mDeviceManager.adbInit();
-        } catch (AndroidHomeNotFoundException e) {
-            e.printStackTrace();
-        }
 
         mProject = project;
         mToolWindow = toolWindow;
@@ -157,16 +164,23 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
         initMakePanelButtons();
         initMakePanelRadioButtons();
         writeMakeCommand();
+        mIsCreated = true;
 
+        try {
+            mDeviceManager.adbInit();
+            mDeviceManager.fastBootMonitorInit();
+        } catch (AndroidHomeNotFoundException e) {
+            mOutDirComboBox.setPrototypeDisplayValue("XXXXXXXXX");
+            printLog("Can't find Android Home. Can't use flash function.\n Please set Android SDK or Android Home");
+            e.printStackTrace();
+            return;
+        }
 
         // flash panel setScroll
 
         initFlashPanelRadioButtons();
         initFlashPanelComboBoxes();
         initFlashButtons();
-
-
-        mIsCreated = true;
     }
 
     public boolean isCreated() {
@@ -235,7 +249,7 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
     private void initMakePanelButtons() {
         final JFileChooser jFileChooser;
         jFileChooser = new JFileChooser();
-        jFileChooser.setCurrentDirectory(new File(mProjectPath + "/out"));
+        jFileChooser.setCurrentDirectory(new File(pathJoin(mProjectPath, OUT_DIR)));
         jFileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
         jFileChooser.addActionListener(new ActionListener() {
             @Override
@@ -250,7 +264,7 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
                     mResultPathComboBox.setSelectedItem(selectedDir);
                     jFileChooser.setCurrentDirectory(selectedDir);
                     if (mOutDirComboBox.getSelectedItem() == null) {
-                        String path = selectedDir + File.separator + "target" + File.separator + "product";
+                        String path = pathJoin(selectedDir.toString() , "target", "product");
                         jFlashFileChooser.setCurrentDirectory(new File(path));
                     }
                 } else {
@@ -288,9 +302,9 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
 
                         if (path != mProjectPath) {
                             while (true) {
-                                if (new File(path + File.separator + "Android.mk").exists()) {
+                                if (new File(pathJoin(path, ANDROID_MK)).exists()) {
                                     path = path.replace(mProjectPath + File.separator, "");
-                                    mBuilder.setOneShotMakefile(path + File.separator + "Android.mk");
+                                    mBuilder.setOneShotMakefile(pathJoin(path, ANDROID_MK));
                                     int i;
                                     for (i = 0; i < mTargetDirComboBox.getItemCount(); i++) {
                                         if (mTargetDirComboBox.getItemAt(i).equals(path)) {
@@ -311,7 +325,7 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
                             }
                         }
                     } else {
-                        mBuilder.setOneShotMakefile(selectedPath + File.separator + "Android.mk");
+                        mBuilder.setOneShotMakefile(pathJoin(selectedPath, ANDROID_MK));
                     }
                     mBuilder.setTarget("all_modules");
 
@@ -411,13 +425,15 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
         mMakeRadioButton.doClick();
     }
 
-    private void initMakePanelComboBoxes() {
+    public void addPropertiesToComboBox(ArgumentProperties properties, JComboBox jComboBox) {
+        for (String name : properties.getPropertyNames()) {
+            jComboBox.addItem(name);
+        }
+    }
 
-        mTargetComboBox.addItem("droid");
-        mTargetComboBox.addItem("snod");
-        mTargetComboBox.addItem("bootimage");
-        mTargetComboBox.addItem("updatepackage");
-        mTargetComboBox.addItem("clean");
+    private void initMakePanelComboBoxes() {
+        addPropertiesToComboBox(mTargetProperties, mTargetComboBox);
+        mTargetComboBox.setSelectedItem("droid");
 
         mTargetComboBox.addActionListener(new ActionListener() {
             @Override
@@ -454,7 +470,7 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
             }
         });
 
-        mResultPathComboBox.addItem(mProjectPath + File.separator + "out");
+        mResultPathComboBox.addItem(pathJoin(mProjectPath, OUT_DIR));
         mResultPathComboBox.setPrototypeDisplayValue("XXXXXXXXX");
         mResultPathComboBox.addActionListener(new ActionListener() {
             @Override
@@ -508,7 +524,7 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
 
     private void initFlashButtons() {
         mOutDirComboBox.setPrototypeDisplayValue("XXXXXXXXX");
-        jFlashFileChooser.setCurrentDirectory(new File(mProjectPath + "/out"));
+        jFlashFileChooser.setCurrentDirectory(new File(pathJoin(mProjectPath, OUT_DIR)));
         jFlashFileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
         jFlashFileChooser.addActionListener(new ActionListener() {
             @Override
@@ -752,15 +768,9 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
             }
         });
 
-        mFastBootArgumentComboBox.addItem("flashall");
-        mFastBootArgumentComboBox.addItem("update");
-        mFastBootArgumentComboBox.addItem("boot");
-        mFastBootArgumentComboBox.addItem("cache");
-        mFastBootArgumentComboBox.addItem("oem");
-        mFastBootArgumentComboBox.addItem("recovery");
-        mFastBootArgumentComboBox.addItem("system");
-        mFastBootArgumentComboBox.addItem("userdata");
-        mFastBootArgumentComboBox.addItem("vendor");
+        addPropertiesToComboBox(mFastbootProperties, mFastBootArgumentComboBox);
+        mFastBootArgumentComboBox.setSelectedItem("flashall");
+
 
         mFastBootArgumentComboBox.addActionListener(new ActionListener() {
             @Override
@@ -769,11 +779,8 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
             }
         });
 
-        mAdbSyncArgumentComboBox.addItem("All");
-        mAdbSyncArgumentComboBox.addItem("system");
-        mAdbSyncArgumentComboBox.addItem("vendor");
-        mAdbSyncArgumentComboBox.addItem("oem");
-        mAdbSyncArgumentComboBox.addItem("data");
+        addPropertiesToComboBox(mAdbSyncProperties, mAdbSyncArgumentComboBox);
+
 
         mAdbSyncArgumentComboBox.addActionListener(new ActionListener() {
             @Override
@@ -784,27 +791,7 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
     }
 
     private String[] fastBootArgumentComboBoxInterpreter(String argument) {
-        String[] arguments = null;
-        if ("update".equals(argument))
-            arguments = new String[]{"update", "update.zip"};
-        else if ("boot".equals(argument))
-            arguments = new String[]{"flash", "boot", "boot.img"};
-        else if ("cache".equals(argument))
-            arguments = new String[]{"flash", "cache", "cache.img"};
-        else if ("oem".equals(argument))
-            arguments = new String[]{"flash", "oem", "oem.img"};
-        else if ("recovery".equals(argument))
-            arguments = new String[]{"flash", "recovery", "recovery.img"};
-        else if ("system".equals(argument))
-            arguments = new String[]{"flash", "system", "system.img"};
-        else if ("userdata".equals(argument))
-            arguments = new String[]{"flash", "userdata", "userdata.img"};
-        else if ("vendor".equals(argument))
-            arguments = new String[]{"flash", "vendor", "vendor.img"};
-        else
-            arguments = new String[]{argument};
-
-        return arguments;
+        return mFastbootProperties.getArguments(argument, "/");
     }
 
     private void changeFlashButton() {
@@ -840,5 +827,14 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
 
     private void printLog(String log) {
         mFilteredLogArea.postAppendEvent(log + "\n");
+    }
+
+    private static String pathJoin (String... filepath) {
+        StringBuilder sb = new StringBuilder();
+        for (String path : filepath) {
+            sb.append(path).append(File.separator);
+        }
+        sb.setLength(sb.length() - 1);
+        return sb.toString();
     }
 }
