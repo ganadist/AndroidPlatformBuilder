@@ -334,6 +334,9 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
                 } else {
                     mBuilder.setTarget(mTargetComboBox.getSelectedItem().toString());
                 }
+
+                clearLog();
+
                 mBuilder.executeMake(new ShellCommandExecutor.ThreadResultReceiver() {
                     @Override
                     public void newOut(String line) {
@@ -828,6 +831,10 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
 
     private void printLog(String log) {
         mFilteredLogArea.postAppendEvent(log + "\n");
+    }
+
+    private void clearLog() {
+        mFilteredLogArea.setText("");
     }
 
     private static String pathJoin (String... filepath) {
