@@ -461,9 +461,13 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
             }
         });
 
-        for (int i = 1; i <= mBuilder.getNumberOfProcess() + 1; i++) {
+        for (int i = mBuilder.getNumberOfProcess(); i < 0; i--) {
             mJobNumberComboBox.addItem(i);
         }
+
+        // set default job number to mBuilder.getNumberOfProcess() - 1
+        mJobNumberComboBox.setSelectedIndex(1);
+
         mJobNumberComboBox.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
