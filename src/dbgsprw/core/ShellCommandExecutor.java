@@ -46,6 +46,7 @@ public class ShellCommandExecutor {
             process = mProcessBuilder.start();
         } catch (IOException e) {
             e.printStackTrace();
+            return;
         }
 
         final Process finalProcess = process;
