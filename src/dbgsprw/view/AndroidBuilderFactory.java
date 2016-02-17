@@ -115,6 +115,8 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
     private JCheckBox mWipeCheckBox;
     private JScrollPane mLogScroll;
     private JCheckBox mVerboseCheckBox;
+    private JLabel mVariantLabel;
+    private JComboBox mVariantComboBox;
     private ConsoleViewImpl mConsoleView;
     private JFileChooser jFlashFileChooser;
     private ToolWindow mToolWindow;
@@ -129,10 +131,12 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
     private final static String ADB_PROPERTIES_PATH = "adb_sync_argument.properties";
     private final static String FASTBOOT_PROPERTIES_PATH = "fastboot_argument.properties";
     private final static String TARGET_PROPERTIES_PATH = "target_argument.properties";
+    private final static String VARIANT_PROPERTIES_PATH = "variant_argument.properties";
 
     private ArgumentProperties mAdbSyncProperties;
     private ArgumentProperties mFastbootProperties;
     private ArgumentProperties mTargetProperties;
+    private ArgumentProperties mVariantProperties;
 
 
     public AndroidBuilderFactory() {
@@ -142,6 +146,7 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
         mAdbSyncProperties = argumentPropertiesManager.loadProperties(ADB_PROPERTIES_PATH);
         mFastbootProperties = argumentPropertiesManager.loadProperties(FASTBOOT_PROPERTIES_PATH);
         mTargetProperties = argumentPropertiesManager.loadProperties(TARGET_PROPERTIES_PATH);
+        mVariantProperties = argumentPropertiesManager.loadProperties(VARIANT_PROPERTIES_PATH);
 
     }
 
@@ -228,18 +233,17 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
     }
 
     private void writeMakeCommand() {
-        String[] product = mProductComboBox.getSelectedItem().toString().split("-");
         if (mMakeRadioButton.isSelected()) {
             mMakeCommandTextArea.setText("make -j" + mJobNumberComboBox.getSelectedItem() + " " +
                     mTargetComboBox.getSelectedItem()
                     + " OUT_DIR=" + mResultPathComboBox.getSelectedItem()
-                    + " TARGET_PRODUCT=" + product[0]
-                    + " TARGET_BUILD_VARIANT=" + product[1]);
+                    + " TARGET_PRODUCT=" + mProductComboBox.getSelectedItem()
+                    + " TARGET_BUILD_VARIANT=" + mVariantComboBox.getSelectedItem());
         } else {
             mMakeCommandTextArea.setText("mm -j" + mJobNumberComboBox.getSelectedItem()
                     + " OUT_DIR=" + mResultPathComboBox.getSelectedItem()
-                    + " TARGET_PRODUCT=" + product[0]
-                    + " TARGET_BUILD_VARIANT=" + product[1]);
+                    + " TARGET_PRODUCT=" + mProductComboBox.getSelectedItem()
+                    + " TARGET_BUILD_VARIANT=" + mVariantComboBox.getSelectedItem());
         }
     }
 
@@ -324,10 +328,9 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
                 mBuilder.setOneShotMakefile(null);
                 mBuilder.setTarget(null);
                 mBuilder.setVerbose(mVerboseCheckBox.isSelected());
-                String[] product = mProductComboBox.getSelectedItem().toString().split("-");
                 mBuilder.setMakeOptions(mJobNumberComboBox.getSelectedItem().toString(),
                         mResultPathComboBox.getSelectedItem().toString(),
-                        product[0], product[1]);
+                        mProductComboBox.getSelectedItem().toString(), mVariantComboBox.getSelectedItem().toString());
 
                 if (mMmRadioButton.isSelected()) {
                     String selectedPath = mTargetDirComboBox.getSelectedItem().toString();
@@ -413,8 +416,8 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
 
                             @Override
                             public void newOut(String line) {
-                                String outDirectoryPath = mResultPathComboBox.getSelectedItem().toString() + File.separator
-                                        + "target" + line.split("target")[1];
+                                String outDirectoryPath = mResultPathComboBox.getSelectedItem().toString() +
+                                        File.separator + "target" + line.split("target")[1];
                                 if (((DefaultComboBoxModel) mOutDirComboBox.getModel()).getIndexOf(outDirectoryPath)
                                         == -1) {
                                     mOutDirComboBox.addItem(outDirectoryPath);
@@ -498,11 +501,22 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
         ArrayList<String> lunchMenuList = mBuilder.getLunchMenuList();
         if (lunchMenuList != null) {
             for (String lunchMenu : lunchMenuList) {
-                mProductComboBox.addItem(lunchMenu);
+                mProductComboBox.addItem(lunchMenu.split("-")[0]);
             }
         } else {
         }
+
+        addPropertiesToComboBox(mVariantProperties, mVariantComboBox);
+
+
         mProductComboBox.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                writeMakeCommand();
+            }
+        });
+
+        mVariantComboBox.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
                 writeMakeCommand();
