@@ -48,6 +48,10 @@ public class Builder {
         updateNumberOfProcess();
     }
 
+    public void setAndroidJavaHome(String directoryPath) {
+        mShellCommandExecutor.environment().put("ANDROID_JAVA_HOME", directoryPath);
+    }
+
     public void executeMake(ShellCommandExecutor.ThreadResultReceiver threadResultReceiver) {
         final ArrayList<String> makeCommandLine;
 

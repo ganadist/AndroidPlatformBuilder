@@ -17,6 +17,7 @@ import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.options.ex.ConfigurablesGroupBase;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil;
 import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.roots.ui.configuration.ModuleConfigurationEditorProvider;
@@ -376,6 +377,10 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
                 }
 
                 clearLog();
+                Sdk projectSdk = ProjectRootManager.getInstance(mProject).getProjectSdk();
+                if (projectSdk != null) {
+                    mBuilder.setAndroidJavaHome(projectSdk.getHomePath());
+                }
 
                 mBuilder.executeMake(new ShellCommandExecutor.ThreadResultReceiver() {
                     @Override
