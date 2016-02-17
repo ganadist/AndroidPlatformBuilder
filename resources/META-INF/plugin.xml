@@ -33,7 +33,7 @@
   <actions>
     <!-- Add your actions here -->
     <action id="ActionId" class="dbgsprw.action.MmAction" text="Android Make Current File" description="Description">
-      <add-to-group group-id="ToolsMenu" anchor="last"/>
+      <add-to-group group-id="BuildMenu" anchor="last"/>
       <keyboard-shortcut keymap="$default" first-keystroke="ctrl alt shift M"/>
     </action>
   </actions>

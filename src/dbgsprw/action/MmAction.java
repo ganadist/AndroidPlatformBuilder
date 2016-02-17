@@ -2,6 +2,7 @@ package dbgsprw.action;
 
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
+import com.intellij.openapi.actionSystem.ShortcutSet;
 import com.intellij.openapi.ui.Messages;
 import dbgsprw.view.AndroidBuilderFactory;
 
@@ -34,4 +35,7 @@ public class MmAction extends AnAction {
         }
     }
 
+    public void setShortcutSet(ShortcutSet shortcutSet) {
+        super.setShortcutSet(shortcutSet);
+    }
 }

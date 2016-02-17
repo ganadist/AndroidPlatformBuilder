@@ -2,10 +2,29 @@ package dbgsprw.view;
 
 import com.android.ddmlib.IDevice;
 import com.intellij.execution.impl.ConsoleViewImpl;
+import com.intellij.ide.actions.ShowSettingsAction;
+import com.intellij.ide.actions.TemplateProjectSettingsGroup;
+import com.intellij.notification.Notification;
+import com.intellij.notification.NotificationListener;
+import com.intellij.notification.NotificationType;
+import com.intellij.notification.Notifications;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.module.ModuleConfigurationEditor;
+import com.intellij.openapi.options.Configurable;
+import com.intellij.openapi.options.ConfigurationException;
+import com.intellij.openapi.options.ShowSettingsUtil;
+import com.intellij.openapi.options.ex.ConfigurablesGroupBase;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil;
+import com.intellij.openapi.roots.ProjectRootManager;
+import com.intellij.openapi.roots.ui.configuration.ModuleConfigurationEditorProvider;
+import com.intellij.openapi.roots.ui.configuration.ModuleConfigurationEditorProviderEx;
+import com.intellij.openapi.roots.ui.configuration.ProjectJdkConfigurable;
+import com.intellij.openapi.roots.ui.configuration.ProjectStructureConfigurable;
+import com.intellij.openapi.roots.ui.configuration.projectRoot.BaseStructureConfigurable;
+import com.intellij.openapi.roots.ui.configuration.projectRoot.FacetStructureConfigurable;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.ToolWindow;
@@ -20,9 +39,10 @@ import dbgsprw.exception.AndroidHomeNotFoundException;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
+import javax.swing.event.HyperlinkEvent;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.*;
+import java.io.File;
 import java.util.ArrayList;
 
 /**
@@ -131,9 +151,27 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
         return null;
     }
 
+    public void notifySetSdk(final Project project) {
+        if (ProjectRootManager.getInstance(project).getProjectSdk() == null) {
+            Notifications.Bus.notify(new Notification("Android Builder", "Android Builder",
+                    "<a href=''>Project SDK is not selected. Set project SDK</a>",
+                    NotificationType.WARNING,
+                    new NotificationListener() {
+                        @Override
+                        public void hyperlinkUpdate(@NotNull Notification notification, @NotNull HyperlinkEvent event) {
+                            ProjectStructureConfigurable configurable =  ProjectStructureConfigurable.getInstance(project);
+                            configurable.selectProjectGeneralSettings(true);
+                            ShowSettingsUtil.getInstance().editConfigurable(project,
+                                    configurable);
+                        }
+                    }));
+        }
+    }
+
     @Override
     public void createToolWindowContent(@NotNull final Project project, @NotNull ToolWindow toolWindow) {
 
+        notifySetSdk(project);
 
         // set Make configuration
         mProjectPath = project.getBasePath();
@@ -209,26 +247,23 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
             mFlashCommandTextArea.setText("fastboot -s " +
                     mDeviceListComboBox.getSelectedItem().toString().split(" ")[1] +
                     " reboot");
-        }
-        else if (mRebootBootloaderButton.isVisible()) {
+        } else if (mRebootBootloaderButton.isVisible()) {
             mFlashCommandTextArea.setText("adb -s " + mDeviceListComboBox.getSelectedItem().toString() +
                     " reboot");
-        }
-        else if (mFlashButton.isVisible()) {
+        } else if (mFlashButton.isVisible()) {
             String arguments = "";
             if (mWipeCheckBox.isSelected()) {
                 arguments = "-w ";
             }
-            for(String argument :
-                    fastBootArgumentComboBoxInterpreter(mFastBootArgumentComboBox.getSelectedItem().toString())){
+            for (String argument :
+                    fastBootArgumentComboBoxInterpreter(mFastBootArgumentComboBox.getSelectedItem().toString())) {
                 arguments += argument + " ";
             }
 
             mFlashCommandTextArea.setText("fastboot -s " +
                     mDeviceListComboBox.getSelectedItem().toString().split(" ")[1] + " " +
                     arguments);
-        }
-        else if (mSyncButton.isVisible()) {
+        } else if (mSyncButton.isVisible()) {
             if ("All".equals(mAdbSyncArgumentComboBox.getSelectedItem().toString())) {
                 mFlashCommandTextArea.setText("adb -s " + mDeviceListComboBox.getSelectedItem().toString() +
                         " sync");
@@ -265,7 +300,7 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
                     mResultPathComboBox.setSelectedItem(selectedDir);
                     jFileChooser.setCurrentDirectory(selectedDir);
                     if (mOutDirComboBox.getSelectedItem() == null) {
-                        String path = pathJoin(selectedDir.toString() , "target", "product");
+                        String path = pathJoin(selectedDir.toString(), "target", "product");
                         jFlashFileChooser.setCurrentDirectory(new File(path));
                     }
                 } else {
@@ -322,6 +357,11 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
                                     return;
                                 }
                                 currentDir = currentDir.getParent();
+                                if (currentDir == null) {
+                                    Messages.showMessageDialog(mProject, "Android.mk is not exist", "Android Builder",
+                                            Messages.getInformationIcon());
+                                    return;
+                                }
                                 path = currentDir.getPath();
                             }
                         }
@@ -367,7 +407,7 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
                             public void newOut(String line) {
                                 String outDirectoryPath = mResultPathComboBox.getSelectedItem().toString() + File.separator
                                         + "target" + line.split("target")[1];
-                                if(((DefaultComboBoxModel)mOutDirComboBox.getModel()).getIndexOf(outDirectoryPath)
+                                if (((DefaultComboBoxModel) mOutDirComboBox.getModel()).getIndexOf(outDirectoryPath)
                                         == -1) {
                                     mOutDirComboBox.addItem(outDirectoryPath);
                                 }
@@ -830,7 +870,7 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
         mFilteredLogArea.postAppendEvent(log + "\n");
     }
 
-    private static String pathJoin (String... filepath) {
+    private static String pathJoin(String... filepath) {
         StringBuilder sb = new StringBuilder();
         for (String path : filepath) {
             sb.append(path).append(File.separator);
