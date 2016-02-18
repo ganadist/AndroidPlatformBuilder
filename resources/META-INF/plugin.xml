@@ -31,11 +31,17 @@
   </extensions>
 
   <actions>
-    <!-- Add your actions here -->
-    <action id="ActionId" class="dbgsprw.action.MmAction" text="Android Make Current File" description="Description">
-      <add-to-group group-id="BuildMenu" anchor="last"/>
-      <keyboard-shortcut keymap="$default" first-keystroke="ctrl alt shift M"/>
+
+    <action id="AB.make" class="dbgsprw.action.MakeAction" text="Android Make" description="same as click Android Builder Make Button">
+      <add-to-group group-id="BuildMenu" anchor="first"/>
+      <keyboard-shortcut keymap="$default" first-keystroke="ctrl shift alt F8"/>
     </action>
+
+    <action id="AB.mm" class="dbgsprw.action.MmAction" text="Android mm" description="Description">
+      <add-to-group group-id="BuildMenu" anchor="first"/>
+      <keyboard-shortcut keymap="$default" first-keystroke="ctrl shift alt F9"/>
+    </action>
+
   </actions>
 
 </idea-plugin>

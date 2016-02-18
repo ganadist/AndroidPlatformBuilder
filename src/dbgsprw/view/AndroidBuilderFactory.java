@@ -1,16 +1,29 @@
 package dbgsprw.view;
 
 import com.android.ddmlib.IDevice;
+import com.intellij.configurationStore.ComponentStoreImpl;
+import com.intellij.configurationStore.ComponentStoreImplKt;
+import com.intellij.designer.componentTree.ComponentTree;
+import com.intellij.diff.FrameDiffTool;
 import com.intellij.execution.impl.ConsoleViewImpl;
+import com.intellij.facet.impl.ui.actions.GroupToolbarAction;
+import com.intellij.icons.AllIcons;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
-import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.*;
 import com.intellij.openapi.actionSystem.ex.ActionManagerEx;
+import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl;
+import com.intellij.openapi.components.ComponentConfig;
+import com.intellij.openapi.components.ex.ComponentManagerEx;
+import com.intellij.openapi.components.impl.ComponentManagerImpl;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
+import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.keymap.Keymap;
+import com.intellij.openapi.keymap.KeymapManager;
 import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
@@ -20,8 +33,14 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowFactory;
+import com.intellij.openapi.wm.ToolWindowManager;
+import com.intellij.openapi.wm.ex.ToolWindowManagerEx;
+import com.intellij.openapi.wm.ex.ToolWindowManagerListener;
+import com.intellij.ui.ComponentTreeWatcher;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
+import com.intellij.ui.roots.ToolbarPanel;
+import com.intellij.ui.tabs.impl.JBTabsImpl;
 import dbgsprw.core.*;
 import dbgsprw.exception.AndroidHomeNotFoundException;
 import dbgsprw.exception.FileManagerNotFoundException;
@@ -29,6 +48,8 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
+import javax.swing.plaf.ComponentUI;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -151,7 +172,7 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
                     new NotificationListener() {
                         @Override
                         public void hyperlinkUpdate(@NotNull Notification notification, @NotNull HyperlinkEvent event) {
-                            ProjectStructureConfigurable configurable =  ProjectStructureConfigurable.getInstance(project);
+                            ProjectStructureConfigurable configurable = ProjectStructureConfigurable.getInstance(project);
                             configurable.selectProjectGeneralSettings(true);
                             ShowSettingsUtil.getInstance().editConfigurable(project,
                                     configurable);
@@ -160,13 +181,48 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
         }
     }
 
+    /*
+    public void changeShortCut() {
+
+        ActionManager actionManager = ActionManager.getInstance();
+
+        Keymap keymap = KeymapManager.getInstance().getActiveKeymap();
+
+        for (Shortcut shortcut : actionManager.getAction("CompileDirty").getShortcutSet().getShortcuts()) {
+            keymap.addShortcut("AB.mm", shortcut);
+        }
+
+        for (Shortcut shortcut : actionManager.getAction("Compile").getShortcutSet().getShortcuts()) {
+            keymap.addShortcut("AB.make", shortcut);
+        }
+
+        final ToolWindowManagerEx toolWindowManagerEx = ToolWindowManagerEx.getInstanceEx(mProject);
+        toolWindowManagerEx.addToolWindowManagerListener(new ToolWindowManagerListener() {
+            @Override
+            public void toolWindowRegistered(@NotNull String id) {
+            }
+
+            @Override
+            public void stateChanged() {
+                if (toolWindowManagerEx.getToolWindow("Android Builder").isVisible()) {
+                    // tool window is visible
+                } else {
+
+                }
+            }
+        });
+    }*/
+
     @Override
     public void createToolWindowContent(@NotNull final Project project, @NotNull ToolWindow toolWindow) {
 
-        notifySetSdk(project);
+
 
         // set Make configuration
-        mProjectPath = project.getBasePath();
+        mProject = project;
+        mProjectPath = mProject.getBasePath();
+        mProjectPath = "/home/myoo/WORKSPACE";
+
 
         mBuilder = new Builder(mProjectPath);
 
@@ -193,14 +249,13 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
             }
         }
 
-
+        //changeShortCut();
+        notifySetSdk(project);
         // set FastBoot configuration
 
 
         mDeviceManager = new DeviceManager();
 
-
-        mProject = project;
         mToolWindow = toolWindow;
         ContentFactory contentFactory = ContentFactory.SERVICE.getInstance();
         Content content = contentFactory.createContent(mAndroidBuilderContent, "", false);
@@ -318,9 +373,22 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
         }
     }
 
+    public void doMake() {
+        if (mMakeStopButton.isVisible()) {
+            mMakeStopButton.doClick();
+        } else {
+            mMakeRadioButton.doClick();
+            mMakeButton.doClick();
+        }
+    }
+
     public void doMm() {
-        mMmRadioButton.doClick();
-        mMakeButton.doClick();
+        if (mMakeStopButton.isVisible()) {
+            mMakeStopButton.doClick();
+        } else {
+            mMmRadioButton.doClick();
+            mMakeButton.doClick();
+        }
     }
 
     private void initMakePanelButtons() {
@@ -378,8 +446,8 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
                     }
 
                 } else {
-                    Messages.showMessageDialog(mProject,"[" + mProductOut +
-                            "] is not exist directory.\nPlease make first.",
+                    Messages.showMessageDialog(mProject, "[" + mProductOut +
+                                    "] is not exist directory.\nPlease make first.",
                             "Android Builder",
                             Messages.getInformationIcon());
                 }
@@ -626,7 +694,7 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
                 if (!new File(mProductOut).exists()) {
-                    Messages.showMessageDialog(mProject, mProductOut +" is not exist path.\n Please make first",
+                    Messages.showMessageDialog(mProject, mProductOut + " is not exist path.\n Please make first",
                             "Android Builder",
                             Messages.getInformationIcon());
                 } else if (mDeviceListComboBox.getSelectedItem() == null) {
@@ -667,7 +735,7 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
                 if (!new File(mProductOut).exists()) {
-                    Messages.showMessageDialog(mProject, mProductOut +" is not exist path.\n Please make first",
+                    Messages.showMessageDialog(mProject, mProductOut + " is not exist path.\n Please make first",
                             "Android Builder",
                             Messages.getInformationIcon());
                 } else if (mDeviceListComboBox.getSelectedItem() == null) {
