@@ -6,6 +6,8 @@ import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
+import com.intellij.openapi.actionSystem.ActionManager;
+import com.intellij.openapi.actionSystem.ex.ActionManagerEx;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileEditor.FileEditorManager;
@@ -167,11 +169,30 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
         mProjectPath = project.getBasePath();
 
         mBuilder = new Builder(mProjectPath);
-        if (!mBuilder.isAOSPPath()) {
-            Messages.showMessageDialog(mProject, "This Project is Not AOSP.", "Android Builder",
-                    Messages.getInformationIcon());
-            return;
+
+        while (!mBuilder.isAOSPPath()) {
+            if (Messages.OK == Messages.showOkCancelDialog(mProject, "This Project is Not AOSP. \n" +
+                            "Find AOSP working directory path?", "Android Builder",
+                    Messages.getInformationIcon())) {
+                JFileChooser jFileChooser = new JFileChooser();
+                jFileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+                if (jFileChooser.showDialog(mAndroidBuilderContent, "Choose Directory") ==
+                        JFileChooser.APPROVE_OPTION) {
+                    File selectedFile = jFileChooser.getSelectedFile();
+                    if (selectedFile.exists()) {
+                        try {
+                            mProjectPath = selectedFile.getCanonicalPath();
+                            mBuilder = new Builder(mProjectPath);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            } else {
+                return;
+            }
         }
+
 
         // set FastBoot configuration
 
