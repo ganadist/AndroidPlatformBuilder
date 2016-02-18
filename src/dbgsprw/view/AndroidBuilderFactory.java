@@ -280,7 +280,7 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
     }
 
     private void writeMakeCommand() {
-
+        mOpenDirectoryButton.setEnabled(false);
         mFlashButton.setEnabled(false);
         mSyncButton.setEnabled(false);
         mResultPathValueLabel.setText(Utils.join('-', "out", mProductComboBox.getSelectedItem().toString(),
@@ -301,6 +301,7 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
                                 line.split("target")[1]);
                         mDeviceManager.setTargetProductPath(new File(mProductOut));
 
+                        mOpenDirectoryButton.setEnabled(true);
                         mFlashButton.setEnabled(true);
                         mSyncButton.setEnabled(true);
                     }
