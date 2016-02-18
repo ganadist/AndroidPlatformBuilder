@@ -1,29 +1,14 @@
 package dbgsprw.view;
 
 import com.android.ddmlib.IDevice;
-import com.intellij.configurationStore.ComponentStoreImpl;
-import com.intellij.configurationStore.ComponentStoreImplKt;
-import com.intellij.designer.componentTree.ComponentTree;
-import com.intellij.diff.FrameDiffTool;
 import com.intellij.execution.impl.ConsoleViewImpl;
-import com.intellij.facet.impl.ui.actions.GroupToolbarAction;
-import com.intellij.icons.AllIcons;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
-import com.intellij.openapi.actionSystem.*;
-import com.intellij.openapi.actionSystem.ex.ActionManagerEx;
-import com.intellij.openapi.actionSystem.impl.ActionToolbarImpl;
-import com.intellij.openapi.components.ComponentConfig;
-import com.intellij.openapi.components.ex.ComponentManagerEx;
-import com.intellij.openapi.components.impl.ComponentManagerImpl;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
-import com.intellij.openapi.fileEditor.FileEditor;
 import com.intellij.openapi.fileEditor.FileEditorManager;
-import com.intellij.openapi.keymap.Keymap;
-import com.intellij.openapi.keymap.KeymapManager;
 import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
@@ -33,14 +18,8 @@ import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowFactory;
-import com.intellij.openapi.wm.ToolWindowManager;
-import com.intellij.openapi.wm.ex.ToolWindowManagerEx;
-import com.intellij.openapi.wm.ex.ToolWindowManagerListener;
-import com.intellij.ui.ComponentTreeWatcher;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
-import com.intellij.ui.roots.ToolbarPanel;
-import com.intellij.ui.tabs.impl.JBTabsImpl;
 import dbgsprw.core.*;
 import dbgsprw.exception.AndroidHomeNotFoundException;
 import dbgsprw.exception.FileManagerNotFoundException;
@@ -48,8 +27,6 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import javax.swing.event.HyperlinkEvent;
-import javax.swing.plaf.ComponentUI;
-import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -135,10 +112,10 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
 
     private boolean mIsCreated;
 
-    private final static String ADB_PROPERTIES_PATH = "adb_sync_argument.properties";
-    private final static String FASTBOOT_PROPERTIES_PATH = "fastboot_argument.properties";
-    private final static String TARGET_PROPERTIES_PATH = "target_argument.properties";
-    private final static String VARIANT_PROPERTIES_PATH = "variant_argument.properties";
+    private final static String ADB_PROPERTIES_PATH = "properties/adb_sync_argument.properties";
+    private final static String FASTBOOT_PROPERTIES_PATH = "properties/fastboot_argument.properties";
+    private final static String TARGET_PROPERTIES_PATH = "properties/target_argument.properties";
+    private final static String VARIANT_PROPERTIES_PATH = "properties/variant_argument.properties";
 
     private ArgumentProperties mAdbSyncProperties;
     private ArgumentProperties mFastbootProperties;

@@ -22,7 +22,7 @@ import java.util.ArrayList;
  */
 
 public class DirectoryOpener {
-    private static final String OS_FILE_SYSTEM_PROPERTIES_PATH = "os_file_system_command.properties";
+    private static final String OS_FILE_SYSTEM_PROPERTIES_PATH = "properties/os_file_system_command.properties";
     private static ShellCommandExecutor sShellCommandExecutor;
     private static String sFileManagerCommand = null;
     static {
