@@ -5,7 +5,7 @@ import java.io.File;
 public class Utils {
     private static final String EMPTY = "";
 
-    public static String join(final char seperator, final Object[] array) {
+    public static String join(final char separator, final Object[] array) {
         if (array == null) {
             return null;
         }
@@ -17,7 +17,7 @@ public class Utils {
         final int startIndex = 0;
         for (int i = startIndex; i < array.length; i++) {
             if (i > startIndex) {
-                sb.append(seperator);
+                sb.append(separator);
             }
             if (array[i] != null) {
                 sb.append(array[i]);

@@ -20,10 +20,7 @@ import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowFactory;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
-import dbgsprw.core.Builder;
-import dbgsprw.core.DeviceManager;
-import dbgsprw.core.FastBootMonitor;
-import dbgsprw.core.ShellCommandExecutor;
+import dbgsprw.core.*;
 import dbgsprw.exception.AndroidHomeNotFoundException;
 import dbgsprw.exception.FileManagerNotFoundException;
 import org.jetbrains.annotations.NotNull;
@@ -168,6 +165,7 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
 
         // set Make configuration
         mProjectPath = project.getBasePath();
+
         mBuilder = new Builder(mProjectPath);
         if (!mBuilder.isAOSPPath()) {
             Messages.showMessageDialog(mProject, "This Project is Not AOSP.", "Android Builder",
@@ -218,8 +216,8 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
 
         mFlashButton.setEnabled(false);
         mSyncButton.setEnabled(false);
-        mResultPathValueLabel.setText("out-" + mProductComboBox.getSelectedItem().toString() + "-" +
-                mVariantComboBox.getSelectedItem().toString());
+        mResultPathValueLabel.setText(Utils.join('-', "out", mProductComboBox.getSelectedItem().toString(),
+                mVariantComboBox.getSelectedItem().toString()));
 
         mBuilder.findOriginalProductOutPath(mProductComboBox.getSelectedItem() + "-" +
                         mVariantComboBox.getSelectedItem().toString(),
@@ -232,7 +230,7 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
                     @Override
                     public void newOut(String line) {
 
-                        mProductOut = pathJoin(mProjectPath, mResultPathValueLabel.getText(), "target" +
+                        mProductOut = Utils.pathJoin(mProjectPath, mResultPathValueLabel.getText(), "target" +
                                 line.split("target")[1]);
                         mDeviceManager.setTargetProductPath(new File(mProductOut));
 
@@ -261,7 +259,7 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
     }
 
     private String getAbsolutePath(String path) {
-        return pathJoin(mProjectPath, path);
+        return Utils.pathJoin(mProjectPath, path);
     }
 
     private void writeFlashCommand() {
@@ -309,7 +307,7 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
         /*
         final JFileChooser jFileChooser;
         jFileChooser = new JFileChooser();
-        jFileChooser.setCurrentDirectory(new File(pathJoin(mProjectPath, OUT_DIR)));
+        jFileChooser.setCurrentDirectory(new File(Utils.pathJoin(mProjectPath, OUT_DIR)));
         jFileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
         jFileChooser.addActionListener(new ActionListener() {
             @Override
@@ -324,7 +322,7 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
                   //  mResultPathValueLabel.setSelectedItem(selectedDir);
                     jFileChooser.setCurrentDirectory(selectedDir);
                     if (mOutDirComboBox.getSelectedItem() == null) {
-                        String path = pathJoin(selectedDir.toString(), "target", "product");
+                        String path = Utils.pathJoin(selectedDir.toString(), "target", "product");
                         jFlashFileChooser.setCurrentDirectory(new File(path));
                     }
                 } else {
@@ -387,9 +385,9 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
 
                         if (path != mProjectPath) {
                             while (true) {
-                                if (new File(pathJoin(path, ANDROID_MK)).exists()) {
+                                if (new File(Utils.pathJoin(path, ANDROID_MK)).exists()) {
                                     path = path.replace(mProjectPath + File.separator, "");
-                                    mBuilder.setOneShotMakefile(pathJoin(path, ANDROID_MK));
+                                    mBuilder.setOneShotMakefile(Utils.pathJoin(path, ANDROID_MK));
                                     int i;
                                     for (i = 0; i < mTargetDirComboBox.getItemCount(); i++) {
                                         if (mTargetDirComboBox.getItemAt(i).equals(path)) {
@@ -415,7 +413,7 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
                             }
                         }
                     } else {
-                        mBuilder.setOneShotMakefile(pathJoin(selectedPath, ANDROID_MK));
+                        mBuilder.setOneShotMakefile(Utils.pathJoin(selectedPath, ANDROID_MK));
                     }
                     mBuilder.setTarget("all_modules");
 
@@ -901,12 +899,4 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
         mFilteredLogArea.setText("");
     }
 
-    private static String pathJoin(String... filepath) {
-        StringBuilder sb = new StringBuilder();
-        for (String path : filepath) {
-            sb.append(path).append(File.separator);
-        }
-        sb.setLength(sb.length() - 1);
-        return sb.toString();
-    }
 }
