@@ -2,8 +2,6 @@ package dbgsprw.view;
 
 import com.android.ddmlib.IDevice;
 import com.intellij.execution.impl.ConsoleViewImpl;
-import com.intellij.ide.actions.ShowSettingsAction;
-import com.intellij.ide.actions.TemplateProjectSettingsGroup;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
@@ -11,21 +9,11 @@ import com.intellij.notification.Notifications;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileEditor.FileEditorManager;
-import com.intellij.openapi.module.ModuleConfigurationEditor;
-import com.intellij.openapi.options.Configurable;
-import com.intellij.openapi.options.ConfigurationException;
 import com.intellij.openapi.options.ShowSettingsUtil;
-import com.intellij.openapi.options.ex.ConfigurablesGroupBase;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.projectRoots.impl.SdkConfigurationUtil;
 import com.intellij.openapi.roots.ProjectRootManager;
-import com.intellij.openapi.roots.ui.configuration.ModuleConfigurationEditorProvider;
-import com.intellij.openapi.roots.ui.configuration.ModuleConfigurationEditorProviderEx;
-import com.intellij.openapi.roots.ui.configuration.ProjectJdkConfigurable;
 import com.intellij.openapi.roots.ui.configuration.ProjectStructureConfigurable;
-import com.intellij.openapi.roots.ui.configuration.projectRoot.BaseStructureConfigurable;
-import com.intellij.openapi.roots.ui.configuration.projectRoot.FacetStructureConfigurable;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.ToolWindow;
@@ -37,6 +25,7 @@ import dbgsprw.core.DeviceManager;
 import dbgsprw.core.FastBootMonitor;
 import dbgsprw.core.ShellCommandExecutor;
 import dbgsprw.exception.AndroidHomeNotFoundException;
+import dbgsprw.exception.FileManagerNotFoundException;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -44,6 +33,7 @@ import javax.swing.event.HyperlinkEvent;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 
 /**
@@ -65,21 +55,20 @@ import java.util.ArrayList;
 public class AndroidBuilderFactory implements ToolWindowFactory {
     private final static String CURRENT_PATH = "Current Path";
     private final static String ANDROID_MK = "Android.mk";
-    private final static String OUT_DIR = "out";
+    private String mUpdateFilePath;
+
     private static AndroidBuilderFactory mAndroidBuilderFactory;
     private JPanel mAndroidBuilderContent;
     private JButton mMakeButton;
     private JComboBox mTargetComboBox;
     private JComboBox mProductComboBox;
     private JComboBox mJobNumberComboBox;
-    private JComboBox mResultPathComboBox;
-    private JButton mChooseResultPathButton;
+    private JLabel mResultPathValueLabel;
     private JLabel mTargetLabel;
     private ButtonGroup mMakeButtonGroup;
     private JRadioButton mMakeRadioButton;
     private JRadioButton mMmRadioButton;
     private JTextArea mMakeCommandTextArea;
-    private JLabel mMakeStatusLabel;
     private JButton mMakeStopButton;
     private JLabel mMakeCommandLabel;
     private JComboBox mTargetDirComboBox;
@@ -91,9 +80,7 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
     private JRadioButton mAdbSyncRadioButton;
     private FilteredTextArea mFilteredLogArea;
     private JPanel mMakeOptionPanel;
-    private JLabel mProductLabel;
     private JLabel mJobNumberLabel;
-    private JLabel mResultPathLabel;
     private JLabel mMakeLabel;
     private JPanel mFlashOptionPanel;
     private JLabel mDeviceListLabel;
@@ -102,9 +89,6 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
     private JLabel mModeLabel;
     private JTextArea mFlashCommandTextArea;
     private JButton mFlashStopButton;
-    private JLabel mOutDirLabel;
-    private JComboBox mOutDirComboBox;
-    private JButton mChooseOutDirButton;
     private JButton mRebootButton;
     private JButton mRebootBootloaderButton;
     private JLabel mFlashStatusLabel;
@@ -115,14 +99,17 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
     private JCheckBox mWipeCheckBox;
     private JScrollPane mLogScroll;
     private JCheckBox mVerboseCheckBox;
-    private JLabel mVariantLabel;
     private JComboBox mVariantComboBox;
     private ConsoleViewImpl mConsoleView;
-    private JFileChooser jFlashFileChooser;
     private ToolWindow mToolWindow;
     private String mProjectPath;
     private Builder mBuilder;
     private Project mProject;
+    private String mProductOut;
+    private JLabel mResultPathLabel;
+    private JButton mOpenDirectoryButton;
+    private JLabel mProductLabel;
+    private JLabel mVariantLabel;
 
     private DeviceManager mDeviceManager;
 
@@ -188,13 +175,11 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
                     Messages.getInformationIcon());
             return;
         }
-        new File(pathJoin(mProjectPath, OUT_DIR)).mkdir();
 
         // set FastBoot configuration
 
 
         mDeviceManager = new DeviceManager();
-        jFlashFileChooser = new JFileChooser();
 
 
         mProject = project;
@@ -208,14 +193,12 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
         initMakePanelComboBoxes();
         initMakePanelButtons();
         initMakePanelRadioButtons();
-        writeMakeCommand();
         mIsCreated = true;
 
         try {
             mDeviceManager.adbInit();
             mDeviceManager.fastBootMonitorInit();
         } catch (AndroidHomeNotFoundException e) {
-            mOutDirComboBox.setPrototypeDisplayValue("XXXXXXXXX");
             printLog("Can't find Android Home. Can't use flash function.\n Please set Android SDK or Android Home");
             e.printStackTrace();
             return;
@@ -233,18 +216,53 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
     }
 
     private void writeMakeCommand() {
+
+        mFlashButton.setEnabled(false);
+        mSyncButton.setEnabled(false);
+        mResultPathValueLabel.setText("out-" + mProductComboBox.getSelectedItem().toString() + "-" +
+                mVariantComboBox.getSelectedItem().toString());
+
+        mBuilder.findOriginalProductOutPath(mProductComboBox.getSelectedItem() + "-" +
+                        mVariantComboBox.getSelectedItem().toString(),
+                new ShellCommandExecutor.ThreadResultReceiver() {
+                    @Override
+                    public void shellThreadDone() {
+
+                    }
+
+                    @Override
+                    public void newOut(String line) {
+
+                        mProductOut = pathJoin(mProjectPath, mResultPathValueLabel.getText(), "target" +
+                                line.split("target")[1]);
+                        mDeviceManager.setTargetProductPath(new File(mProductOut));
+
+                        mFlashButton.setEnabled(true);
+                        mSyncButton.setEnabled(true);
+                    }
+
+                    @Override
+                    public void newError(String line) {
+
+                    }
+                });
+
         if (mMakeRadioButton.isSelected()) {
             mMakeCommandTextArea.setText("make -j" + mJobNumberComboBox.getSelectedItem() + " " +
                     mTargetComboBox.getSelectedItem()
-                    + " OUT_DIR=" + mResultPathComboBox.getSelectedItem()
+                    + " OUT_DIR=" + getAbsolutePath(mResultPathValueLabel.getText())
                     + " TARGET_PRODUCT=" + mProductComboBox.getSelectedItem()
                     + " TARGET_BUILD_VARIANT=" + mVariantComboBox.getSelectedItem());
         } else {
             mMakeCommandTextArea.setText("mm -j" + mJobNumberComboBox.getSelectedItem()
-                    + " OUT_DIR=" + mResultPathComboBox.getSelectedItem()
+                    + " OUT_DIR=" + getAbsolutePath(mResultPathValueLabel.getText())
                     + " TARGET_PRODUCT=" + mProductComboBox.getSelectedItem()
                     + " TARGET_BUILD_VARIANT=" + mVariantComboBox.getSelectedItem());
         }
+    }
+
+    private String getAbsolutePath(String path) {
+        return pathJoin(mProjectPath, path);
     }
 
     private void writeFlashCommand() {
@@ -288,6 +306,8 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
     }
 
     private void initMakePanelButtons() {
+
+        /*
         final JFileChooser jFileChooser;
         jFileChooser = new JFileChooser();
         jFileChooser.setCurrentDirectory(new File(pathJoin(mProjectPath, OUT_DIR)));
@@ -301,8 +321,8 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
                     selectedDir.mkdirs();
                 }
                 if (selectedDir.canWrite()) {
-                    mResultPathComboBox.addItem(selectedDir);
-                    mResultPathComboBox.setSelectedItem(selectedDir);
+                  //  mResultPathValueLabel.addItem(selectedDir);
+                  //  mResultPathValueLabel.setSelectedItem(selectedDir);
                     jFileChooser.setCurrentDirectory(selectedDir);
                     if (mOutDirComboBox.getSelectedItem() == null) {
                         String path = pathJoin(selectedDir.toString(), "target", "product");
@@ -313,12 +333,38 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
                             Messages.getInformationIcon());
                 }
             }
-        });
+        });*/
 
-        mChooseResultPathButton.addActionListener(new ActionListener() {
+        mOpenDirectoryButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
-                jFileChooser.showDialog(mAndroidBuilderContent, "Choose");
+                String absolutePath = getAbsolutePath(mResultPathValueLabel.getText());
+                if (new File(absolutePath).exists()) {
+                    try {
+                        DirectoryOpener.openDirectory(absolutePath, new ShellCommandExecutor.ResultReceiver() {
+                            @Override
+                            public void newOut(String line) {
+                                printLog(line);
+                            }
+
+                            @Override
+                            public void newError(String line) {
+                                printLog(line);
+                            }
+                        });
+                    } catch (FileManagerNotFoundException e) {
+                        Messages.showMessageDialog(mProject, "Sorry, can't find manager command.",
+                                "Android Builder",
+                                Messages.getInformationIcon());
+                        e.printStackTrace();
+                    }
+
+                } else {
+                    Messages.showMessageDialog(mProject,"[" + mProductOut +
+                            "] is not exist directory.\nPlease make first.",
+                            "Android Builder",
+                            Messages.getInformationIcon());
+                }
             }
         });
 
@@ -329,7 +375,7 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
                 mBuilder.setTarget(null);
                 mBuilder.setVerbose(mVerboseCheckBox.isSelected());
                 mBuilder.setMakeOptions(mJobNumberComboBox.getSelectedItem().toString(),
-                        mResultPathComboBox.getSelectedItem().toString(),
+                        getAbsolutePath(mResultPathValueLabel.getText()),
                         mProductComboBox.getSelectedItem().toString(), mVariantComboBox.getSelectedItem().toString());
 
                 if (mMmRadioButton.isSelected()) {
@@ -406,32 +452,6 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
 
                 mMakeButton.setVisible(false);
                 mMakeStopButton.setVisible(true);
-
-                mBuilder.findOriginalProductOutPath(mProductComboBox.getSelectedItem().toString(),
-                        new ShellCommandExecutor.ThreadResultReceiver() {
-                            @Override
-                            public void shellThreadDone() {
-
-                            }
-
-                            @Override
-                            public void newOut(String line) {
-                                String outDirectoryPath = mResultPathComboBox.getSelectedItem().toString() +
-                                        File.separator + "target" + line.split("target")[1];
-                                if (((DefaultComboBoxModel) mOutDirComboBox.getModel()).getIndexOf(outDirectoryPath)
-                                        == -1) {
-                                    mOutDirComboBox.addItem(outDirectoryPath);
-                                }
-                                mOutDirComboBox.setSelectedItem(outDirectoryPath);
-                                jFlashFileChooser.setCurrentDirectory(new File(outDirectoryPath));
-                                mDeviceManager.setTargetProductPath(new File(outDirectoryPath));
-                            }
-
-                            @Override
-                            public void newError(String line) {
-
-                            }
-                        });
             }
         });
         mMakeStopButton.addActionListener(new ActionListener() {
@@ -536,15 +556,6 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
                 writeMakeCommand();
             }
         });
-
-        mResultPathComboBox.addItem(pathJoin(mProjectPath, OUT_DIR));
-        mResultPathComboBox.setPrototypeDisplayValue("XXXXXXXXX");
-        mResultPathComboBox.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent actionEvent) {
-                writeMakeCommand();
-            }
-        });
     }
 
     private void initFlashPanelRadioButtons() {
@@ -559,7 +570,7 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
                 mAdbSyncArgumentLabel.setVisible(false);
                 mFastBootArgumentComboBox.setVisible(true);
                 mFastBootArgumentLabel.setVisible(true);
-                mWipeCheckBox.setVisible(true);
+                mWipeCheckBox.setEnabled(true);
                 changeFlashButton();
                 writeFlashCommand();
 
@@ -573,7 +584,8 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
                 mAdbSyncArgumentLabel.setVisible(true);
                 mFastBootArgumentComboBox.setVisible(false);
                 mFastBootArgumentLabel.setVisible(false);
-                mWipeCheckBox.setVisible(false);
+
+                mWipeCheckBox.setEnabled(false);
                 changeFlashButton();
                 writeFlashCommand();
             }
@@ -590,42 +602,15 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
     }
 
     private void initFlashButtons() {
-        mOutDirComboBox.setPrototypeDisplayValue("XXXXXXXXX");
-        jFlashFileChooser.setCurrentDirectory(new File(pathJoin(mProjectPath, OUT_DIR)));
-        jFlashFileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-        jFlashFileChooser.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent actionEvent) {
-                File selectedDir = jFlashFileChooser.getSelectedFile();
-                if (selectedDir == null) return;
-                if (selectedDir.exists()) {
-                    mOutDirComboBox.addItem(selectedDir);
-                    mOutDirComboBox.setSelectedItem(selectedDir);
-                    jFlashFileChooser.setCurrentDirectory(selectedDir);
-                    mDeviceManager.setTargetProductPath(selectedDir);
-                } else {
-                    Messages.showMessageDialog(mProject, "Please select exist dir", "Android Builder",
-                            Messages.getInformationIcon());
-                }
-                writeFlashCommand();
-            }
-        });
 
-        mChooseOutDirButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent actionEvent) {
-                jFlashFileChooser.showDialog(mAndroidBuilderContent, "Choose");
-                writeFlashCommand();
-            }
-        });
 
         mFlashButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
-                if (mOutDirComboBox.getSelectedItem() == null) {
-                    Messages.showMessageDialog(mProject, "Please choose out directory", "Android Builder",
+                if (!new File(mProductOut).exists()) {
+                    Messages.showMessageDialog(mProject, mProductOut +" is not exist path.\n Please make first",
+                            "Android Builder",
                             Messages.getInformationIcon());
-
                 } else if (mDeviceListComboBox.getSelectedItem() == null) {
                     Messages.showMessageDialog(mProject, "Can't find device", "Android Builder",
                             Messages.getInformationIcon());
@@ -663,8 +648,9 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
         mSyncButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
-                if (mOutDirComboBox.getSelectedItem() == null) {
-                    Messages.showMessageDialog(mProject, "Please choose out directory", "Android Builder",
+                if (!new File(mProductOut).exists()) {
+                    Messages.showMessageDialog(mProject, mProductOut +" is not exist path.\n Please make first",
+                            "Android Builder",
                             Messages.getInformationIcon());
                 } else if (mDeviceListComboBox.getSelectedItem() == null) {
                     Messages.showMessageDialog(mProject, "Can't find device", "Android Builder",
@@ -827,13 +813,6 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
             }
         });
 
-        mOutDirComboBox.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent actionEvent) {
-                jFlashFileChooser.setCurrentDirectory(new File(mOutDirComboBox.getSelectedItem().toString()));
-                mDeviceManager.setTargetProductPath(new File(mOutDirComboBox.getSelectedItem().toString()));
-            }
-        });
 
         addPropertiesToComboBox(mFastbootProperties, mFastBootArgumentComboBox);
         mFastBootArgumentComboBox.setSelectedItem("flashall");
@@ -842,6 +821,29 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
         mFastBootArgumentComboBox.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
+                if (mFastBootArgumentComboBox.getSelectedItem().toString().equals("update")) {
+                    JFileChooser jFileChooser = new JFileChooser();
+                    File productOutDirectory = new File(mProductOut);
+                    if (productOutDirectory.exists()) {
+                        jFileChooser.setCurrentDirectory(productOutDirectory);
+                    } else {
+                        jFileChooser.setCurrentDirectory(new File(mProjectPath));
+                    }
+
+                    if (jFileChooser.showDialog(mAndroidBuilderContent, "Choose Update Package File") ==
+                            JFileChooser.APPROVE_OPTION) {
+                        File selectedFile = jFileChooser.getSelectedFile();
+                        if (selectedFile.exists()) {
+                            try {
+                                mUpdateFilePath = selectedFile.getCanonicalPath();
+                                mFastbootProperties.setProperty("update", "update\t" + mUpdateFilePath);
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        }
+
+                    }
+                }
                 writeFlashCommand();
             }
         });
@@ -858,7 +860,7 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
     }
 
     private String[] fastBootArgumentComboBoxInterpreter(String argument) {
-        return mFastbootProperties.getArguments(argument, "/");
+        return mFastbootProperties.getArguments(argument, "\t");
     }
 
     private void changeFlashButton() {
