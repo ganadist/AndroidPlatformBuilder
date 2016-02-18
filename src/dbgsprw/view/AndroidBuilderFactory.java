@@ -190,6 +190,22 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
         });
     }*/
 
+    /*
+    public static void invokeAndWait(Runnable runnable) {
+        if (SwingUtilities.isEventDispatchThread()) {
+            runnable.run();
+        } else {
+            try {
+                SwingUtilities.invokeAndWait(runnable);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } catch (InvocationTargetException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+     */
+
     @Override
     public void createToolWindowContent(@NotNull final Project project, @NotNull ToolWindow toolWindow) {
 
@@ -198,8 +214,6 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
         // set Make configuration
         mProject = project;
         mProjectPath = mProject.getBasePath();
-        mProjectPath = "/home/myoo/WORKSPACE";
-
 
         mBuilder = new Builder(mProjectPath);
 
