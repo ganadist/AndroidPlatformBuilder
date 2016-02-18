@@ -2,6 +2,7 @@ package dbgsprw.core;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Map;
 
 /**
  * Copyright 2016 dbgsprw / dbgsprw@gmail.com
@@ -49,7 +50,13 @@ public class Builder {
     }
 
     public void setAndroidJavaHome(String directoryPath) {
-        mShellCommandExecutor.environment().put("ANDROID_JAVA_HOME", directoryPath);
+        Map<String, String> env = mShellCommandExecutor.environment();
+        env.put("ANDROID_JAVA_HOME", directoryPath);
+        final String path = env.get("PATH");
+        final String jdkBinPath = Utils.pathJoin(directoryPath, "bin");
+        if (!path.startsWith(jdkBinPath)) {
+            env.put("PATH", jdkBinPath + File.pathSeparator + path);
+        }
     }
 
     public void executeMake(ShellCommandExecutor.ThreadResultReceiver threadResultReceiver) {
