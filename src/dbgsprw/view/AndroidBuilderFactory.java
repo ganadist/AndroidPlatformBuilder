@@ -401,10 +401,9 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
         mOpenDirectoryButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
-                String absolutePath = getAbsolutePath(mResultPathValueLabel.getText());
-                if (new File(absolutePath).exists()) {
+                if (new File(mProductOut).exists()) {
                     try {
-                        DirectoryOpener.openDirectory(absolutePath, new ShellCommandExecutor.ResultReceiver() {
+                        DirectoryOpener.openDirectory(mProductOut, new ShellCommandExecutor.ResultReceiver() {
                             @Override
                             public void newOut(String line) {
                                 printLog(line);
