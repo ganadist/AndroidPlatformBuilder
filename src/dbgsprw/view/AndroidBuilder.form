@@ -92,12 +92,6 @@
                           <editable value="true"/>
                         </properties>
                       </component>
-                      <component id="f53ce" class="javax.swing.JComboBox" binding="mJobNumberComboBox">
-                        <constraints>
-                          <grid row="3" column="1" row-span="1" col-span="3" vsize-policy="0" hsize-policy="2" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
-                        </constraints>
-                        <properties/>
-                      </component>
                       <component id="93b4f" class="javax.swing.JLabel" binding="mJobNumberLabel">
                         <constraints>
                           <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
@@ -222,6 +216,12 @@
                           <text value="Stop"/>
                           <visible value="true"/>
                         </properties>
+                      </component>
+                      <component id="b9e12" class="javax.swing.JSpinner" binding="mJobSpinner">
+                        <constraints>
+                          <grid row="3" column="1" row-span="1" col-span="3" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
+                        </constraints>
+                        <properties/>
                       </component>
                     </children>
                   </grid>

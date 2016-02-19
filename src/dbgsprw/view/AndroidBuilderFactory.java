@@ -26,7 +26,7 @@ import dbgsprw.exception.FileManagerNotFoundException;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import javax.swing.event.HyperlinkEvent;
+import javax.swing.event.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -59,7 +59,6 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
     private JButton mMakeButton;
     private JComboBox mTargetComboBox;
     private JComboBox mProductComboBox;
-    private JComboBox mJobNumberComboBox;
     private JLabel mResultPathValueLabel;
     private JLabel mTargetLabel;
     private ButtonGroup mMakeButtonGroup;
@@ -109,6 +108,7 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
     private JLabel mVariantLabel;
     private JLabel mExtraArgumentsLabel;
     private JComboBox mExtraArgumentsComboBox;
+    private JSpinner mJobSpinner;
 
     private DeviceManager mDeviceManager;
 
@@ -314,22 +314,24 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
                     }
                 });
 
+        StringBuilder commandBuilder = new StringBuilder();
         if (mMakeRadioButton.isSelected()) {
-            mMakeCommandTextArea.setText("make -j" + mJobNumberComboBox.getSelectedItem() + " " +
-                    mTargetComboBox.getSelectedItem()
-                    + " OUT_DIR=" + getAbsolutePath(mResultPathValueLabel.getText())
-                    + " TARGET_PRODUCT=" + mProductComboBox.getSelectedItem()
-                    + " TARGET_BUILD_VARIANT=" + mVariantComboBox.getSelectedItem());
+            commandBuilder.append("make ");
         } else {
-            mMakeCommandTextArea.setText("mm -j" + mJobNumberComboBox.getSelectedItem()
-                    + " OUT_DIR=" + getAbsolutePath(mResultPathValueLabel.getText())
-                    + " TARGET_PRODUCT=" + mProductComboBox.getSelectedItem()
-                    + " TARGET_BUILD_VARIANT=" + mVariantComboBox.getSelectedItem());
+            commandBuilder.append("mm ");
         }
-    }
+        commandBuilder.append("-j");
+        commandBuilder.append(mJobSpinner.getValue()).append(" ");
 
-    private String getAbsolutePath(String path) {
-        return Utils.pathJoin(mProjectPath, path);
+        if (mMakeRadioButton.isSelected()) {
+            commandBuilder.append(mTargetComboBox.getSelectedItem());
+        }
+        commandBuilder.append(" OUT_DIR=").append(mResultPathValueLabel.getText());
+        commandBuilder.append(" TARGET_PRODUCT=").append(mProductComboBox.getSelectedItem());
+        commandBuilder.append(" TARGET_BUILD_VARIANT=").append(mVariantComboBox.getSelectedItem());
+        commandBuilder.append(" ").append(mExtraArgumentsComboBox.getSelectedItem());
+
+        mMakeCommandTextArea.setText(commandBuilder.toString());
     }
 
     private void writeFlashCommand() {
@@ -453,11 +455,11 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
                 mBuilder.setOneShotMakefile(null);
                 mBuilder.setTarget(null);
                 mBuilder.setVerbose(mVerboseCheckBox.isSelected());
-                mBuilder.setMakeOptions(mJobNumberComboBox.getSelectedItem().toString(),
+                mBuilder.setMakeOptions(String.valueOf(mJobSpinner.getValue()),
                         mResultPathValueLabel.getText(),
-                        mProductComboBox.getSelectedItem().toString(),
-                        mVariantComboBox.getSelectedItem().toString(),
-                        mExtraArgumentsComboBox.getSelectedItem().toString());
+                        String.valueOf(mProductComboBox.getSelectedItem()),
+                        String.valueOf(mVariantComboBox.getSelectedItem()),
+                        String.valueOf(mExtraArgumentsComboBox.getSelectedItem()));
 
                 if (mMmRadioButton.isSelected()) {
                     String selectedPath = mTargetDirComboBox.getSelectedItem().toString();
@@ -624,16 +626,16 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
             }
         });
 
-        for (int i = mBuilder.getNumberOfProcess() + 1; i > 0; i--) {
-            mJobNumberComboBox.addItem(i);
-        }
+        final int numberOfCpus = mBuilder.getNumberOfProcess();
+        final int initialJobNumber = (numberOfCpus > 4) ? numberOfCpus - 1 : numberOfCpus;
 
-        // set default job number to mBuilder.getNumberOfProcess() - 1
-        mJobNumberComboBox.setSelectedIndex(2);
+        SpinnerNumberModel model = new SpinnerNumberModel(initialJobNumber,
+                1, numberOfCpus, 1);
+        mJobSpinner.setModel(model);
 
-        mJobNumberComboBox.addActionListener(new ActionListener() {
+        mJobSpinner.addChangeListener(new ChangeListener() {
             @Override
-            public void actionPerformed(ActionEvent actionEvent) {
+            public void stateChanged(ChangeEvent e) {
                 writeMakeCommand();
             }
         });
