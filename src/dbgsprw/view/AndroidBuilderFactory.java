@@ -107,6 +107,8 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
     private JButton mOpenDirectoryButton;
     private JLabel mProductLabel;
     private JLabel mVariantLabel;
+    private JLabel mExtraArgumentsLabel;
+    private JComboBox mExtraArgumentsComboBox;
 
     private DeviceManager mDeviceManager;
 
@@ -452,8 +454,10 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
                 mBuilder.setTarget(null);
                 mBuilder.setVerbose(mVerboseCheckBox.isSelected());
                 mBuilder.setMakeOptions(mJobNumberComboBox.getSelectedItem().toString(),
-                        getAbsolutePath(mResultPathValueLabel.getText()),
-                        mProductComboBox.getSelectedItem().toString(), mVariantComboBox.getSelectedItem().toString());
+                        mResultPathValueLabel.getText(),
+                        mProductComboBox.getSelectedItem().toString(),
+                        mVariantComboBox.getSelectedItem().toString(),
+                        mExtraArgumentsComboBox.getSelectedItem().toString());
 
                 if (mMmRadioButton.isSelected()) {
                     String selectedPath = mTargetDirComboBox.getSelectedItem().toString();

@@ -29,6 +29,7 @@ public class Builder {
     private String mTargetBuildVariant;
     private String mOutDir;
     private String mTarget;
+    private String mExtraArguments;
     private boolean mIsVerbose;
     private String mOneShotMakefile;
     private int mNumberOfProcess;
@@ -89,6 +90,11 @@ public class Builder {
         if (mIsVerbose) {
             makeCommandLine.add("showcommands");
         }
+        if (!mExtraArguments.equals("")) {
+            for (String arg: mExtraArguments.split(("\\s+"))) {
+                makeCommandLine.add(arg);
+            }
+        }
         mMakeThread = mShellCommandExecutor.executeShellCommandInThread(makeCommandLine, threadResultReceiver);
 
     }
@@ -135,11 +141,12 @@ public class Builder {
         mIsVerbose = isVerbose;
     }
 
-    public void setMakeOptions(String jobNumber, String outDir, String targetProduct, String targetBuildVariant) {
+    public void setMakeOptions(String jobNumber, String outDir, String targetProduct, String targetBuildVariant, String extraArguments) {
         mJobNumber = jobNumber;
         mOutDir = outDir;
         mTargetProduct = targetProduct;
         mTargetBuildVariant = targetBuildVariant;
+        mExtraArguments = extraArguments.trim();
     }
 
     private void updateNumberOfProcess() {
