@@ -4,6 +4,7 @@ import java.io.File;
 
 public class Utils {
     private static final String EMPTY = "";
+    public static final String ANDROID_MK = "Android.mk";
 
     public static String join(final char separator, final Object[] array) {
         if (array == null) {
@@ -32,5 +33,24 @@ public class Utils {
 
     public static String pathJoin(String ... paths) {
         return join(File.separatorChar, paths);
+    }
+
+    public static String findAndroidMkOnParent(String root, String filename) {
+        File file = new File(filename);
+        if (!file.getAbsolutePath().startsWith(root)) {
+            return null; // filename is out of project root directory.
+        }
+        while (true) {
+            File parent = file.getParentFile();
+            File AndroidMk = new File(parent, ANDROID_MK);
+            if (AndroidMk.exists()) {
+                String path = AndroidMk.getPath();
+                return path.substring(root.length() + 1, path.length() - ANDROID_MK.length() - 1);
+            }
+            if (root.equals(parent.getAbsolutePath())) {
+                return null; // cannot find Android.mk
+            }
+            file = parent;
+        }
     }
 }

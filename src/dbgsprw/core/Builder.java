@@ -25,15 +25,15 @@ public class Builder {
     ShellCommandExecutor mShellCommandExecutor;
     private ArrayList<String> mLunchMenuList;
     private String mProjectPath;
-    private String mTargetProduct;
-    private String mTargetBuildVariant;
+    private String mTargetProduct = "";
+    private String mTargetBuildVariant = "eng";
     private String mOutDir;
     private String mTarget;
-    private String mExtraArguments;
+    private String mExtraArguments = "";
     private boolean mIsVerbose;
     private String mOneShotMakefile;
     private int mNumberOfProcess;
-    private String mJobNumber;
+    private int mJobNumber = 1;
     private Thread mMakeThread;
     private boolean mIsAOSPPath;
     private String mProductOutPath;
@@ -44,7 +44,6 @@ public class Builder {
         mProjectPath = projectPath;
         mShellCommandExecutor = new ShellCommandExecutor();
         mShellCommandExecutor.directory(new File(mProjectPath));
-
 
         updateLunchMenu();
         updateNumberOfProcess();
@@ -60,18 +59,16 @@ public class Builder {
         }
     }
 
-    public void executeMake(ShellCommandExecutor.ThreadResultReceiver threadResultReceiver) {
+    public ArrayList<String> buildMakeCommand() {
         final ArrayList<String> makeCommandLine;
 
         makeCommandLine = new ArrayList<>();
         makeCommandLine.add("make");
-        makeCommandLine.add("-C");
-        makeCommandLine.add(mProjectPath);
-        makeCommandLine.add("-f");
-        makeCommandLine.add("build/core/main.mk");
-        if (mJobNumber != null) {
+
+        if (mJobNumber > 1) {
             makeCommandLine.add("-j" + mJobNumber);
         }
+
         if (mTarget != null) {
             makeCommandLine.add(mTarget);
         }
@@ -84,9 +81,7 @@ public class Builder {
         if (mTargetBuildVariant != null) {
             makeCommandLine.add("TARGET_BUILD_VARIANT=" + mTargetBuildVariant);
         }
-        if (mOutDir != null) {
-            makeCommandLine.add("OUT_DIR=" + mOutDir);
-        }
+
         if (mIsVerbose) {
             makeCommandLine.add("showcommands");
         }
@@ -95,7 +90,11 @@ public class Builder {
                 makeCommandLine.add(arg);
             }
         }
-        mMakeThread = mShellCommandExecutor.executeShellCommandInThread(makeCommandLine, threadResultReceiver);
+        return makeCommandLine;
+    }
+
+    public void executeMake(ShellCommandExecutor.ThreadResultReceiver threadResultReceiver) {
+        mMakeThread = mShellCommandExecutor.executeShellCommandInThread(buildMakeCommand(), threadResultReceiver);
 
     }
 
@@ -113,40 +112,45 @@ public class Builder {
         return mLunchMenuList;
     }
 
-    public void setOneShotMakefile(String oneShotMakefile) {
-        mOneShotMakefile = oneShotMakefile;
+    public void setOneShotMakefile(String directory) {
+        mOneShotMakefile = Utils.pathJoin(directory, Utils.ANDROID_MK);
+        mTarget = "all_modules";
+    }
+
+    public void setTarget(String target) {
+        mOneShotMakefile = null;
+        mTarget = target;
     }
 
     public void setTargetBuildVariant(String targetBuildVariant) {
         mTargetBuildVariant = targetBuildVariant;
+        updateOutDir();
     }
 
     public void setTargetProduct(String targetProduct) {
         mTargetProduct = targetProduct;
+        updateOutDir();
     }
 
-    public void setJobNumber(String jobNumber) {
+    public void setJobNumber(int jobNumber) {
         mJobNumber = jobNumber;
     }
 
-    public void setOutDir(String outDir) {
-        mOutDir = outDir;
+    private void updateOutDir() {
+        mOutDir = Utils.join('-', "out", mTargetProduct, mTargetBuildVariant);
+        mShellCommandExecutor.environment().put("OUT_DIR", mOutDir);
     }
 
-    public void setTarget(String target) {
-        mTarget = target;
+    public String getOutDir() {
+        return mOutDir;
+    }
+
+    public void setExtraArguments(String args) {
+        mExtraArguments = args.trim();
     }
 
     public void setVerbose(boolean isVerbose) {
         mIsVerbose = isVerbose;
-    }
-
-    public void setMakeOptions(String jobNumber, String outDir, String targetProduct, String targetBuildVariant, String extraArguments) {
-        mJobNumber = jobNumber;
-        mOutDir = outDir;
-        mTargetProduct = targetProduct;
-        mTargetBuildVariant = targetBuildVariant;
-        mExtraArguments = extraArguments.trim();
     }
 
     private void updateNumberOfProcess() {
@@ -194,11 +198,13 @@ public class Builder {
         return mIsAOSPPath;
     }
 
-    public void findOriginalProductOutPath(String lunchMenu, ShellCommandExecutor.ThreadResultReceiver threadResultReceiver) {
+    public void findOriginalProductOutPath(ShellCommandExecutor.ThreadResultReceiver threadResultReceiver) {
+        String selectedTarget = mTargetProduct + '-' + mTargetBuildVariant;
         ArrayList<String> command = new ArrayList<>();
         command.add("bash");
         command.add("-c");
-        command.add("source build/envsetup.sh > /dev/null;" + " lunch " + lunchMenu + " > /dev/null; echo $ANDROID_PRODUCT_OUT");
+        command.add("source build/envsetup.sh > /dev/null;" +
+                " lunch " + selectedTarget + " > /dev/null; echo $ANDROID_PRODUCT_OUT");
         mShellCommandExecutor.executeShellCommandInThread(command, threadResultReceiver);
     }
 }
