@@ -555,6 +555,7 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
     }
 
     private void initMakePanelComboBoxes() {
+        HistoryComboModel history;
         addPropertiesToComboBox(mTargetProperties, mTargetComboBox);
 
         mTargetComboBox.addActionListener(new ActionListener() {
@@ -596,13 +597,12 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
 
         addPropertiesToComboBox(mVariantProperties, mVariantComboBox);
 
-        ArrayList<String> lunchMenuList = mBuilder.getLunchMenuList();
-        if (lunchMenuList != null) {
-            for (String lunchMenu : lunchMenuList) {
-                mProductComboBox.addItem(lunchMenu);
-            }
-        }
+        history = new HistoryComboModel(mBuilder.getLunchMenuList());
+        mProductComboBox.setModel(history);
+        mProductComboBox.setSelectedIndex(0); // set explicitly for fire action
 
+        history = new HistoryComboModel();
+        mExtraArgumentsComboBox.setModel(history);
         mExtraArgumentsComboBox.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
