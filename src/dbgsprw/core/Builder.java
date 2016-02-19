@@ -171,10 +171,12 @@ public class Builder {
     }
 
     private void updateLunchMenu() {
+        mLunchMenuList.clear();
         ArrayList<String> lunchCommand = new ArrayList<>();
         lunchCommand.add("bash");
         lunchCommand.add("-c");
-        lunchCommand.add("source build/envsetup.sh > /dev/null ;" + "echo ${LUNCH_MENU_CHOICES[*]}");
+        lunchCommand.add("source build/envsetup.sh > /dev/null ;" +
+                "printf '%s\\n' ${LUNCH_MENU_CHOICES[@]} | cut -f 1 -d - | sort -u");
         mShellCommandExecutor.executeShellCommand(lunchCommand, new ShellCommandExecutor.ResultReceiver() {
             @Override
             public void newOut(String line) {

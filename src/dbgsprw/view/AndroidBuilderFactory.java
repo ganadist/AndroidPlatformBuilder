@@ -599,7 +599,7 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
         ArrayList<String> lunchMenuList = mBuilder.getLunchMenuList();
         if (lunchMenuList != null) {
             for (String lunchMenu : lunchMenuList) {
-                mProductComboBox.addItem(lunchMenu.split("-")[0]);
+                mProductComboBox.addItem(lunchMenu);
             }
         }
 
