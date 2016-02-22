@@ -18,10 +18,14 @@ public class HistoryComboModel extends DefaultComboBoxModel<String> {
         }
     }
 
-    @Override
-    public void setSelectedItem(Object obj) {
+    protected void addHistory(String obj) {
         removeElement(obj);
         insertElementAt((String)obj, 0);
+    }
+
+    @Override
+    public void setSelectedItem(Object obj) {
+        addHistory((String)obj);
         super.setSelectedItem(obj);
     }
 }

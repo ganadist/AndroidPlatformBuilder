@@ -461,16 +461,7 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
                             showNotification("cannot find Android.mk", NotificationType.ERROR);
                             return;
                         }
-
-                        int i;
-                        for (i = 0; i < mTargetDirComboBox.getItemCount(); i++) {
-                            if (mTargetDirComboBox.getItemAt(i).equals(selectedPath)) {
-                                break;
-                            }
-                        }
-                        if (i == mTargetDirComboBox.getItemCount()) {
-                            mTargetDirComboBox.addItem(selectedPath);
-                        }
+                        ((TargetDirHistoryComboModel)mTargetDirComboBox.getModel()).addElement(selectedPath);
                     }
                     mBuilder.setOneShotMakefile(selectedPath);
                 } else {
@@ -578,7 +569,7 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
         });
         mTargetComboBox.setSelectedItem("droid");
 
-        mTargetDirComboBox.addItem(CURRENT_PATH);
+        mTargetDirComboBox.setModel(new TargetDirHistoryComboModel(CURRENT_PATH));
         mTargetDirComboBox.setPrototypeDisplayValue("XXXXXXXXX");
         mTargetDirComboBox.addActionListener(new ActionListener() {
             @Override
