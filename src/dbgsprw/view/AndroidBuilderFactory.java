@@ -446,12 +446,12 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
                     String selectedPath = mTargetDirComboBox.getSelectedItem().toString();
                     if (CURRENT_PATH.equals(selectedPath)) {
                         Document currentDoc;
-                        VirtualFile currentDir;
+                        VirtualFile currentPath;
                         try {
                             currentDoc = FileEditorManager.getInstance(mProject).getSelectedTextEditor().
                                     getDocument();
-                            currentDir = FileDocumentManager.getInstance().getFile(currentDoc).getParent();
-                            selectedPath = Utils.findAndroidMkOnParent(mProjectPath, currentDir.getPath());
+                            currentPath = FileDocumentManager.getInstance().getFile(currentDoc);
+                            selectedPath = Utils.findAndroidMkOnParent(mProjectPath, currentPath.getPath());
                         } catch (NullPointerException e) {
                             showNotification("There is no opened file on editor.", NotificationType.ERROR);
                             return;
