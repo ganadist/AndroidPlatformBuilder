@@ -85,6 +85,18 @@ public class ShellCommandExecutor {
         return process;
     }
 
+    public Process executeInBash(ArrayList<String> command, final ResultReceiver resultReceiver) {
+        ArrayList<String> bashCommand = new ArrayList<>();
+        String bashArgument = "";
+        bashCommand.add("bash");
+        bashCommand.add("-c");
+        for (String argument : command) {
+            bashArgument += argument + " ";
+        }
+        bashCommand.add(bashArgument);
+        return executeShellCommand(bashCommand, resultReceiver);
+    }
+
     private static void readFromInputStream(InputStream is, final ShellOutputReader reader) {
         final BufferedReader br = new BufferedReader(new InputStreamReader(is));
         new Thread(new Runnable() {

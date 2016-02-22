@@ -1,6 +1,9 @@
 package dbgsprw.core;
 
-import com.android.ddmlib.*;
+import com.android.ddmlib.AdbCommandRejectedException;
+import com.android.ddmlib.AndroidDebugBridge;
+import com.android.ddmlib.IDevice;
+import com.android.ddmlib.TimeoutException;
 import com.intellij.openapi.projectRoots.ProjectJdkTable;
 import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.projectRoots.SdkTypeId;
@@ -71,7 +74,7 @@ public class DeviceManager {
         AndroidDebugBridge.addDeviceChangeListener(listener);
         FastBootMonitor.addDeviceChangeListener(listener);
         // initial notify already connected device
-        for (IDevice iDevice :getDevices()) {
+        for (IDevice iDevice : getDevices()) {
             listener.deviceConnected(iDevice);
         }
         for (String serialNumber : getFastBootDevices()) {
@@ -111,10 +114,12 @@ public class DeviceManager {
             }
 
             @Override
-            public void newError(String line) {}
+            public void newError(String line) {
+            }
 
             @Override
-            public void onExit(int code) {}
+            public void onExit(int code) {
+            }
         });
         return isRootMode[0];
     }
@@ -132,28 +137,21 @@ public class DeviceManager {
         return mShellCommandExecutor.executeShellCommand(buildAdbCommand(device, cmd));
     }
 
-    public void adbRoot(IDevice device) {
-        if (isRootMode(device) || !IDevice.DeviceState.ONLINE.equals(device.getState())) {
-            return;
-        }
-        runAdbCommamand(device, "root");
-    }
-
-    public void adbRemount(IDevice device) {
-        runAdbCommamand(device, "remount");
-    }
-
     public interface SyncListener {
         void newOut(String line);
+
         void newError(String line);
+
         void onCompleted(boolean success);
     }
 
     private static class SyncResultReceiver implements ShellCommandExecutor.ResultReceiver {
         private SyncListener mListener;
+
         SyncResultReceiver(SyncListener listener) {
             mListener = listener;
         }
+
         @Override
         public void newOut(String line) {
             mListener.newOut(line);
@@ -171,14 +169,23 @@ public class DeviceManager {
     }
 
     public void adbSync(IDevice device, String argument, SyncListener listener) {
-        ArrayList<String> command = buildAdbCommand(device, "sync");
+        ArrayList<String> command = new ArrayList<String>();
+        if (true) {
+            command.addAll(buildAdbCommand(device, "root"));
+            command.add("&&");
+            command.addAll(buildAdbCommand(device, "wait-for-device"));
+            command.add("&&");
+        }
+        command.addAll(buildAdbCommand(device, "remount"));
+        command.add("&&");
+        command.addAll(buildAdbCommand(device, "sync"));
+
         if (argument != null) {
             command.add(argument);
         }
-        mAdbSyncProcess = mShellCommandExecutor.executeShellCommand(command,
+        mAdbSyncProcess = mShellCommandExecutor.executeInBash(command,
                 new SyncResultReceiver(listener));
     }
-
 
     public void rebootDevice(String deviceSerialNumber) {
         ArrayList<String> command = new ArrayList<>();
@@ -203,7 +210,7 @@ public class DeviceManager {
             command.add("-w");
         }
         // like flashall
-        for (String argument :arguments) {
+        for (String argument : arguments) {
             command.add(argument);
         }
         mFlashProcess = mShellCommandExecutor.executeShellCommand(command, new SyncResultReceiver(listener));

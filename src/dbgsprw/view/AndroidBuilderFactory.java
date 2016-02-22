@@ -123,6 +123,8 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
     private ArgumentProperties mFastbootProperties;
     private ArgumentProperties mTargetProperties;
     private ArgumentProperties mVariantProperties;
+    private int enableCount = 0;
+    private ShellCommandExecutor.ResultReceiver finalReceiver;
 
 
     public AndroidBuilderFactory() {
@@ -281,29 +283,29 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
         mSyncButton.setEnabled(false);
 
         mResultPathValueLabel.setText(mBuilder.getOutDir());
+        finalReceiver = new ShellCommandExecutor.ResultReceiver() {
+            @Override
+            public void newOut(String line) {
+                if(this.equals(finalReceiver)) {
+                    mProductOut = line;
+                    mDeviceManager.setTargetProductPath(new File(mProductOut));
+                    mOpenDirectoryButton.setEnabled(true);
+                    mFlashButton.setEnabled(true);
+                    mSyncButton.setEnabled(true);
+                }
+            }
 
-        mBuilder.findOriginalProductOutPath(
-                new ShellCommandExecutor.ResultReceiver() {
-                    @Override
-                    public void newOut(String line) {
-                        mProductOut = line;
-                        mDeviceManager.setTargetProductPath(new File(mProductOut));
+            @Override
+            public void newError(String line) {
 
-                        mOpenDirectoryButton.setEnabled(true);
-                        mFlashButton.setEnabled(true);
-                        mSyncButton.setEnabled(true);
-                    }
+            }
 
-                    @Override
-                    public void newError(String line) {
+            @Override
+            public void onExit(int code) {
+            }
+        };
 
-                    }
-
-                    @Override
-                    public void onExit(int code) {
-
-                    }
-                });
+        mBuilder.findOriginalProductOutPath(finalReceiver);
     }
 
     private void updateCommandTextView() {
@@ -709,8 +711,6 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
                         argument = null;
                     }
                     IDevice iDevice = (IDevice) mDeviceListComboBox.getSelectedItem();
-                    //  mDeviceManager.adbRoot(iDevice);
-                    mDeviceManager.adbRemount(iDevice);
 
                     mDeviceManager.adbSync(iDevice, argument, new DeviceManager.SyncListener() {
                         @Override
@@ -794,9 +794,6 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
                         printLog("device connected : " + device);
                     }
                 });
-
-
-                mDeviceManager.adbRoot(device);
             }
 
             @Override
@@ -812,7 +809,6 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
 
             @Override
             public void deviceChanged(IDevice device, int changeMask) {
-                mDeviceManager.adbRoot(device);
             }
 
             @Override
