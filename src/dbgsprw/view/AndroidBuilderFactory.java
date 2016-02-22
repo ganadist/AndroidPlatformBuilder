@@ -699,8 +699,6 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
                         argument = null;
                     }
                     IDevice iDevice = (IDevice) mDeviceListComboBox.getSelectedItem();
-                    //  mDeviceManager.adbRoot(iDevice);
-                    mDeviceManager.adbRemount(iDevice);
 
                     mDeviceManager.adbSync(iDevice, argument, new DeviceManager.SyncListener() {
                                 @Override
@@ -774,9 +772,6 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
                         printLog("device connected : " + device);
                     }
                 });
-
-
-                mDeviceManager.adbRoot(device);
             }
 
             @Override
@@ -792,7 +787,6 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
 
             @Override
             public void deviceChanged(IDevice device, int changeMask) {
-                mDeviceManager.adbRoot(device);
             }
 
             @Override

@@ -132,17 +132,6 @@ public class DeviceManager {
         return mShellCommandExecutor.executeShellCommand(buildAdbCommand(device, cmd));
     }
 
-    public void adbRoot(IDevice device) {
-        if (isRootMode(device) || !IDevice.DeviceState.ONLINE.equals(device.getState())) {
-            return;
-        }
-        runAdbCommamand(device, "root");
-    }
-
-    public void adbRemount(IDevice device) {
-        runAdbCommamand(device, "remount");
-    }
-
     public interface SyncListener {
         void onCompleted(boolean success);
     }
@@ -165,14 +154,22 @@ public class DeviceManager {
     }
 
     public void adbSync(IDevice device, String argument, SyncListener listener) {
-        ArrayList<String> command = buildAdbCommand(device, "sync");
+        ArrayList<String> command = new ArrayList<String>();
+        if (true) {
+            command.addAll(buildAdbCommand(device, "root"));
+            command.add("&&");
+            command.addAll(buildAdbCommand(device, "wait-for-device "));
+            command.add("&&");
+        }
+        command.addAll(buildAdbCommand(device, "remount"));
+        command.add("&&");
+        command.addAll(buildAdbCommand(device, "sync"));
         if (argument != null) {
             command.add(argument);
         }
         mAdbSyncProcess = mShellCommandExecutor.executeShellCommand(command,
                 new SyncResultReceiver(listener));
     }
-
 
     public void rebootDevice(String deviceSerialNumber) {
         ArrayList<String> command = new ArrayList<>();
