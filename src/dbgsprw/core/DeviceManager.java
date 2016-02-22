@@ -32,8 +32,8 @@ public class DeviceManager {
 
     AndroidDebugBridge mAndroidDebugBridge;
     ShellCommandExecutor mShellCommandExecutor;
-    private Thread mFlashThread;
-    private Thread mAdbSyncThread;
+    private Process mFlashProcess;
+    private Process mAdbSyncProcess;
     private String mAdbPath;
     private String mFastBootPath;
 
@@ -53,8 +53,9 @@ public class DeviceManager {
         }
         AndroidDebugBridge.initIfNeeded(false);
         try {
-            mAdbPath = new File(androidHome, "platform-tools" + File.separator + "adb").getCanonicalPath();
-            mFastBootPath = new File(androidHome, "platform-tools" + File.separator + "fastboot").getCanonicalPath();
+            final File platformToolHome = new File(androidHome, "platform-tools");
+            mAdbPath = new File(platformToolHome, "adb").getCanonicalPath();
+            mFastBootPath = new File(platformToolHome, "fastboot").getCanonicalPath();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -76,20 +77,7 @@ public class DeviceManager {
         for (String serialNumber : getFastBootDevices()) {
             listener.fastBootDeviceConnected(serialNumber);
         }
-
     }
-
-    public void FastBootMonitorInit(String androidHome) throws AndroidHomeNotFoundException {
-        if (androidHome == null) {
-            throw new AndroidHomeNotFoundException();
-        }
-        try {
-            mFastBootPath = new File(androidHome, "platform-tools" + File.separator + "fastboot").getCanonicalPath();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
 
     public ArrayList<String> getFastBootDevices() {
         return FastBootMonitor.getDeviceSerialNumbers();
@@ -112,74 +100,87 @@ public class DeviceManager {
     }
 
     public boolean isRootMode(IDevice device) {
-        ArrayList<String> command = new ArrayList<>();
-        command.add(mAdbPath);
-        command.add("-s");
-        command.add(device.getSerialNumber());
-        command.add("shell");
+        ArrayList<String> command = buildAdbCommand(device, "shell");
         command.add("id");
         command.add("-u");
         final boolean[] isRootMode = new boolean[1];
         mShellCommandExecutor.executeShellCommand(command, new ShellCommandExecutor.ResultReceiver() {
             @Override
             public void newOut(String line) {
-                if("0".equals(line)) {
-                    isRootMode[0] = true;
-                } else {
-                    isRootMode[0] = false;
-                }
+                isRootMode[0] = "0".equals(line);
             }
 
             @Override
-            public void newError(String line) {
+            public void newError(String line) {}
 
-            }
+            @Override
+            public void onExit(int code) {}
         });
         return isRootMode[0];
     }
 
+    private ArrayList<String> buildAdbCommand(IDevice device, String cmd) {
+        ArrayList<String> command = new ArrayList<>();
+        command.add(mAdbPath);
+        command.add("-s");
+        command.add(device.getSerialNumber());
+        command.add(cmd);
+        return command;
+    }
 
-    public void adbRoot(IDevice device, ShellCommandExecutor.ResultReceiver resultReceiver) {
+    private Process runAdbCommamand(IDevice device, String cmd) {
+        return mShellCommandExecutor.executeShellCommand(buildAdbCommand(device, cmd));
+    }
+
+    public void adbRoot(IDevice device) {
         if (isRootMode(device) || !IDevice.DeviceState.ONLINE.equals(device.getState())) {
             return;
         }
-        ArrayList<String> command = new ArrayList<>();
-        command.add(mAdbPath);
-        command.add("-s");
-        command.add(device.getSerialNumber());
-        command.add("root");
-        mShellCommandExecutor.executeShellCommand(command, resultReceiver);
+        runAdbCommamand(device, "root");
     }
 
-    public void adbRemount(IDevice device, ShellCommandExecutor.ResultReceiver resultReceiver) {
-        ArrayList<String> command = new ArrayList<>();
-        command.add(mAdbPath);
-        command.add("-s");
-        command.add(device.getSerialNumber());
-        command.add("remount");
-        mShellCommandExecutor.executeShellCommand(command, resultReceiver);
+    public void adbRemount(IDevice device) {
+        runAdbCommamand(device, "remount");
     }
 
-    public void adbSync(IDevice device, String argument, ShellCommandExecutor.ThreadResultReceiver threadResultReceiver) {
-        ArrayList<String> command = new ArrayList<>();
-        command.add(mAdbPath);
-        command.add("-s");
-        command.add(device.getSerialNumber());
-        command.add("sync");
+    public interface SyncListener {
+        void onCompleted();
+    }
+
+    private static class SyncResultReceiver implements ShellCommandExecutor.ResultReceiver {
+        private SyncListener mListener;
+        SyncResultReceiver(SyncListener listener) {
+            mListener = listener;
+        }
+        @Override
+        public void newOut(String line) {}
+
+        @Override
+        public void newError(String line) {}
+
+        @Override
+        public void onExit(int code) {
+            mListener.onCompleted();
+        }
+    }
+
+    public void adbSync(IDevice device, String argument, SyncListener listener) {
+        ArrayList<String> command = buildAdbCommand(device, "sync");
         if (argument != null) {
             command.add(argument);
         }
-        mAdbSyncThread = mShellCommandExecutor.executeShellCommandInThread(command, threadResultReceiver);
+        mAdbSyncProcess = mShellCommandExecutor.executeShellCommand(command,
+                new SyncResultReceiver(listener));
     }
 
 
-    public void rebootDevice(String deviceSerialNumber, ShellCommandExecutor.ResultReceiver resultReceiver) {
+    public void rebootDevice(String deviceSerialNumber) {
         ArrayList<String> command = new ArrayList<>();
         command.add(mFastBootPath);
         command.add("-s");
         command.add(deviceSerialNumber);
         command.add("reboot");
-        mShellCommandExecutor.executeShellCommand(command, resultReceiver);
+        mShellCommandExecutor.executeShellCommand(command);
     }
 
     /*
@@ -187,8 +188,7 @@ public class DeviceManager {
     @param argument update, flashall, vendor, system, boot, etc..
     @param wipe -w option
     */
-    public void flash(String deviceSerialNumber, boolean wipe, String[] arguments,
-                      ShellCommandExecutor.ThreadResultReceiver threadResultReceiver) {
+    public void flash(String deviceSerialNumber, boolean wipe, String[] arguments, SyncListener listener) {
         ArrayList<String> command = new ArrayList<>();
         command.add(mFastBootPath);
         command.add("-s");
@@ -200,11 +200,10 @@ public class DeviceManager {
         for (String argument :arguments) {
             command.add(argument);
         }
-        mFlashThread = mShellCommandExecutor.executeShellCommandInThread(command, threadResultReceiver);
+        mFlashProcess = mShellCommandExecutor.executeShellCommand(command, new SyncResultReceiver(listener));
     }
 
     public void setTargetProductPath(File directory) {
-        mShellCommandExecutor.directory(directory);
         mShellCommandExecutor.environment().put("ANDROID_PRODUCT_OUT", directory.getAbsolutePath());
     }
 
@@ -231,14 +230,14 @@ public class DeviceManager {
     }
 
     public void stopFlash() {
-        if (mFlashThread != null) {
-            mFlashThread.interrupt();
+        if (mFlashProcess != null) {
+            mFlashProcess.destroyForcibly();
         }
     }
 
     public void stopAdbSync() {
-        if (mAdbSyncThread != null) {
-            mAdbSyncThread.interrupt();
+        if (mAdbSyncProcess != null) {
+            mAdbSyncProcess.destroyForcibly();
         }
     }
 
@@ -250,6 +249,4 @@ public class DeviceManager {
     class FastBootState {
         public static final int DONE = 0;
     }
-
-
 }

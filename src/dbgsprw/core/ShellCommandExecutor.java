@@ -1,9 +1,6 @@
 package dbgsprw.core;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Map;
 
@@ -38,7 +35,11 @@ public class ShellCommandExecutor {
         return mProcessBuilder.environment();
     }
 
-    public void executeShellCommand(ArrayList<String> command, final ResultReceiver resultReceiver) {
+    public Process executeShellCommand(ArrayList<String> command) {
+        return executeShellCommand(command, new NullResultReceiver());
+    }
+
+    public Process executeShellCommand(ArrayList<String> command, final ResultReceiver resultReceiver) {
         mProcessBuilder.command(command);
         Process process = null;
 
@@ -46,96 +47,100 @@ public class ShellCommandExecutor {
             process = mProcessBuilder.start();
         } catch (IOException e) {
             e.printStackTrace();
-            return;
+            return null;
         }
 
         final Process finalProcess = process;
-        new Thread(new Runnable() {
+        readFromInputStream(finalProcess.getErrorStream(), new ShellOutputReader() {
             @Override
-            public void run() {
-                BufferedReader bufferedErrorReader = new BufferedReader(new InputStreamReader(finalProcess.getErrorStream()));
-                String errorLine;
-                try {
-                    while ((errorLine = bufferedErrorReader.readLine()) != null) {
-                        final String finalErrorLine = errorLine;
-                        Utils.invokeAndWait(new Runnable() {
-                            @Override
-                            public void run() {
-                                resultReceiver.newError(finalErrorLine);
-                           }
-                        });
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-
+            public void onRead(String line) {
+                resultReceiver.newError(line);
             }
-        }).start();
 
-        new Thread(new Runnable() {
             @Override
-            public void run() {
-                BufferedReader bufferedInputReader = new BufferedReader(new InputStreamReader(finalProcess.getInputStream()));
-                String inputLine;
-                try {
-                    while ((inputLine = bufferedInputReader.readLine()) != null) {
-                        final String finalInputLine = inputLine;
-                        Utils.invokeAndWait(new Runnable() {
-                            @Override
-                            public void run() {
-                                resultReceiver.newOut(finalInputLine);
-                            }
-                        });
-                    }
-                    if (resultReceiver instanceof ResultDoneReceiver) {
-                        Utils.invokeAndWait(new Runnable() {
-                            @Override
-                            public void run() {
-                                ((ResultDoneReceiver) resultReceiver).resultDone();
-                            }
-                        });
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-
-            }
-        }).start();
-        try {
-            process.waitFor();
-        } catch (InterruptedException e) {
-            process.destroy();
-            e.printStackTrace();
-        }
-    }
-
-    public Thread executeShellCommandInThread(final ArrayList<String> command,
-                                              final ThreadResultReceiver threadResultReceiver) {
-        Thread thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                executeShellCommand(command, threadResultReceiver);
-                threadResultReceiver.shellThreadDone();
+            public void onExit() {
             }
         });
-        thread.start();
-        return thread;
 
+        readFromInputStream(finalProcess.getInputStream(), new ShellOutputReader() {
+            @Override
+            public void onRead(String line) {
+                resultReceiver.newOut(line);
+            }
+
+            @Override
+            public void onExit() {
+                final int exitCode;
+                try {
+                    exitCode = finalProcess.waitFor();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                    return;
+                }
+                resultReceiver.onExit(exitCode);
+            }
+        });
+
+        return process;
+    }
+
+    private static void readFromInputStream(InputStream is, ShellOutputReader reader) {
+        final BufferedReader br = new BufferedReader(new InputStreamReader(is));
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (true) {
+                    final String line;
+                    try {
+                        line = br.readLine();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        break;
+                    }
+                    if (line == null) break;
+                    Utils.runOnUi(new Runnable() {
+                        @Override
+                        public void run() {
+                            reader.onRead(line);
+                        }
+                    });
+                }
+                Utils.runOnUi(new Runnable() {
+                    @Override
+                    public void run() {
+                        reader.onExit();
+                    }
+                });
+            }
+        }).start();
+    }
+
+    private interface ShellOutputReader {
+        void onRead(String line);
+        void onExit();
     }
 
     public interface ResultReceiver {
         void newOut(String line);
-
         void newError(String line);
+        void onExit(int code);
     }
 
-    public interface ResultDoneReceiver extends ResultReceiver {
-        void resultDone();
+    private static class NullResultReceiver implements ResultReceiver {
+
+        @Override
+        public void newOut(String line) {
+
+        }
+
+        @Override
+        public void newError(String line) {
+
+        }
+
+        @Override
+        public void onExit(int code) {
+
+        }
     }
-
-    public interface ThreadResultReceiver extends ResultReceiver {
-
-        void shellThreadDone();
-    }
-
 }

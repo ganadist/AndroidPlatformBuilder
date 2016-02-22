@@ -46,16 +46,21 @@ public class FastBootMonitor {
                     final ArrayList<String> outList = new ArrayList<>();
                     sShellCommandExecutor.executeShellCommand(command,
                             new ShellCommandExecutor.ResultReceiver() {
-                        @Override
-                        public void newOut(String line) {
-                            outList.add(line);
-                        }
+                                @Override
+                                public void newOut(String line) {
+                                    outList.add(line);
+                                }
 
-                        @Override
-                        public void newError(String line) {
+                                @Override
+                                public void newError(String line) {
 
-                        }
-                    });
+                                }
+
+                                @Override
+                                public void onExit(int code) {
+
+                                }
+                            });
                     try {
                         Thread.sleep(1000);
                     } catch (InterruptedException e) {
