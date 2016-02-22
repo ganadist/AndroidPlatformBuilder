@@ -36,13 +36,17 @@ public class Builder {
     private Thread mMakeThread;
     private boolean mIsAOSPPath;
     private String mProductOutPath;
+    private MakeSetReceiver mMakeSetReceiver;
+
+    public final static int FOUND_AOSP_HOME = 0;
 
 
-    public Builder(String projectPath) {
+    public Builder(String projectPath, MakeSetReceiver makeSetReceiver) {
         mLunchMenuList = new ArrayList<>();
         mProjectPath = projectPath;
         mShellCommandExecutor = new ShellCommandExecutor();
         mShellCommandExecutor.directory(new File(mProjectPath));
+        mMakeSetReceiver = makeSetReceiver;
 
         updateLunchMenu();
     }
@@ -55,6 +59,12 @@ public class Builder {
         if (!path.startsWith(jdkBinPath)) {
             env.put("PATH", jdkBinPath + File.pathSeparator + path);
         }
+    }
+
+    public void changeProjectPath(String projectPath) {
+        mProjectPath = projectPath;
+        mShellCommandExecutor.directory(new File(mProjectPath));
+        updateLunchMenu();
     }
 
     public ArrayList<String> buildMakeCommand() {
@@ -154,16 +164,23 @@ public class Builder {
         lunchCommand.add("-c");
         lunchCommand.add("source build/envsetup.sh > /dev/null ;" +
                 "printf '%s\\n' ${LUNCH_MENU_CHOICES[@]} | cut -f 1 -d - | sort -u");
-        mShellCommandExecutor.executeShellCommand(lunchCommand, new ShellCommandExecutor.ResultReceiver() {
+        mShellCommandExecutor.executeShellCommand(lunchCommand, new ShellCommandExecutor.ResultDoneReceiver() {
+
+
             @Override
             public void newOut(String line) {
                 if ("".equals(line)) {
                     mIsAOSPPath = false;
-                    return;
+                } else {
+                    mIsAOSPPath = true;
+                    String[] lunchMenus = line.split(" ");
+                    for (String lunchMenu : lunchMenus) mLunchMenuList.add(lunchMenu);
                 }
-                mIsAOSPPath = true;
-                String[] lunchMenus = line.split(" ");
-                for (String lunchMenu : lunchMenus) mLunchMenuList.add(lunchMenu);
+            }
+
+            @Override
+            public void resultDone() {
+                mMakeSetReceiver.optionChanged(FOUND_AOSP_HOME);
             }
 
             @Override
@@ -185,5 +202,9 @@ public class Builder {
         command.add("source build/envsetup.sh > /dev/null;" +
                 " lunch " + selectedTarget + " > /dev/null; echo $ANDROID_PRODUCT_OUT");
         mShellCommandExecutor.executeShellCommandInThread(command, threadResultReceiver);
+    }
+
+    public interface MakeSetReceiver {
+        public void optionChanged(int state);
     }
 }

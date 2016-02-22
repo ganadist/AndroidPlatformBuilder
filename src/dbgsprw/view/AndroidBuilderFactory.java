@@ -31,7 +31,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 
 /**
  * Copyright 2016 dbgsprw / dbgsprw@gmail.com
@@ -214,30 +213,42 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
         mProject = project;
         mProjectPath = mProject.getBasePath();
 
-        mBuilder = new Builder(mProjectPath);
+        mBuilder = new Builder(mProjectPath, new Builder.MakeSetReceiver() {
+            @Override
+            public void optionChanged(int state) {
+                if (mBuilder.FOUND_AOSP_HOME == state) {
+                  if (mBuilder.isAOSPPath()) {
+                      HistoryComboModel history;
+                      history = new HistoryComboModel(mBuilder.getLunchMenuList());
+                      mProductComboBox.setPrototypeDisplayValue("XXXXXXXXX");
+                      mProductComboBox.setModel(history);
+                      mProductComboBox.setSelectedIndex(0); // set explicitly for fire action
+                      mMakeButton.setEnabled(true);
+                  } else {
+                      if (Messages.OK == Messages.showOkCancelDialog(mProject, "This Project is Not AOSP. \n" +
+                                      "Find AOSP working directory path?", "Android Builder",
+                              Messages.getInformationIcon())) {
+                          JFileChooser jFileChooser = new JFileChooser();
+                          jFileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+                          if (jFileChooser.showDialog(mAndroidBuilderContent, "Choose Directory") ==
+                                  JFileChooser.APPROVE_OPTION) {
+                              File selectedFile = jFileChooser.getSelectedFile();
+                              if (selectedFile.exists()) {
+                                  try {
+                                      mProjectPath = selectedFile.getCanonicalPath();
+                                      mBuilder.changeProjectPath(mProjectPath);
+                                  } catch (IOException e) {
+                                      e.printStackTrace();
+                                  }
+                              }
+                          }
+                      }
 
-        while (!mBuilder.isAOSPPath()) {
-            if (Messages.OK == Messages.showOkCancelDialog(mProject, "This Project is Not AOSP. \n" +
-                            "Find AOSP working directory path?", "Android Builder",
-                    Messages.getInformationIcon())) {
-                JFileChooser jFileChooser = new JFileChooser();
-                jFileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-                if (jFileChooser.showDialog(mAndroidBuilderContent, "Choose Directory") ==
-                        JFileChooser.APPROVE_OPTION) {
-                    File selectedFile = jFileChooser.getSelectedFile();
-                    if (selectedFile.exists()) {
-                        try {
-                            mProjectPath = selectedFile.getCanonicalPath();
-                            mBuilder = new Builder(mProjectPath);
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    }
+                  }
                 }
-            } else {
-                return;
             }
-        }
+
+        });
 
         //changeShortCut();
         notifySetSdk(project);
@@ -597,10 +608,6 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
 
         addPropertiesToComboBox(mVariantProperties, mVariantComboBox);
 
-        history = new HistoryComboModel(mBuilder.getLunchMenuList());
-        mProductComboBox.setModel(history);
-        mProductComboBox.setSelectedIndex(0); // set explicitly for fire action
-
         history = new HistoryComboModel();
         mExtraArgumentsComboBox.setModel(history);
         mExtraArgumentsComboBox.addActionListener(new ActionListener() {
@@ -852,8 +859,13 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
             public void deviceChanged(IDevice device, int changeMask) {
                 mDeviceManager.adbRoot(device, new ShellCommandExecutor.ResultReceiver() {
                     @Override
-                    public void newOut(String line) {
-                        printLog(line);
+                    public void newOut(final String line) {
+                        Utils.invokeAndWait(new Runnable() {
+                            @Override
+                            public void run() {
+                                printLog(line);
+                            }
+                        });
                     }
 
                     @Override
@@ -958,7 +970,7 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
     }
 
     private void printLog(String log) {
-        mFilteredLogArea.postAppendEvent(log + "\n");
+        mFilteredLogArea.append(log + "\n");
     }
 
     private void clearLog() {

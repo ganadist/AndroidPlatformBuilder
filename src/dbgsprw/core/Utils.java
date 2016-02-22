@@ -1,6 +1,8 @@
 package dbgsprw.core;
 
+import javax.swing.*;
 import java.io.File;
+import java.lang.reflect.InvocationTargetException;
 
 public class Utils {
     private static final String EMPTY = "";
@@ -51,6 +53,20 @@ public class Utils {
                 return null; // cannot find Android.mk
             }
             file = parent;
+        }
+    }
+
+    public static void invokeAndWait(Runnable runnable) {
+        if (SwingUtilities.isEventDispatchThread()) {
+            runnable.run();
+        } else {
+            try {
+                SwingUtilities.invokeAndWait(runnable);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } catch (InvocationTargetException e) {
+                e.printStackTrace();
+            }
         }
     }
 }

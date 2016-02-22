@@ -24,39 +24,20 @@ import java.awt.AWTEvent;
 public class FilteredTextArea extends JTextArea {
 
     private int mLineSize = 1000;
-    private java.awt.EventQueue mEventQueue;
 
     public FilteredTextArea() {
         setLineWrap(true);
-        mEventQueue = Toolkit.getDefaultToolkit().getSystemEventQueue();
-        enableEvents(LogAppendAwtEvent.EVENT_ID);
     }
 
-    public void postAppendEvent(String text) {
-        mEventQueue.postEvent(new LogAppendAwtEvent(this, text));
-    }
-
-
-    private void filteringAppend(String log) {
-
+    @Override
+    public void append(String log) {
         int excessLine = getLineCount() - mLineSize;
         if (excessLine >= 1) {
             replaceRange("", 0, excessLine);
             setCaretPosition(getDocument().getLength());
         }
         String filteredString = filter(log);
-        append(filteredString);
-    }
-
-    @Override
-    protected void processEvent(AWTEvent event) {
-        if (event instanceof LogAppendAwtEvent) {
-            LogAppendAwtEvent logAppendAwtEvent = (LogAppendAwtEvent) event;
-            filteringAppend(logAppendAwtEvent.getString());
-        } else {
-            super.processEvent(event);
-        }
-
+        super.append(log);
     }
 
     public String filter(String log) {

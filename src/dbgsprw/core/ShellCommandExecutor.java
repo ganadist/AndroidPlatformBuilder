@@ -57,7 +57,13 @@ public class ShellCommandExecutor {
                 String errorLine;
                 try {
                     while ((errorLine = bufferedErrorReader.readLine()) != null) {
-                        resultReceiver.newError(errorLine);
+                        final String finalErrorLine = errorLine;
+                        Utils.invokeAndWait(new Runnable() {
+                            @Override
+                            public void run() {
+                                resultReceiver.newError(finalErrorLine);
+                           }
+                        });
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -73,7 +79,21 @@ public class ShellCommandExecutor {
                 String inputLine;
                 try {
                     while ((inputLine = bufferedInputReader.readLine()) != null) {
-                        resultReceiver.newOut(inputLine);
+                        final String finalInputLine = inputLine;
+                        Utils.invokeAndWait(new Runnable() {
+                            @Override
+                            public void run() {
+                                resultReceiver.newOut(finalInputLine);
+                            }
+                        });
+                    }
+                    if (resultReceiver instanceof ResultDoneReceiver) {
+                        Utils.invokeAndWait(new Runnable() {
+                            @Override
+                            public void run() {
+                                ((ResultDoneReceiver) resultReceiver).resultDone();
+                            }
+                        });
                     }
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -107,6 +127,10 @@ public class ShellCommandExecutor {
         void newOut(String line);
 
         void newError(String line);
+    }
+
+    public interface ResultDoneReceiver extends ResultReceiver {
+        void resultDone();
     }
 
     public interface ThreadResultReceiver extends ResultReceiver {
