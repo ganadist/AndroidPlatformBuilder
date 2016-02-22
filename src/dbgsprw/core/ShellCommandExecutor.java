@@ -75,6 +75,7 @@ public class ShellCommandExecutor {
                     exitCode = finalProcess.waitFor();
                 } catch (InterruptedException e) {
                     e.printStackTrace();
+                    resultReceiver.onExit(128 + 2); // emulate SIGINT
                     return;
                 }
                 resultReceiver.onExit(exitCode);
