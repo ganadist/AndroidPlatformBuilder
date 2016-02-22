@@ -32,7 +32,6 @@ public class Builder {
     private String mExtraArguments = "";
     private boolean mIsVerbose;
     private String mOneShotMakefile;
-    private int mNumberOfProcess;
     private int mJobNumber = 1;
     private Thread mMakeThread;
     private boolean mIsAOSPPath;
@@ -46,7 +45,6 @@ public class Builder {
         mShellCommandExecutor.directory(new File(mProjectPath));
 
         updateLunchMenu();
-        updateNumberOfProcess();
     }
 
     public void setAndroidJavaHome(String directoryPath) {
@@ -104,10 +102,6 @@ public class Builder {
         }
     }
 
-    public int getNumberOfProcess() {
-        return mNumberOfProcess;
-    }
-
     public ArrayList<String> getLunchMenuList() {
         return mLunchMenuList;
     }
@@ -151,23 +145,6 @@ public class Builder {
 
     public void setVerbose(boolean isVerbose) {
         mIsVerbose = isVerbose;
-    }
-
-    private void updateNumberOfProcess() {
-        ArrayList<String> getConfCommand = new ArrayList<>();
-        getConfCommand.add("getconf");
-        getConfCommand.add("_NPROCESSORS_ONLN");
-        mShellCommandExecutor.executeShellCommand(getConfCommand, new ShellCommandExecutor.ResultReceiver() {
-            @Override
-            public void newOut(String line) {
-                mNumberOfProcess = Integer.parseInt(line);
-            }
-
-            @Override
-            public void newError(String line) {
-
-            }
-        });
     }
 
     private void updateLunchMenu() {

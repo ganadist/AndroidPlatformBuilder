@@ -611,7 +611,7 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
             }
         });
 
-        final int numberOfCpus = mBuilder.getNumberOfProcess();
+        final int numberOfCpus = Runtime.getRuntime().availableProcessors();
         final int initialJobNumber = (numberOfCpus > 4) ? numberOfCpus - 1 : numberOfCpus;
 
         SpinnerNumberModel model = new SpinnerNumberModel(initialJobNumber,
