@@ -26,7 +26,7 @@ import dbgsprw.exception.FileManagerNotFoundException;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import javax.swing.event.HyperlinkEvent;
+import javax.swing.event.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -51,7 +51,6 @@ import java.util.ArrayList;
 
 public class AndroidBuilderFactory implements ToolWindowFactory {
     private final static String CURRENT_PATH = "Current Path";
-    private final static String ANDROID_MK = "Android.mk";
     private String mUpdateFilePath;
 
     private static AndroidBuilderFactory mAndroidBuilderFactory;
@@ -59,7 +58,6 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
     private JButton mMakeButton;
     private JComboBox mTargetComboBox;
     private JComboBox mProductComboBox;
-    private JComboBox mJobNumberComboBox;
     private JLabel mResultPathValueLabel;
     private JLabel mTargetLabel;
     private ButtonGroup mMakeButtonGroup;
@@ -107,6 +105,9 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
     private JButton mOpenDirectoryButton;
     private JLabel mProductLabel;
     private JLabel mVariantLabel;
+    private JLabel mExtraArgumentsLabel;
+    private JComboBox mExtraArgumentsComboBox;
+    private JSpinner mJobSpinner;
 
     private DeviceManager mDeviceManager;
 
@@ -209,8 +210,6 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
     @Override
     public void createToolWindowContent(@NotNull final Project project, @NotNull ToolWindow toolWindow) {
 
-
-
         // set Make configuration
         mProject = project;
         mProjectPath = mProject.getBasePath();
@@ -279,15 +278,14 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
         return mIsCreated;
     }
 
-    private void writeMakeCommand() {
+    private void updateResultPath() {
         mOpenDirectoryButton.setEnabled(false);
         mFlashButton.setEnabled(false);
         mSyncButton.setEnabled(false);
-        mResultPathValueLabel.setText(Utils.join('-', "out", mProductComboBox.getSelectedItem().toString(),
-                mVariantComboBox.getSelectedItem().toString()));
 
-        mBuilder.findOriginalProductOutPath(mProductComboBox.getSelectedItem() + "-" +
-                        mVariantComboBox.getSelectedItem().toString(),
+        mResultPathValueLabel.setText(mBuilder.getOutDir());
+
+        mBuilder.findOriginalProductOutPath(
                 new ShellCommandExecutor.ThreadResultReceiver() {
                     @Override
                     public void shellThreadDone() {
@@ -296,9 +294,7 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
 
                     @Override
                     public void newOut(String line) {
-
-                        mProductOut = Utils.pathJoin(mProjectPath, mResultPathValueLabel.getText(), "target" +
-                                line.split("target")[1]);
+                        mProductOut = line;
                         mDeviceManager.setTargetProductPath(new File(mProductOut));
 
                         mOpenDirectoryButton.setEnabled(true);
@@ -311,23 +307,10 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
 
                     }
                 });
-
-        if (mMakeRadioButton.isSelected()) {
-            mMakeCommandTextArea.setText("make -j" + mJobNumberComboBox.getSelectedItem() + " " +
-                    mTargetComboBox.getSelectedItem()
-                    + " OUT_DIR=" + getAbsolutePath(mResultPathValueLabel.getText())
-                    + " TARGET_PRODUCT=" + mProductComboBox.getSelectedItem()
-                    + " TARGET_BUILD_VARIANT=" + mVariantComboBox.getSelectedItem());
-        } else {
-            mMakeCommandTextArea.setText("mm -j" + mJobNumberComboBox.getSelectedItem()
-                    + " OUT_DIR=" + getAbsolutePath(mResultPathValueLabel.getText())
-                    + " TARGET_PRODUCT=" + mProductComboBox.getSelectedItem()
-                    + " TARGET_BUILD_VARIANT=" + mVariantComboBox.getSelectedItem());
-        }
     }
 
-    private String getAbsolutePath(String path) {
-        return Utils.pathJoin(mProjectPath, path);
+    private void updateCommandTextView() {
+        mMakeCommandTextArea.setText(Utils.join(' ', mBuilder.buildMakeCommand().toArray()));
     }
 
     private void writeFlashCommand() {
@@ -383,6 +366,10 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
         }
     }
 
+    private void showNotification(String message, NotificationType type) {
+        Notifications.Bus.notify(new Notification("Android Builder", "Android Builder", message, type));
+    }
+
     private void initMakePanelButtons() {
 
         /*
@@ -416,31 +403,26 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
         mOpenDirectoryButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
-                if (new File(mProductOut).exists()) {
-                    try {
-                        DirectoryOpener.openDirectory(mProductOut, new ShellCommandExecutor.ResultReceiver() {
-                            @Override
-                            public void newOut(String line) {
-                                printLog(line);
-                            }
-
-                            @Override
-                            public void newError(String line) {
-                                printLog(line);
-                            }
-                        });
-                    } catch (FileManagerNotFoundException e) {
-                        Messages.showMessageDialog(mProject, "Sorry, can't find manager command.",
-                                "Android Builder",
-                                Messages.getInformationIcon());
-                        e.printStackTrace();
+                File out = new File(mProductOut);
+                if (!out.exists()) {
+                    if (!out.mkdirs()) {
+                        showNotification("cannot open ANDROID_PRODUCT_OUT directory.", NotificationType.ERROR);
                     }
+                }
+                try {
+                    DirectoryOpener.openDirectory(mProductOut, new ShellCommandExecutor.ResultReceiver() {
+                        @Override
+                        public void newOut(String line) {
+                            printLog(line);
+                        }
 
-                } else {
-                    Messages.showMessageDialog(mProject, "[" + mProductOut +
-                                    "] is not exist directory.\nPlease make first.",
-                            "Android Builder",
-                            Messages.getInformationIcon());
+                        @Override
+                        public void newError(String line) {
+                            printLog(line);
+                        }
+                    });
+                } catch (FileManagerNotFoundException e) {
+                    showNotification("can't find file manager command.", NotificationType.ERROR);
                 }
             }
         });
@@ -448,56 +430,38 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
         mMakeButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
-                mBuilder.setOneShotMakefile(null);
-                mBuilder.setTarget(null);
-                mBuilder.setVerbose(mVerboseCheckBox.isSelected());
-                mBuilder.setMakeOptions(mJobNumberComboBox.getSelectedItem().toString(),
-                        getAbsolutePath(mResultPathValueLabel.getText()),
-                        mProductComboBox.getSelectedItem().toString(), mVariantComboBox.getSelectedItem().toString());
 
                 if (mMmRadioButton.isSelected()) {
                     String selectedPath = mTargetDirComboBox.getSelectedItem().toString();
                     if (CURRENT_PATH.equals(selectedPath)) {
-                        Document currentDoc = FileEditorManager.getInstance(mProject).getSelectedTextEditor().
-                                getDocument();
-                        VirtualFile currentDir = FileDocumentManager.getInstance().getFile(currentDoc).getParent();
-                        String path = currentDir.getPath();
+                        Document currentDoc;
+                        VirtualFile currentDir;
+                        try {
+                            currentDoc = FileEditorManager.getInstance(mProject).getSelectedTextEditor().
+                                    getDocument();
+                            currentDir = FileDocumentManager.getInstance().getFile(currentDoc).getParent();
+                            selectedPath = Utils.findAndroidMkOnParent(mProjectPath, currentDir.getPath());
+                        } catch (NullPointerException e) {
+                            showNotification("There is no opened file on editor.", NotificationType.ERROR);
+                            return;
+                        }
 
-                        if (path != mProjectPath) {
-                            while (true) {
-                                if (new File(Utils.pathJoin(path, ANDROID_MK)).exists()) {
-                                    path = path.replace(mProjectPath + File.separator, "");
-                                    mBuilder.setOneShotMakefile(Utils.pathJoin(path, ANDROID_MK));
-                                    int i;
-                                    for (i = 0; i < mTargetDirComboBox.getItemCount(); i++) {
-                                        if (mTargetDirComboBox.getItemAt(i).equals(path)) {
-                                            break;
-                                        }
-                                    }
-                                    if (i == mTargetDirComboBox.getItemCount()) {
-                                        mTargetDirComboBox.addItem(path);
-                                    }
-                                    break;
-                                } else if (path == mProjectPath) {
-                                    Messages.showMessageDialog(mProject, "Android.mk is not exist", "Android Builder",
-                                            Messages.getInformationIcon());
-                                    return;
-                                }
-                                currentDir = currentDir.getParent();
-                                if (currentDir == null) {
-                                    Messages.showMessageDialog(mProject, "Android.mk is not exist", "Android Builder",
-                                            Messages.getInformationIcon());
-                                    return;
-                                }
-                                path = currentDir.getPath();
+                        if (selectedPath == null) {
+                            showNotification("cannot find Android.mk", NotificationType.ERROR);
+                            return;
+                        }
+
+                        int i;
+                        for (i = 0; i < mTargetDirComboBox.getItemCount(); i++) {
+                            if (mTargetDirComboBox.getItemAt(i).equals(selectedPath)) {
+                                break;
                             }
                         }
-                    } else {
-                        mBuilder.setOneShotMakefile(Utils.pathJoin(selectedPath, ANDROID_MK));
+                        if (i == mTargetDirComboBox.getItemCount()) {
+                            mTargetDirComboBox.addItem(selectedPath);
+                        }
                     }
-                    mBuilder.setTarget("all_modules");
-
-
+                    mBuilder.setOneShotMakefile(selectedPath);
                 } else {
                     mBuilder.setTarget(mTargetComboBox.getSelectedItem().toString());
                 }
@@ -507,6 +471,8 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
                 if (projectSdk != null) {
                     mBuilder.setAndroidJavaHome(projectSdk.getHomePath());
                 }
+
+                printLog(Utils.join(' ', mBuilder.buildMakeCommand().toArray()));
 
                 mBuilder.executeMake(new ShellCommandExecutor.ThreadResultReceiver() {
                     @Override
@@ -555,7 +521,7 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
                 mMakeCommandLabel.setVisible(true);
                 mTargetDirLabel.setVisible(false);
                 mTargetDirComboBox.setVisible(false);
-                writeMakeCommand();
+                updateCommandTextView();
             }
         });
 
@@ -567,11 +533,19 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
                 mMakeCommandLabel.setVisible(true);
                 mTargetDirLabel.setVisible(true);
                 mTargetDirComboBox.setVisible(true);
-                writeMakeCommand();
+                updateCommandTextView();
             }
         });
 
         mMakeRadioButton.doClick();
+
+        mVerboseCheckBox.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                mBuilder.setVerbose(mVerboseCheckBox.isSelected());
+                updateCommandTextView();
+            }
+        });
     }
 
     public void addPropertiesToComboBox(ArgumentProperties properties, JComboBox jComboBox) {
@@ -581,56 +555,74 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
     }
 
     private void initMakePanelComboBoxes() {
+        HistoryComboModel history;
         addPropertiesToComboBox(mTargetProperties, mTargetComboBox);
-        mTargetComboBox.setSelectedItem("droid");
 
         mTargetComboBox.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
-                writeMakeCommand();
+                mBuilder.setTarget(String.valueOf(mTargetComboBox.getSelectedItem()));
+                updateCommandTextView();
             }
         });
+        mTargetComboBox.setSelectedItem("droid");
 
         mTargetDirComboBox.addItem(CURRENT_PATH);
         mTargetDirComboBox.setPrototypeDisplayValue("XXXXXXXXX");
-
-
-        ArrayList<String> lunchMenuList = mBuilder.getLunchMenuList();
-        if (lunchMenuList != null) {
-            for (String lunchMenu : lunchMenuList) {
-                mProductComboBox.addItem(lunchMenu.split("-")[0]);
+        mTargetDirComboBox.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                mBuilder.setOneShotMakefile(String.valueOf(mTargetDirComboBox.getSelectedItem()));
+                updateCommandTextView();
             }
-        } else {
-        }
-
-        addPropertiesToComboBox(mVariantProperties, mVariantComboBox);
-
+        });
 
         mProductComboBox.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
-                writeMakeCommand();
+                mBuilder.setTargetProduct(String.valueOf(mProductComboBox.getSelectedItem()));
+                updateResultPath();
+                updateCommandTextView();
             }
         });
 
         mVariantComboBox.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
-                writeMakeCommand();
+                mBuilder.setTargetBuildVariant(String.valueOf(mVariantComboBox.getSelectedItem()));
+                updateResultPath();
+                updateCommandTextView();
             }
         });
 
-        for (int i = mBuilder.getNumberOfProcess() + 1; i > 0; i--) {
-            mJobNumberComboBox.addItem(i);
-        }
+        addPropertiesToComboBox(mVariantProperties, mVariantComboBox);
 
-        // set default job number to mBuilder.getNumberOfProcess() - 1
-        mJobNumberComboBox.setSelectedIndex(2);
+        history = new HistoryComboModel(mBuilder.getLunchMenuList());
+        mProductComboBox.setModel(history);
+        mProductComboBox.setSelectedIndex(0); // set explicitly for fire action
 
-        mJobNumberComboBox.addActionListener(new ActionListener() {
+        history = new HistoryComboModel();
+        mExtraArgumentsComboBox.setModel(history);
+        mExtraArgumentsComboBox.addActionListener(new ActionListener() {
             @Override
-            public void actionPerformed(ActionEvent actionEvent) {
-                writeMakeCommand();
+            public void actionPerformed(ActionEvent e) {
+                mBuilder.setExtraArguments(String.valueOf(mExtraArgumentsComboBox.getSelectedItem()));
+                updateCommandTextView();
+            }
+        });
+
+        final int numberOfCpus = Runtime.getRuntime().availableProcessors();
+        final int initialJobNumber = (numberOfCpus > 4) ? numberOfCpus - 1 : numberOfCpus;
+
+        SpinnerNumberModel model = new SpinnerNumberModel(initialJobNumber,
+                1, numberOfCpus, 1);
+        mJobSpinner.setModel(model);
+        mBuilder.setJobNumber(initialJobNumber);
+        mJobSpinner.addChangeListener(new ChangeListener() {
+            @Override
+            public void stateChanged(ChangeEvent e) {
+                mBuilder.setJobNumber((int)mJobSpinner.getValue());
+                updateCommandTextView();
             }
         });
     }
@@ -650,7 +642,6 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
                 mWipeCheckBox.setEnabled(true);
                 changeFlashButton();
                 writeFlashCommand();
-
             }
         });
 
@@ -849,8 +840,6 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
                         printLog(line);
                     }
                 });
-
-
             }
 
             @Override
@@ -927,7 +916,6 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
 
         addPropertiesToComboBox(mAdbSyncProperties, mAdbSyncArgumentComboBox);
 
-
         mAdbSyncArgumentComboBox.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
@@ -967,8 +955,6 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
                 mSyncButton.setVisible(true);
             }
         }
-
-
     }
 
     private void printLog(String log) {

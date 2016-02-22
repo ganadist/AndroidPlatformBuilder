@@ -64,7 +64,7 @@
                 </properties>
                 <border type="none"/>
                 <children>
-                  <grid id="5d0c1" binding="mMakeOptionPanel" layout-manager="GridLayoutManager" row-count="7" column-count="4" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+                  <grid id="5d0c1" binding="mMakeOptionPanel" layout-manager="GridLayoutManager" row-count="8" column-count="4" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
                     <margin top="0" left="10" bottom="10" right="10"/>
                     <constraints>
                       <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="1" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
@@ -92,24 +92,18 @@
                           <editable value="true"/>
                         </properties>
                       </component>
-                      <component id="f53ce" class="javax.swing.JComboBox" binding="mJobNumberComboBox">
-                        <constraints>
-                          <grid row="3" column="1" row-span="1" col-span="3" vsize-policy="0" hsize-policy="2" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
-                        </constraints>
-                        <properties/>
-                      </component>
                       <component id="93b4f" class="javax.swing.JLabel" binding="mJobNumberLabel">
                         <constraints>
                           <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
                         </constraints>
                         <properties>
                           <labelFor value="8d7e7"/>
-                          <text value="Job Number"/>
+                          <text value="Jobs"/>
                         </properties>
                       </component>
                       <component id="3fda0" class="javax.swing.JLabel" binding="mMakeCommandLabel">
                         <constraints>
-                          <grid row="4" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
+                          <grid row="5" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
                         </constraints>
                         <properties>
                           <text value="Command"/>
@@ -152,9 +146,27 @@
                           </component>
                         </children>
                       </grid>
+                      <component id="11dd9" class="javax.swing.JLabel" binding="mExtraArgumentsLabel">
+                        <constraints>
+                          <grid row="4" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
+                        </constraints>
+                        <properties>
+                          <horizontalAlignment value="0"/>
+                          <horizontalTextPosition value="11"/>
+                          <text value="Extra command"/>
+                        </properties>
+                      </component>
+                      <component id="816bf" class="javax.swing.JComboBox" binding="mExtraArgumentsComboBox">
+                        <constraints>
+                          <grid row="4" column="1" row-span="1" col-span="3" vsize-policy="0" hsize-policy="2" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
+                        </constraints>
+                        <properties>
+                          <editable value="true"/>
+                        </properties>
+                      </component>
                       <component id="fc770" class="javax.swing.JTextArea" binding="mMakeCommandTextArea">
                         <constraints>
-                          <grid row="4" column="1" row-span="1" col-span="3" vsize-policy="1" hsize-policy="7" anchor="0" fill="3" indent="0" use-parent-layout="false">
+                          <grid row="5" column="1" row-span="1" col-span="3" vsize-policy="1" hsize-policy="7" anchor="0" fill="3" indent="0" use-parent-layout="false">
                             <minimum-size width="30" height="-1"/>
                           </grid>
                         </constraints>
@@ -189,7 +201,7 @@
                       </component>
                       <component id="59e73" class="javax.swing.JButton" binding="mMakeButton" default-binding="true">
                         <constraints>
-                          <grid row="5" column="0" row-span="1" col-span="4" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                          <grid row="6" column="0" row-span="1" col-span="4" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
                         </constraints>
                         <properties>
                           <text value="Make"/>
@@ -197,13 +209,19 @@
                       </component>
                       <component id="38623" class="javax.swing.JButton" binding="mMakeStopButton">
                         <constraints>
-                          <grid row="6" column="0" row-span="1" col-span="4" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+                          <grid row="7" column="0" row-span="1" col-span="4" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
                         </constraints>
                         <properties>
                           <enabled value="true"/>
                           <text value="Stop"/>
                           <visible value="true"/>
                         </properties>
+                      </component>
+                      <component id="b9e12" class="javax.swing.JSpinner" binding="mJobSpinner">
+                        <constraints>
+                          <grid row="3" column="1" row-span="1" col-span="3" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
+                        </constraints>
+                        <properties/>
                       </component>
                     </children>
                   </grid>
@@ -388,7 +406,7 @@
                       <text value=""/>
                     </properties>
                   </component>
-                  <grid id="bdfd3" layout-manager="GridLayoutManager" row-count="4" column-count="3" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+                  <grid id="bdfd3" layout-manager="GridLayoutManager" row-count="3" column-count="3" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
                     <margin top="0" left="10" bottom="10" right="10"/>
                     <constraints>
                       <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="1" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
@@ -412,7 +430,7 @@
                       </component>
                       <component id="6538f" class="javax.swing.JLabel" binding="mProductLabel">
                         <constraints>
-                          <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
+                          <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
                         </constraints>
                         <properties>
                           <labelFor value="e94d6"/>
@@ -421,7 +439,7 @@
                       </component>
                       <component id="e95dd" class="javax.swing.JLabel" binding="mVariantLabel">
                         <constraints>
-                          <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
+                          <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
                         </constraints>
                         <properties>
                           <labelFor value="e94d6"/>
@@ -439,7 +457,7 @@
                       </component>
                       <component id="e6516" class="javax.swing.JLabel" binding="mResultPathValueLabel">
                         <constraints>
-                          <grid row="2" column="1" row-span="1" col-span="1" vsize-policy="1" hsize-policy="1" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                          <grid row="2" column="1" row-span="1" col-span="1" vsize-policy="1" hsize-policy="1" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
                         </constraints>
                         <properties>
                           <text value="Label"/>
@@ -447,12 +465,12 @@
                       </component>
                       <component id="91e31" class="javax.swing.JButton" binding="mOpenDirectoryButton">
                         <constraints>
-                          <grid row="3" column="0" row-span="1" col-span="3" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false">
+                          <grid row="2" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="4" fill="0" indent="0" use-parent-layout="false">
                             <preferred-size width="38" height="34"/>
                           </grid>
                         </constraints>
                         <properties>
-                          <text value="Open Directory"/>
+                          <text value="Open Folder"/>
                         </properties>
                       </component>
                     </children>
