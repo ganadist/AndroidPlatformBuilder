@@ -56,17 +56,11 @@ public class Utils {
         }
     }
 
-    public static void invokeAndWait(Runnable runnable) {
+    public static void runOnUi(Runnable runnable) {
         if (SwingUtilities.isEventDispatchThread()) {
             runnable.run();
         } else {
-            try {
-                SwingUtilities.invokeAndWait(runnable);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            } catch (InvocationTargetException e) {
-                e.printStackTrace();
-            }
+            SwingUtilities.invokeLater(runnable);
         }
     }
 }

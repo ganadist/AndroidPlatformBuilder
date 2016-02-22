@@ -26,7 +26,9 @@ import dbgsprw.exception.FileManagerNotFoundException;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import javax.swing.event.*;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import javax.swing.event.HyperlinkEvent;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -190,22 +192,6 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
         });
     }*/
 
-    /*
-    public static void invokeAndWait(Runnable runnable) {
-        if (SwingUtilities.isEventDispatchThread()) {
-            runnable.run();
-        } else {
-            try {
-                SwingUtilities.invokeAndWait(runnable);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            } catch (InvocationTargetException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-     */
-
     @Override
     public void createToolWindowContent(@NotNull final Project project, @NotNull ToolWindow toolWindow) {
 
@@ -217,34 +203,34 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
             @Override
             public void optionChanged(int state) {
                 if (mBuilder.FOUND_AOSP_HOME == state) {
-                  if (mBuilder.isAOSPPath()) {
-                      HistoryComboModel history;
-                      history = new HistoryComboModel(mBuilder.getLunchMenuList());
-                      mProductComboBox.setPrototypeDisplayValue("XXXXXXXXX");
-                      mProductComboBox.setModel(history);
-                      mProductComboBox.setSelectedIndex(0); // set explicitly for fire action
-                      mMakeButton.setEnabled(true);
-                  } else {
-                      if (Messages.OK == Messages.showOkCancelDialog(mProject, "This Project is Not AOSP. \n" +
-                                      "Find AOSP working directory path?", "Android Builder",
-                              Messages.getInformationIcon())) {
-                          JFileChooser jFileChooser = new JFileChooser();
-                          jFileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-                          if (jFileChooser.showDialog(mAndroidBuilderContent, "Choose Directory") ==
-                                  JFileChooser.APPROVE_OPTION) {
-                              File selectedFile = jFileChooser.getSelectedFile();
-                              if (selectedFile.exists()) {
-                                  try {
-                                      mProjectPath = selectedFile.getCanonicalPath();
-                                      mBuilder.changeProjectPath(mProjectPath);
-                                  } catch (IOException e) {
-                                      e.printStackTrace();
-                                  }
-                              }
-                          }
-                      }
+                    if (mBuilder.isAOSPPath()) {
+                        HistoryComboModel history;
+                        history = new HistoryComboModel(mBuilder.getLunchMenuList());
+                        mProductComboBox.setPrototypeDisplayValue("XXXXXXXXX");
+                        mProductComboBox.setModel(history);
+                        mProductComboBox.setSelectedIndex(0); // set explicitly for fire action
+                        mMakeButton.setEnabled(true);
+                    } else {
+                        if (Messages.OK == Messages.showOkCancelDialog(mProject, "This Project is Not AOSP. \n" +
+                                        "Find AOSP working directory path?", "Android Builder",
+                                Messages.getInformationIcon())) {
+                            JFileChooser jFileChooser = new JFileChooser();
+                            jFileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+                            if (jFileChooser.showDialog(mAndroidBuilderContent, "Choose Directory") ==
+                                    JFileChooser.APPROVE_OPTION) {
+                                File selectedFile = jFileChooser.getSelectedFile();
+                                if (selectedFile.exists()) {
+                                    try {
+                                        mProjectPath = selectedFile.getCanonicalPath();
+                                        mBuilder.changeProjectPath(mProjectPath);
+                                    } catch (IOException e) {
+                                        e.printStackTrace();
+                                    }
+                                }
+                            }
+                        }
 
-                  }
+                    }
                 }
             }
 
@@ -297,12 +283,7 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
         mResultPathValueLabel.setText(mBuilder.getOutDir());
 
         mBuilder.findOriginalProductOutPath(
-                new ShellCommandExecutor.ThreadResultReceiver() {
-                    @Override
-                    public void shellThreadDone() {
-
-                    }
-
+                new ShellCommandExecutor.ResultReceiver() {
                     @Override
                     public void newOut(String line) {
                         mProductOut = line;
@@ -315,6 +296,11 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
 
                     @Override
                     public void newError(String line) {
+
+                    }
+
+                    @Override
+                    public void onExit(int code) {
 
                     }
                 });
@@ -431,6 +417,11 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
                         public void newError(String line) {
                             printLog(line);
                         }
+
+                        @Override
+                        public void onExit(int code) {
+
+                        }
                     });
                 } catch (FileManagerNotFoundException e) {
                     showNotification("can't find file manager command.", NotificationType.ERROR);
@@ -461,7 +452,7 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
                             showNotification("cannot find Android.mk", NotificationType.ERROR);
                             return;
                         }
-                        ((TargetDirHistoryComboModel)mTargetDirComboBox.getModel()).addElement(selectedPath);
+                        ((TargetDirHistoryComboModel) mTargetDirComboBox.getModel()).addElement(selectedPath);
                     }
                     mBuilder.setOneShotMakefile(selectedPath);
                 } else {
@@ -476,7 +467,7 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
 
                 printLog(Utils.join(' ', mBuilder.buildMakeCommand().toArray()));
 
-                mBuilder.executeMake(new ShellCommandExecutor.ThreadResultReceiver() {
+                mBuilder.executeMake(new ShellCommandExecutor.ResultReceiver() {
                     @Override
                     public void newOut(String line) {
                         printLog(line);
@@ -489,7 +480,8 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
 
                     }
 
-                    public void shellThreadDone() {
+                    @Override
+                    public void onExit(int code) {
                         mMakeButton.setVisible(true);
                         mMakeStopButton.setVisible(false);
                     }
@@ -619,7 +611,7 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
         mJobSpinner.addChangeListener(new ChangeListener() {
             @Override
             public void stateChanged(ChangeEvent e) {
-                mBuilder.setJobNumber((int)mJobSpinner.getValue());
+                mBuilder.setJobNumber((int) mJobSpinner.getValue());
                 updateCommandTextView();
             }
         });
@@ -684,20 +676,9 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
                     boolean wipe = mWipeCheckBox.isSelected();
                     mDeviceManager.flash(mDeviceListComboBox.getSelectedItem().toString().split(" ")[1], wipe,
                             fastBootArgumentComboBoxInterpreter(mFastBootArgumentComboBox.getSelectedItem()
-                                    .toString()), new ShellCommandExecutor.ThreadResultReceiver() {
+                                    .toString()), new DeviceManager.SyncListener() {
                                 @Override
-                                public void newOut(String line) {
-                                    printLog(line);
-
-                                }
-
-                                @Override
-                                public void newError(String line) {
-                                    printLog(line);
-                                }
-
-                                @Override
-                                public void shellThreadDone() {
+                                public void onCompleted() {
                                     boolean isFastBootRadioButtonClicked = mFastbootRadioButton.isSelected();
                                     mFlashButton.setVisible(isFastBootRadioButtonClicked);
                                     mSyncButton.setVisible(!isFastBootRadioButtonClicked);
@@ -726,42 +707,20 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
                     if ("All".equals(argument)) {
                         argument = null;
                     }
+                    IDevice iDevice = (IDevice) mDeviceListComboBox.getSelectedItem();
+                    //  mDeviceManager.adbRoot(iDevice);
+                    mDeviceManager.adbRemount(iDevice);
 
-                    mDeviceManager.adbRemount((IDevice) mDeviceListComboBox.getSelectedItem(),
-                            new ShellCommandExecutor.ResultReceiver() {
-                                @Override
-                                public void newOut(String line) {
-                                    printLog(line);
-                                }
+                    mDeviceManager.adbSync(iDevice, argument, new DeviceManager.SyncListener() {
+                        @Override
+                        public void onCompleted() {
+                            boolean isFastBootRadioButtonClicked = mFastbootRadioButton.isSelected();
+                            mFlashButton.setVisible(isFastBootRadioButtonClicked);
+                            mSyncButton.setVisible(!isFastBootRadioButtonClicked);
+                            mFlashStopButton.setVisible(false);
+                        }
+                    });
 
-                                @Override
-                                public void newError(String line) {
-                                    printLog(line);
-                                }
-                            });
-
-                    mDeviceManager.adbSync((IDevice) mDeviceListComboBox.getSelectedItem(),
-                            argument, new ShellCommandExecutor.ThreadResultReceiver() {
-                                @Override
-                                public void newOut(String line) {
-                                    printLog(line);
-
-                                }
-
-                                @Override
-                                public void newError(String line) {
-                                    printLog(line);
-
-                                }
-
-                                @Override
-                                public void shellThreadDone() {
-                                    boolean isFastBootRadioButtonClicked = mFastbootRadioButton.isSelected();
-                                    mFlashButton.setVisible(isFastBootRadioButtonClicked);
-                                    mSyncButton.setVisible(!isFastBootRadioButtonClicked);
-                                    mFlashStopButton.setVisible(false);
-                                }
-                            });
                     mFlashButton.setVisible(false);
                     mSyncButton.setVisible(false);
                     mFlashStopButton.setVisible(true);
@@ -782,18 +741,7 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
         mRebootButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
-                mDeviceManager.rebootDevice(mDeviceListComboBox.getSelectedItem().toString().split(" ")[1],
-                        new ShellCommandExecutor.ResultReceiver() {
-                            @Override
-                            public void newOut(String line) {
-                                printLog(line);
-                            }
-
-                            @Override
-                            public void newError(String line) {
-                                printLog(line);
-                            }
-                        });
+                mDeviceManager.rebootDevice(mDeviceListComboBox.getSelectedItem().toString().split(" ")[1]);
             }
         });
 
@@ -824,61 +772,55 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
         });
         mDeviceManager.addDeviceChangeListener(new FastBootMonitor.DeviceChangeListener() {
             @Override
-            public void deviceConnected(IDevice device) {
-                mDeviceListComboBox.addItem(device);
-                printLog("device connected : " + device);
-                mDeviceManager.adbRoot(device, new ShellCommandExecutor.ResultReceiver() {
+            public void deviceConnected(final IDevice device) {
+                Utils.runOnUi(new Runnable() {
                     @Override
-                    public void newOut(String line) {
-                        printLog(line);
-                    }
-
-                    @Override
-                    public void newError(String line) {
-                        printLog(line);
+                    public void run() {
+                        mDeviceListComboBox.addItem(device);
+                        printLog("device connected : " + device);
                     }
                 });
+
+
+                mDeviceManager.adbRoot(device);
             }
 
             @Override
-            public void deviceDisconnected(IDevice device) {
-                mDeviceListComboBox.removeItem(device);
-                printLog("device disconnected : " + device);
+            public void deviceDisconnected(final IDevice device) {
+                Utils.runOnUi(new Runnable() {
+                    @Override
+                    public void run() {
+                        mDeviceListComboBox.removeItem(device);
+                        printLog("device disconnected : " + device);
+                    }
+                });
             }
 
             @Override
             public void deviceChanged(IDevice device, int changeMask) {
-                mDeviceManager.adbRoot(device, new ShellCommandExecutor.ResultReceiver() {
-                    @Override
-                    public void newOut(final String line) {
-                        Utils.invokeAndWait(new Runnable() {
-                            @Override
-                            public void run() {
-                                printLog(line);
-                            }
-                        });
-                    }
+                mDeviceManager.adbRoot(device);
+            }
 
+            @Override
+            public void fastBootDeviceConnected(final String serialNumber) {
+                Utils.runOnUi(new Runnable() {
                     @Override
-                    public void newError(String line) {
-                        printLog(line);
+                    public void run() {
+                        mDeviceListComboBox.addItem("fastboot " + serialNumber);
+                        printLog("fastboot device connected : " + serialNumber);
                     }
                 });
             }
 
             @Override
-            public void fastBootDeviceConnected(String serialNumber) {
-
-
-                mDeviceListComboBox.addItem("fastboot " + serialNumber);
-                printLog("fastboot device connected : " + serialNumber);
-
-            }
-
-            @Override
-            public void fastBootDeviceDisconnected(String serialNumber) {
-                mDeviceListComboBox.removeItem("fastboot " + serialNumber);
-                printLog("fastboot device disconnected : " + serialNumber);
+            public void fastBootDeviceDisconnected(final String serialNumber) {
+                Utils.runOnUi(new Runnable() {
+                    @Override
+                    public void run() {
+                        mDeviceListComboBox.removeItem("fastboot " + serialNumber);
+                        printLog("fastboot device disconnected : " + serialNumber);
+                    }
+                });
             }
         });
 

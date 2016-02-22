@@ -33,7 +33,7 @@ public class Builder {
     private boolean mIsVerbose;
     private String mOneShotMakefile;
     private int mJobNumber = 1;
-    private Thread mMakeThread;
+    private Process mMakeProcess;
     private boolean mIsAOSPPath;
     private String mProductOutPath;
     private MakeSetReceiver mMakeSetReceiver;
@@ -101,14 +101,15 @@ public class Builder {
         return makeCommandLine;
     }
 
-    public void executeMake(ShellCommandExecutor.ThreadResultReceiver threadResultReceiver) {
-        mMakeThread = mShellCommandExecutor.executeShellCommandInThread(buildMakeCommand(), threadResultReceiver);
-
+    public void executeMake(ShellCommandExecutor.ResultReceiver receiver) {
+        mMakeProcess = mShellCommandExecutor.executeShellCommand(buildMakeCommand(), receiver);
     }
 
     public void stopMake() {
-        if (mMakeThread != null) {
-            mMakeThread.interrupt();
+        if (mMakeProcess != null) {
+            mMakeProcess.destroy();
+            mMakeProcess = null;
+
         }
     }
 
@@ -164,9 +165,7 @@ public class Builder {
         lunchCommand.add("-c");
         lunchCommand.add("source build/envsetup.sh > /dev/null ;" +
                 "printf '%s\\n' ${LUNCH_MENU_CHOICES[@]} | cut -f 1 -d - | sort -u");
-        mShellCommandExecutor.executeShellCommand(lunchCommand, new ShellCommandExecutor.ResultDoneReceiver() {
-
-
+        mShellCommandExecutor.executeShellCommand(lunchCommand, new ShellCommandExecutor.ResultReceiver() {
             @Override
             public void newOut(String line) {
                 if ("".equals(line)) {
@@ -179,13 +178,13 @@ public class Builder {
             }
 
             @Override
-            public void resultDone() {
-                mMakeSetReceiver.optionChanged(FOUND_AOSP_HOME);
+            public void newError(String line) {
+
             }
 
             @Override
-            public void newError(String line) {
-
+            public void onExit(int code) {
+                mMakeSetReceiver.optionChanged(FOUND_AOSP_HOME);
             }
         });
     }
@@ -194,14 +193,14 @@ public class Builder {
         return mIsAOSPPath;
     }
 
-    public void findOriginalProductOutPath(ShellCommandExecutor.ThreadResultReceiver threadResultReceiver) {
+    public void findOriginalProductOutPath(ShellCommandExecutor.ResultReceiver receiver) {
         String selectedTarget = mTargetProduct + '-' + mTargetBuildVariant;
         ArrayList<String> command = new ArrayList<>();
         command.add("bash");
         command.add("-c");
         command.add("source build/envsetup.sh > /dev/null;" +
                 " lunch " + selectedTarget + " > /dev/null; echo $ANDROID_PRODUCT_OUT");
-        mShellCommandExecutor.executeShellCommandInThread(command, threadResultReceiver);
+        mShellCommandExecutor.executeShellCommand(command, receiver);
     }
 
     public interface MakeSetReceiver {
