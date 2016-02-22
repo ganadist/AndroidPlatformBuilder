@@ -405,22 +405,7 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
                     }
                 }
                 try {
-                    DirectoryOpener.openDirectory(mProductOut, new ShellCommandExecutor.ResultReceiver() {
-                        @Override
-                        public void newOut(String line) {
-                            printLog(line);
-                        }
-
-                        @Override
-                        public void newError(String line) {
-                            printLog(line);
-                        }
-
-                        @Override
-                        public void onExit(int code) {
-
-                        }
-                    });
+                    DirectoryOpener.openDirectory(mProductOut);
                 } catch (FileManagerNotFoundException e) {
                     showNotification("can't find file manager command.", NotificationType.ERROR);
                 }
