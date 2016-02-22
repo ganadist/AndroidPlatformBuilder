@@ -666,6 +666,16 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
                             fastBootArgumentComboBoxInterpreter(mFastBootArgumentComboBox.getSelectedItem()
                                     .toString()), new DeviceManager.SyncListener() {
                                 @Override
+                                public void newOut(String line) {
+                                    printLog(line);
+                                }
+
+                                @Override
+                                public void newError(String line) {
+                                    printLog(line);
+                                }
+
+                                @Override
                                 public void onCompleted(boolean success) {
                                     boolean isFastBootRadioButtonClicked = mFastbootRadioButton.isSelected();
                                     mFlashButton.setVisible(isFastBootRadioButtonClicked);
@@ -703,7 +713,17 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
                     mDeviceManager.adbRemount(iDevice);
 
                     mDeviceManager.adbSync(iDevice, argument, new DeviceManager.SyncListener() {
-                                @Override
+                        @Override
+                        public void newOut(String line) {
+                            printLog(line);
+                        }
+
+                        @Override
+                        public void newError(String line) {
+                            printLog(line);
+                        }
+
+                        @Override
                                 public void onCompleted(boolean success) {
                                     boolean isFastBootRadioButtonClicked = mFastbootRadioButton.isSelected();
                                     mFlashButton.setVisible(isFastBootRadioButtonClicked);

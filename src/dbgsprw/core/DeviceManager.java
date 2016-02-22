@@ -144,6 +144,8 @@ public class DeviceManager {
     }
 
     public interface SyncListener {
+        void newOut(String line);
+        void newError(String line);
         void onCompleted(boolean success);
     }
 
@@ -153,10 +155,14 @@ public class DeviceManager {
             mListener = listener;
         }
         @Override
-        public void newOut(String line) {}
+        public void newOut(String line) {
+            mListener.newOut(line);
+        }
 
         @Override
-        public void newError(String line) {}
+        public void newError(String line) {
+            mListener.newError(line);
+        }
 
         @Override
         public void onExit(int code) {
