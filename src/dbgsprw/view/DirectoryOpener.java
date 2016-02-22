@@ -39,7 +39,7 @@ public class DirectoryOpener {
         }
     }
 
-    public static void openDirectory(String path, ShellCommandExecutor.ResultReceiver resultReceiver)
+    public static void openDirectory(String path)
             throws FileManagerNotFoundException {
         if (sFileManagerCommand == null) {
             throw new FileManagerNotFoundException();
@@ -47,6 +47,6 @@ public class DirectoryOpener {
         ArrayList<String> command = new ArrayList<>();
         command.add(sFileManagerCommand);
         command.add(path);
-        sShellCommandExecutor.executeShellCommand(command, resultReceiver);
+        sShellCommandExecutor.executeShellCommand(command);
     }
 }

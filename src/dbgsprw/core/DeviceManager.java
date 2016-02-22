@@ -144,7 +144,7 @@ public class DeviceManager {
     }
 
     public interface SyncListener {
-        void onCompleted();
+        void onCompleted(boolean success);
     }
 
     private static class SyncResultReceiver implements ShellCommandExecutor.ResultReceiver {
@@ -160,7 +160,7 @@ public class DeviceManager {
 
         @Override
         public void onExit(int code) {
-            mListener.onCompleted();
+            mListener.onCompleted(code == 0);
         }
     }
 
