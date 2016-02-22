@@ -190,22 +190,6 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
         });
     }*/
 
-    /*
-    public static void invokeAndWait(Runnable runnable) {
-        if (SwingUtilities.isEventDispatchThread()) {
-            runnable.run();
-        } else {
-            try {
-                SwingUtilities.invokeAndWait(runnable);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            } catch (InvocationTargetException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-     */
-
     @Override
     public void createToolWindowContent(@NotNull final Project project, @NotNull ToolWindow toolWindow) {
 
@@ -297,12 +281,7 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
         mResultPathValueLabel.setText(mBuilder.getOutDir());
 
         mBuilder.findOriginalProductOutPath(
-                new ShellCommandExecutor.ThreadResultReceiver() {
-                    @Override
-                    public void shellThreadDone() {
-
-                    }
-
+                new ShellCommandExecutor.ResultReceiver() {
                     @Override
                     public void newOut(String line) {
                         mProductOut = line;
@@ -315,6 +294,11 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
 
                     @Override
                     public void newError(String line) {
+
+                    }
+
+                    @Override
+                    public void onExit(int code) {
 
                     }
                 });
@@ -431,6 +415,11 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
                         public void newError(String line) {
                             printLog(line);
                         }
+
+                        @Override
+                        public void onExit(int code) {
+
+                        }
                     });
                 } catch (FileManagerNotFoundException e) {
                     showNotification("can't find file manager command.", NotificationType.ERROR);
@@ -476,7 +465,7 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
 
                 printLog(Utils.join(' ', mBuilder.buildMakeCommand().toArray()));
 
-                mBuilder.executeMake(new ShellCommandExecutor.ThreadResultReceiver() {
+                mBuilder.executeMake(new ShellCommandExecutor.ResultReceiver() {
                     @Override
                     public void newOut(String line) {
                         printLog(line);
@@ -489,7 +478,8 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
 
                     }
 
-                    public void shellThreadDone() {
+                    @Override
+                    public void onExit(int code) {
                         mMakeButton.setVisible(true);
                         mMakeStopButton.setVisible(false);
                     }
@@ -684,7 +674,7 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
                     boolean wipe = mWipeCheckBox.isSelected();
                     mDeviceManager.flash(mDeviceListComboBox.getSelectedItem().toString().split(" ")[1], wipe,
                             fastBootArgumentComboBoxInterpreter(mFastBootArgumentComboBox.getSelectedItem()
-                                    .toString()), new ShellCommandExecutor.ThreadResultReceiver() {
+                                    .toString()), new ShellCommandExecutor.ResultReceiver() {
                                 @Override
                                 public void newOut(String line) {
                                     printLog(line);
@@ -697,7 +687,7 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
                                 }
 
                                 @Override
-                                public void shellThreadDone() {
+                                public void onExit(int code) {
                                     boolean isFastBootRadioButtonClicked = mFastbootRadioButton.isSelected();
                                     mFlashButton.setVisible(isFastBootRadioButtonClicked);
                                     mSyncButton.setVisible(!isFastBootRadioButtonClicked);
@@ -727,21 +717,10 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
                         argument = null;
                     }
 
-                    mDeviceManager.adbRemount((IDevice) mDeviceListComboBox.getSelectedItem(),
-                            new ShellCommandExecutor.ResultReceiver() {
-                                @Override
-                                public void newOut(String line) {
-                                    printLog(line);
-                                }
-
-                                @Override
-                                public void newError(String line) {
-                                    printLog(line);
-                                }
-                            });
+                    mDeviceManager.adbRemount((IDevice) mDeviceListComboBox.getSelectedItem());
 
                     mDeviceManager.adbSync((IDevice) mDeviceListComboBox.getSelectedItem(),
-                            argument, new ShellCommandExecutor.ThreadResultReceiver() {
+                            argument, new ShellCommandExecutor.ResultReceiver() {
                                 @Override
                                 public void newOut(String line) {
                                     printLog(line);
@@ -755,7 +734,7 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
                                 }
 
                                 @Override
-                                public void shellThreadDone() {
+                                public void onExit(int code) {
                                     boolean isFastBootRadioButtonClicked = mFastbootRadioButton.isSelected();
                                     mFlashButton.setVisible(isFastBootRadioButtonClicked);
                                     mSyncButton.setVisible(!isFastBootRadioButtonClicked);
@@ -782,18 +761,7 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
         mRebootButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
-                mDeviceManager.rebootDevice(mDeviceListComboBox.getSelectedItem().toString().split(" ")[1],
-                        new ShellCommandExecutor.ResultReceiver() {
-                            @Override
-                            public void newOut(String line) {
-                                printLog(line);
-                            }
-
-                            @Override
-                            public void newError(String line) {
-                                printLog(line);
-                            }
-                        });
+                mDeviceManager.rebootDevice(mDeviceListComboBox.getSelectedItem().toString().split(" ")[1]);
             }
         });
 
@@ -827,17 +795,7 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
             public void deviceConnected(IDevice device) {
                 mDeviceListComboBox.addItem(device);
                 printLog("device connected : " + device);
-                mDeviceManager.adbRoot(device, new ShellCommandExecutor.ResultReceiver() {
-                    @Override
-                    public void newOut(String line) {
-                        printLog(line);
-                    }
-
-                    @Override
-                    public void newError(String line) {
-                        printLog(line);
-                    }
-                });
+                mDeviceManager.adbRoot(device);
             }
 
             @Override
@@ -848,22 +806,7 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
 
             @Override
             public void deviceChanged(IDevice device, int changeMask) {
-                mDeviceManager.adbRoot(device, new ShellCommandExecutor.ResultReceiver() {
-                    @Override
-                    public void newOut(final String line) {
-                        Utils.invokeAndWait(new Runnable() {
-                            @Override
-                            public void run() {
-                                printLog(line);
-                            }
-                        });
-                    }
-
-                    @Override
-                    public void newError(String line) {
-                        printLog(line);
-                    }
-                });
+                mDeviceManager.adbRoot(device);
             }
 
             @Override
