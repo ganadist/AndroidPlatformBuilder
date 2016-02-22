@@ -674,20 +674,9 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
                     boolean wipe = mWipeCheckBox.isSelected();
                     mDeviceManager.flash(mDeviceListComboBox.getSelectedItem().toString().split(" ")[1], wipe,
                             fastBootArgumentComboBoxInterpreter(mFastBootArgumentComboBox.getSelectedItem()
-                                    .toString()), new ShellCommandExecutor.ResultReceiver() {
+                                    .toString()), new DeviceManager.SyncListener() {
                                 @Override
-                                public void newOut(String line) {
-                                    printLog(line);
-
-                                }
-
-                                @Override
-                                public void newError(String line) {
-                                    printLog(line);
-                                }
-
-                                @Override
-                                public void onExit(int code) {
+                                public void onCompleted() {
                                     boolean isFastBootRadioButtonClicked = mFastbootRadioButton.isSelected();
                                     mFlashButton.setVisible(isFastBootRadioButtonClicked);
                                     mSyncButton.setVisible(!isFastBootRadioButtonClicked);
@@ -720,27 +709,16 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
                     mDeviceManager.adbRemount((IDevice) mDeviceListComboBox.getSelectedItem());
 
                     mDeviceManager.adbSync((IDevice) mDeviceListComboBox.getSelectedItem(),
-                            argument, new ShellCommandExecutor.ResultReceiver() {
+                            argument, new DeviceManager.SyncListener() {
                                 @Override
-                                public void newOut(String line) {
-                                    printLog(line);
-
-                                }
-
-                                @Override
-                                public void newError(String line) {
-                                    printLog(line);
-
-                                }
-
-                                @Override
-                                public void onExit(int code) {
+                                public void onCompleted() {
                                     boolean isFastBootRadioButtonClicked = mFastbootRadioButton.isSelected();
                                     mFlashButton.setVisible(isFastBootRadioButtonClicked);
                                     mSyncButton.setVisible(!isFastBootRadioButtonClicked);
                                     mFlashStopButton.setVisible(false);
                                 }
                             });
+
                     mFlashButton.setVisible(false);
                     mSyncButton.setVisible(false);
                     mFlashStopButton.setVisible(true);
