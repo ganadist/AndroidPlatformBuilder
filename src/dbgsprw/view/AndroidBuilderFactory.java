@@ -109,6 +109,8 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
     private JLabel mExtraArgumentsLabel;
     private JComboBox mExtraArgumentsComboBox;
     private JSpinner mJobSpinner;
+    private JSplitPane mJSplitPanel;
+    private JButton mOpenWorkspaceButton;
 
     private DeviceManager mDeviceManager;
 
@@ -200,12 +202,41 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
         // set Make configuration
         mProject = project;
         mProjectPath = mProject.getBasePath();
+        mOpenWorkspaceButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent actionEvent) {
+                JFileChooser jFileChooser = new JFileChooser();
+                jFileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+                if (jFileChooser.showDialog(mAndroidBuilderContent, "Choose Directory") ==
+                        JFileChooser.APPROVE_OPTION) {
+                    File selectedFile = jFileChooser.getSelectedFile();
+                    if (selectedFile.exists()) {
+                        try {
+                            mProjectPath = selectedFile.getCanonicalPath();
+                            mBuilder.changeProjectPath(mProjectPath);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    } else {
+                        mOpenWorkspaceButton.setVisible(true);
+                        mJSplitPanel.setVisible(false);
+                        Messages.showMessageDialog(mProject, "Choose exist directory", "Andorid Builder",
+                                Messages.getInformationIcon());
+                    }
+                } else {
+                    mOpenWorkspaceButton.setVisible(true);
+                    mJSplitPanel.setVisible(false);
+                }
+            }
+        });
 
         mBuilder = new Builder(mProjectPath, new Builder.MakeSetReceiver() {
             @Override
             public void optionChanged(int state) {
                 if (mBuilder.FOUND_AOSP_HOME == state) {
                     if (mBuilder.isAOSPPath()) {
+                        mJSplitPanel.setVisible(true);
+                        mOpenWorkspaceButton.setVisible(false);
                         HistoryComboModel history;
                         history = new HistoryComboModel(mBuilder.getLunchMenuList());
                         mProductComboBox.setPrototypeDisplayValue("XXXXXXXXX");
@@ -213,23 +244,13 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
                         mProductComboBox.setSelectedIndex(0); // set explicitly for fire action
                         mMakeButton.setEnabled(true);
                     } else {
-                        if (Messages.OK == Messages.showOkCancelDialog(mProject, "This Project is Not AOSP. \n" +
+                        if (Messages.OK == Messages.showOkCancelDialog(mProject, "This Project is Not AOSP \n" +
                                         "Find AOSP working directory path?", "Android Builder",
                                 Messages.getInformationIcon())) {
-                            JFileChooser jFileChooser = new JFileChooser();
-                            jFileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-                            if (jFileChooser.showDialog(mAndroidBuilderContent, "Choose Directory") ==
-                                    JFileChooser.APPROVE_OPTION) {
-                                File selectedFile = jFileChooser.getSelectedFile();
-                                if (selectedFile.exists()) {
-                                    try {
-                                        mProjectPath = selectedFile.getCanonicalPath();
-                                        mBuilder.changeProjectPath(mProjectPath);
-                                    } catch (IOException e) {
-                                        e.printStackTrace();
-                                    }
-                                }
-                            }
+                            mOpenWorkspaceButton.doClick();
+                        } else {
+                            mOpenWorkspaceButton.setVisible(true);
+                            mJSplitPanel.setVisible(false);
                         }
 
                     }
@@ -286,7 +307,7 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
         finalReceiver = new ShellCommandExecutor.ResultReceiver() {
             @Override
             public void newOut(String line) {
-                if(this.equals(finalReceiver)) {
+                if (this.equals(finalReceiver)) {
                     mProductOut = line;
                     mDeviceManager.setTargetProductPath(new File(mProductOut));
                     mOpenDirectoryButton.setEnabled(true);
@@ -684,7 +705,7 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
                                     mSyncButton.setVisible(!isFastBootRadioButtonClicked);
                                     mFlashStopButton.setVisible(false);
                                     if (!success) {
-                                        showNotification("flash was failed.", NotificationType.ERROR );
+                                        showNotification("flash was failed.", NotificationType.ERROR);
                                     }
                                 }
                             });
@@ -724,16 +745,16 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
                         }
 
                         @Override
-                                public void onCompleted(boolean success) {
-                                    boolean isFastBootRadioButtonClicked = mFastbootRadioButton.isSelected();
-                                    mFlashButton.setVisible(isFastBootRadioButtonClicked);
-                                    mSyncButton.setVisible(!isFastBootRadioButtonClicked);
-                                    mFlashStopButton.setVisible(false);
-                                    if (!success) {
-                                        showNotification("sync was failed.", NotificationType.ERROR );
-                                    }
-                                }
-                            });
+                        public void onCompleted(boolean success) {
+                            boolean isFastBootRadioButtonClicked = mFastbootRadioButton.isSelected();
+                            mFlashButton.setVisible(isFastBootRadioButtonClicked);
+                            mSyncButton.setVisible(!isFastBootRadioButtonClicked);
+                            mFlashStopButton.setVisible(false);
+                            if (!success) {
+                                showNotification("sync was failed.", NotificationType.ERROR);
+                            }
+                        }
+                    });
 
                     mFlashButton.setVisible(false);
                     mSyncButton.setVisible(false);
