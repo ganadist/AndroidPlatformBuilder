@@ -87,13 +87,9 @@ public class ShellCommandExecutor {
 
     public Process executeInBash(ArrayList<String> command, final ResultReceiver resultReceiver) {
         ArrayList<String> bashCommand = new ArrayList<>();
-        String bashArgument = "";
         bashCommand.add("bash");
         bashCommand.add("-c");
-        for (String argument : command) {
-            bashArgument += argument + " ";
-        }
-        bashCommand.add(bashArgument);
+        bashCommand.add(Utils.join(' ', command.toArray()));
         return executeShellCommand(bashCommand, resultReceiver);
     }
 
