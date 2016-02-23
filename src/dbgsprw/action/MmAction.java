@@ -27,7 +27,7 @@ public class MmAction extends AnAction {
     @Override
     public void actionPerformed(AnActionEvent e) {
         AndroidBuilderFactory androidBuilderFactory = AndroidBuilderFactory.getInstance();
-        if(androidBuilderFactory.isCreated()) {
+        if (androidBuilderFactory.isCreated()) {
             androidBuilderFactory.doMm();
         } else {
             Messages.showMessageDialog(e.getProject(), "Please Enable Tool Window First", "Android Builder",

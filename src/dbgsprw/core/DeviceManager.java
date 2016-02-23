@@ -137,37 +137,6 @@ public class DeviceManager {
         return mShellCommandExecutor.executeShellCommand(buildAdbCommand(device, cmd));
     }
 
-    public interface SyncListener {
-        void newOut(String line);
-
-        void newError(String line);
-
-        void onCompleted(boolean success);
-    }
-
-    private static class SyncResultReceiver implements ShellCommandExecutor.ResultReceiver {
-        private SyncListener mListener;
-
-        SyncResultReceiver(SyncListener listener) {
-            mListener = listener;
-        }
-
-        @Override
-        public void newOut(String line) {
-            mListener.newOut(line);
-        }
-
-        @Override
-        public void newError(String line) {
-            mListener.newError(line);
-        }
-
-        @Override
-        public void onExit(int code) {
-            mListener.onCompleted(code == 0);
-        }
-    }
-
     public void adbSync(IDevice device, String argument, SyncListener listener) {
         ArrayList<String> command = new ArrayList<String>();
         if (true) {
@@ -230,7 +199,6 @@ public class DeviceManager {
         return System.getenv("ANDROID_HOME");
     }
 
-
     public void addMakeDoneListener(FastBootStateChangeListener fastBootStateChangeListener) {
         mFastBootStateChangeListeners.add(fastBootStateChangeListener);
 
@@ -254,9 +222,40 @@ public class DeviceManager {
         }
     }
 
+    public interface SyncListener {
+        void newOut(String line);
+
+        void newError(String line);
+
+        void onCompleted(boolean success);
+    }
+
     public interface FastBootStateChangeListener {
         void stateChanged(FastBootState fastBootState);
 
+    }
+
+    private static class SyncResultReceiver implements ShellCommandExecutor.ResultReceiver {
+        private SyncListener mListener;
+
+        SyncResultReceiver(SyncListener listener) {
+            mListener = listener;
+        }
+
+        @Override
+        public void newOut(String line) {
+            mListener.newOut(line);
+        }
+
+        @Override
+        public void newError(String line) {
+            mListener.newError(line);
+        }
+
+        @Override
+        public void onExit(int code) {
+            mListener.onCompleted(code == 0);
+        }
     }
 
     class FastBootState {

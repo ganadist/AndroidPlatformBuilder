@@ -16,6 +16,6 @@ package dbgsprw.exception;
  * limitations under the License.
  */
 
-public class FileManagerNotFoundException extends Exception{
+public class FileManagerNotFoundException extends Exception {
 
 }

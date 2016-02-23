@@ -27,6 +27,37 @@ public class ShellCommandExecutor {
         mProcessBuilder = new ProcessBuilder();
     }
 
+    private static void readFromInputStream(InputStream is, final ShellOutputReader reader) {
+        final BufferedReader br = new BufferedReader(new InputStreamReader(is));
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (true) {
+                    final String line;
+                    try {
+                        line = br.readLine();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        break;
+                    }
+                    if (line == null) break;
+                    Utils.runOnUi(new Runnable() {
+                        @Override
+                        public void run() {
+                            reader.onRead(line);
+                        }
+                    });
+                }
+                Utils.runOnUi(new Runnable() {
+                    @Override
+                    public void run() {
+                        reader.onExit();
+                    }
+                });
+            }
+        }).start();
+    }
+
     public ProcessBuilder directory(File directory) {
         return mProcessBuilder.directory(directory);
     }
@@ -93,45 +124,17 @@ public class ShellCommandExecutor {
         return executeShellCommand(bashCommand, resultReceiver);
     }
 
-    private static void readFromInputStream(InputStream is, final ShellOutputReader reader) {
-        final BufferedReader br = new BufferedReader(new InputStreamReader(is));
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                while (true) {
-                    final String line;
-                    try {
-                        line = br.readLine();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                        break;
-                    }
-                    if (line == null) break;
-                    Utils.runOnUi(new Runnable() {
-                        @Override
-                        public void run() {
-                            reader.onRead(line);
-                        }
-                    });
-                }
-                Utils.runOnUi(new Runnable() {
-                    @Override
-                    public void run() {
-                        reader.onExit();
-                    }
-                });
-            }
-        }).start();
-    }
-
     private interface ShellOutputReader {
         void onRead(String line);
+
         void onExit();
     }
 
     public interface ResultReceiver {
         void newOut(String line);
+
         void newError(String line);
+
         void onExit(int code);
     }
 

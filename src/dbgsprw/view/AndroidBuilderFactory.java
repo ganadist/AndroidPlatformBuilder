@@ -52,9 +52,12 @@ import java.io.IOException;
 
 public class AndroidBuilderFactory implements ToolWindowFactory {
     private final static String CURRENT_PATH = "Current Path";
-    private String mUpdateFilePath;
-
+    private final static String ADB_PROPERTIES_PATH = "properties/adb_sync_argument.properties";
+    private final static String FASTBOOT_PROPERTIES_PATH = "properties/fastboot_argument.properties";
+    private final static String TARGET_PROPERTIES_PATH = "properties/target_argument.properties";
+    private final static String VARIANT_PROPERTIES_PATH = "properties/variant_argument.properties";
     private static AndroidBuilderFactory mAndroidBuilderFactory;
+    private String mUpdateFilePath;
     private JPanel mAndroidBuilderContent;
     private JButton mMakeButton;
     private JComboBox mTargetComboBox;
@@ -111,16 +114,8 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
     private JSpinner mJobSpinner;
     private JSplitPane mJSplitPanel;
     private JButton mOpenWorkspaceButton;
-
     private DeviceManager mDeviceManager;
-
     private boolean mIsCreated;
-
-    private final static String ADB_PROPERTIES_PATH = "properties/adb_sync_argument.properties";
-    private final static String FASTBOOT_PROPERTIES_PATH = "properties/fastboot_argument.properties";
-    private final static String TARGET_PROPERTIES_PATH = "properties/target_argument.properties";
-    private final static String VARIANT_PROPERTIES_PATH = "properties/variant_argument.properties";
-
     private ArgumentProperties mAdbSyncProperties;
     private ArgumentProperties mFastbootProperties;
     private ArgumentProperties mTargetProperties;

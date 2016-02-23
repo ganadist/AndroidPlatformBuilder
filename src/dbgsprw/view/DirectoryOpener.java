@@ -25,6 +25,7 @@ public class DirectoryOpener {
     private static final String OS_FILE_SYSTEM_PROPERTIES_PATH = "properties/os_file_system_command.properties";
     private static ShellCommandExecutor sShellCommandExecutor;
     private static String sFileManagerCommand = null;
+
     static {
         sShellCommandExecutor = new ShellCommandExecutor();
         ArgumentPropertiesManager argumentPropertiesManager = new ArgumentPropertiesManager();

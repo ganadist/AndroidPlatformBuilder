@@ -5,6 +5,7 @@ package dbgsprw.view;
  */
 public class TargetDirHistoryComboModel extends HistoryComboModel {
     private String mDefault;
+
     public TargetDirHistoryComboModel(String def) {
         super();
         mDefault = def;

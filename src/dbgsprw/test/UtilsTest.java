@@ -1,15 +1,14 @@
 package dbgsprw.test;
 
-import junit.framework.TestCase;
-
 import dbgsprw.core.Utils;
+import junit.framework.TestCase;
 
 import java.io.File;
 
 /**
  * Created by ganadist on 16. 2. 17.
  */
-public class UtilsTest extends TestCase{
+public class UtilsTest extends TestCase {
 
     public void testJoin() {
         final char sep = ' ';

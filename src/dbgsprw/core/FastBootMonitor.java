@@ -39,7 +39,7 @@ public class FastBootMonitor {
         sThread = new Thread(new Runnable() {
             @Override
             public void run() {
-                while(!sIsTerminate) {
+                while (!sIsTerminate) {
                     ArrayList<String> command = new ArrayList<>();
                     command.add(fastbootPath);
                     command.add("devices");
@@ -136,7 +136,7 @@ public class FastBootMonitor {
 
         void fastBootDeviceDisconnected(String serialNumber);
 
-    //    public void fastBootDeviceChanged(String serialNumber);
+        //    public void fastBootDeviceChanged(String serialNumber);
     }
 
 }

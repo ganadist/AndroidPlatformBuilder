@@ -36,10 +36,10 @@ public class ArgumentProperties extends Properties {
     public String[] getArguments(String name, String delimiter) {
         String valueLine = getProperty(name);
         String[] strings;
-        if(valueLine.contains(delimiter)) {
+        if (valueLine.contains(delimiter)) {
             strings = valueLine.split(delimiter);
         } else {
-            strings =  new String[] {valueLine};
+            strings = new String[]{valueLine};
         }
         return strings;
     }

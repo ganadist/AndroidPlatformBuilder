@@ -1,7 +1,7 @@
 package dbgsprw.view;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.HashMap;
 
 /**
  * Copyright 2016 dbgsprw / dbgsprw@gmail.com

@@ -16,6 +16,6 @@ package dbgsprw.exception;
  * limitations under the License.
  */
 
-public class AndroidHomeNotFoundException extends Exception{
+public class AndroidHomeNotFoundException extends Exception {
 
 }

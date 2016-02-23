@@ -27,7 +27,7 @@ public class MakeAction extends AnAction {
     @Override
     public void actionPerformed(AnActionEvent e) {
         AndroidBuilderFactory androidBuilderFactory = AndroidBuilderFactory.getInstance();
-        if(androidBuilderFactory.isCreated()) {
+        if (androidBuilderFactory.isCreated()) {
             androidBuilderFactory.doMake();
         } else {
             Messages.showMessageDialog(e.getProject(), "Please Enable Tool Window First", "Android Builder",

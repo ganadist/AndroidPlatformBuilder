@@ -13,19 +13,19 @@ public class HistoryComboModel extends DefaultComboBoxModel<String> {
 
     public HistoryComboModel(ArrayList<String> items) {
         super();
-        for (String item: items) {
+        for (String item : items) {
             addElement(item);
         }
     }
 
     protected void addHistory(String obj) {
         removeElement(obj);
-        insertElementAt((String)obj, 0);
+        insertElementAt((String) obj, 0);
     }
 
     @Override
     public void setSelectedItem(Object obj) {
-        addHistory((String)obj);
+        addHistory((String) obj);
         super.setSelectedItem(obj);
     }
 }

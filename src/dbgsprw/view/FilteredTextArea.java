@@ -1,9 +1,7 @@
 package dbgsprw.view;
 
 
-import javax.swing.JTextArea;
-import java.awt.Toolkit;
-import java.awt.AWTEvent;
+import javax.swing.*;
 
 /**
  * Copyright 2016 dbgsprw / dbgsprw@gmail.com

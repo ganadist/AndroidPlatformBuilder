@@ -2,11 +2,10 @@ package dbgsprw.core;
 
 import javax.swing.*;
 import java.io.File;
-import java.lang.reflect.InvocationTargetException;
 
 public class Utils {
-    private static final String EMPTY = "";
     public static final String ANDROID_MK = "Android.mk";
+    private static final String EMPTY = "";
 
     public static String join(final char separator, final Object[] array) {
         if (array == null) {
@@ -29,11 +28,11 @@ public class Utils {
         return sb.toString();
     }
 
-    public static String join(final char seperator, String ... array) {
-        return join(seperator, (Object[])array);
+    public static String join(final char seperator, String... array) {
+        return join(seperator, (Object[]) array);
     }
 
-    public static String pathJoin(String ... paths) {
+    public static String pathJoin(String... paths) {
         return join(File.separatorChar, paths);
     }
 

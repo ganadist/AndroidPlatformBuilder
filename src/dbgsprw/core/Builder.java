@@ -22,6 +22,7 @@ import java.util.Map;
 
 public class Builder {
 
+    public final static int FOUND_AOSP_HOME = 0;
     ShellCommandExecutor mShellCommandExecutor;
     private ArrayList<String> mLunchMenuList;
     private String mProjectPath;
@@ -37,8 +38,6 @@ public class Builder {
     private boolean mIsAOSPPath;
     private String mProductOutPath;
     private MakeSetReceiver mMakeSetReceiver;
-
-    public final static int FOUND_AOSP_HOME = 0;
 
 
     public Builder(String projectPath, MakeSetReceiver makeSetReceiver) {
@@ -94,7 +93,7 @@ public class Builder {
             makeCommandLine.add("showcommands");
         }
         if (!mExtraArguments.equals("")) {
-            for (String arg: mExtraArguments.split(("\\s+"))) {
+            for (String arg : mExtraArguments.split(("\\s+"))) {
                 makeCommandLine.add(arg);
             }
         }
