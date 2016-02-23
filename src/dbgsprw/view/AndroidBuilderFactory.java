@@ -1,6 +1,8 @@
 package dbgsprw.view;
 
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.project.ProjectManager;
+import com.intellij.openapi.project.ProjectManagerListener;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowFactory;
 import org.jetbrains.annotations.NotNull;
@@ -24,7 +26,7 @@ import java.util.Map;
  * limitations under the License.
  */
 
-public class AndroidBuilderFactory implements ToolWindowFactory {
+public class AndroidBuilderFactory implements ToolWindowFactory, ProjectManagerListener {
     private static final Map<String, AndroidBuilderView> sProjectMap = new HashMap<String, AndroidBuilderView>();
 
     @Override
@@ -38,6 +40,7 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
 
             AndroidBuilderView view = new AndroidBuilderView(project, toolWindow);
             sProjectMap.put(projectPath, view);
+            ProjectManager.getInstance().addProjectManagerListener(project, this);
         }
     }
 
@@ -45,5 +48,25 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
         synchronized (sProjectMap) {
             return sProjectMap.get(project.getProjectFilePath());
         }
+    }
+
+    @Override
+    public void projectOpened(Project project) {
+
+    }
+
+    @Override
+    public boolean canCloseProject(Project project) {
+        return true;
+    }
+
+    @Override
+    public void projectClosed(Project project) {
+
+    }
+
+    @Override
+    public void projectClosing(Project project) {
+
     }
 }
