@@ -440,6 +440,7 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
         mMakeButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
+                saveCurrentProject();
 
                 if (mMmRadioButton.isSelected()) {
                     String selectedPath = mTargetDirComboBox.getSelectedItem().toString();
@@ -511,6 +512,11 @@ public class AndroidBuilderFactory implements ToolWindowFactory {
             }
         });
         mMakeStopButton.setVisible(false);
+    }
+
+    private void saveCurrentProject() {
+        mProject.save();
+        showNotification("project is saved for build.", NotificationType.INFORMATION);
     }
 
     private void initMakePanelRadioButtons() {
