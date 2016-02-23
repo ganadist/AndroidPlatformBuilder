@@ -1,5 +1,7 @@
 package dbgsprw.view;
 
+import com.intellij.execution.filters.HyperlinkInfo;
+import com.intellij.execution.filters.OpenFileHyperlinkInfo;
 import com.intellij.execution.impl.ConsoleViewImpl;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.execution.ui.RunnerLayoutUi;
@@ -10,6 +12,8 @@ import com.intellij.notification.Notifications;
 import com.intellij.openapi.Disposable;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.Disposer;
+import com.intellij.openapi.vfs.VfsUtil;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.openapi.wm.ToolWindowManager;
@@ -17,10 +21,12 @@ import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
 import dbgsprw.core.ShellCommandExecutor;
+import dbgsprw.core.Utils;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.File;
 
 /**
  * Created by ganadist on 16. 2. 23.
@@ -82,7 +88,26 @@ public class AndroidBuilderConsole implements Disposable, ShellCommandExecutor.R
 
     @Override
     public void newError(String line) {
-        mConsoleView.print(line + "\n", ConsoleViewContentType.ERROR_OUTPUT);
+        String[] parsed = line.split(":", 3);
+        HyperlinkInfo linkInfo = null;
+
+        if (parsed.length == 3) {
+            final String filename = parsed[0];
+            final int lineNo = Integer.parseInt(parsed[1]);
+            VirtualFile file = VfsUtil.findRelativeFile(filename, mProject.getBaseDir());
+            if (file != null) {
+                linkInfo = new OpenFileHyperlinkInfo(mProject, file, lineNo - 1, -1);
+            }
+        }
+
+        if (linkInfo != null) {
+            mConsoleView.printHyperlink(Utils.join(':', parsed[0], parsed[1]), linkInfo);
+            mConsoleView.print(":", ConsoleViewContentType.ERROR_OUTPUT);
+            mConsoleView.print(parsed[2], ConsoleViewContentType.ERROR_OUTPUT);
+        } else {
+            mConsoleView.print(line, ConsoleViewContentType.ERROR_OUTPUT);
+        }
+        mConsoleView.print("\n", ConsoleViewContentType.ERROR_OUTPUT);
     }
 
     private void showNotification(String message, NotificationType type) {
