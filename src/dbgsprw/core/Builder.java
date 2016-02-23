@@ -161,11 +161,9 @@ public class Builder {
     private void updateLunchMenu() {
         mLunchMenuList.clear();
         ArrayList<String> lunchCommand = new ArrayList<>();
-        lunchCommand.add("bash");
-        lunchCommand.add("-c");
         lunchCommand.add("source build/envsetup.sh > /dev/null ;" +
                 "printf '%s\\n' ${LUNCH_MENU_CHOICES[@]} | cut -f 1 -d - | sort -u");
-        mShellCommandExecutor.executeShellCommand(lunchCommand, new ShellCommandExecutor.ResultReceiver() {
+        mShellCommandExecutor.executeInBash(lunchCommand, new ShellCommandExecutor.ResultReceiver() {
             @Override
             public void newOut(String line) {
                 if ("".equals(line)) {
@@ -196,11 +194,9 @@ public class Builder {
     public void findOriginalProductOutPath(ShellCommandExecutor.ResultReceiver receiver) {
         String selectedTarget = mTargetProduct + '-' + mTargetBuildVariant;
         ArrayList<String> command = new ArrayList<>();
-        command.add("bash");
-        command.add("-c");
         command.add("source build/envsetup.sh > /dev/null;" +
                 " lunch " + selectedTarget + " > /dev/null; echo $ANDROID_PRODUCT_OUT");
-        mShellCommandExecutor.executeShellCommand(command, receiver);
+        mShellCommandExecutor.executeInBash(command, receiver);
     }
 
     public interface MakeSetReceiver {
