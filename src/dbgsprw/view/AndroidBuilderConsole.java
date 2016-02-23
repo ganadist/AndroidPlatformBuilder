@@ -2,7 +2,8 @@ package dbgsprw.view;
 
 import com.intellij.execution.filters.HyperlinkInfo;
 import com.intellij.execution.filters.OpenFileHyperlinkInfo;
-import com.intellij.execution.impl.ConsoleViewImpl;
+import com.intellij.execution.filters.TextConsoleBuilderFactory;
+import com.intellij.execution.ui.ConsoleView;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.execution.ui.RunnerLayoutUi;
 import com.intellij.execution.ui.layout.PlaceInGrid;
@@ -38,7 +39,7 @@ public class AndroidBuilderConsole implements Disposable, ShellCommandExecutor.R
     private static final String TOOL_WINDOW_ID = "Android Build";
     private final Project mProject;
 
-    private ConsoleViewImpl mConsoleView;
+    private ConsoleView mConsoleView;
     private final JPanel mPanel = new JPanel(new BorderLayout());
     private ToolWindow mWindow;
 
@@ -53,7 +54,7 @@ public class AndroidBuilderConsole implements Disposable, ShellCommandExecutor.R
         final RunnerLayoutUi.Factory factory = RunnerLayoutUi.Factory.getInstance(project);
         final RunnerLayoutUi layoutUi = factory.create("", "", "session", project);
 
-        mConsoleView = new ConsoleViewImpl(project, GlobalSearchScope.allScope(project), false, false);
+        mConsoleView = TextConsoleBuilderFactory.getInstance().createBuilder(project).getConsole();
         Disposer.register(this, mConsoleView);
         final Content console = layoutUi.createContent(CONSOLE_ID, mConsoleView.getComponent(),
                 "", null, null);
