@@ -72,7 +72,6 @@ public class AndroidBuilderView {
     private JButton mFlashButton;
     private JButton mSyncButton;
     private JButton mFlashStopButton;
-    private JLabel mFlashStatusLabel;
     private JComboBox mProductComboBox;
     private JComboBox mVariantComboBox;
     private JLabel mProductLabel;
@@ -199,7 +198,7 @@ public class AndroidBuilderView {
     }
 
     public boolean isAvailable() {
-        return mIsCreated && !();
+        return mIsCreated ;
     }
 
     public void notifySetSdk(final Project project) {
