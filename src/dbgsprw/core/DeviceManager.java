@@ -137,7 +137,7 @@ public class DeviceManager {
         return mShellCommandExecutor.executeShellCommand(buildAdbCommand(device, cmd));
     }
 
-    public void adbSync(IDevice device, String argument, SyncListener listener) {
+    public void adbSync(IDevice device, String argument, ShellCommandExecutor.ResultReceiver listener) {
         ArrayList<String> command = new ArrayList<String>();
         if (true) {
             command.addAll(buildAdbCommand(device, "root"));
@@ -153,7 +153,7 @@ public class DeviceManager {
             command.add(argument);
         }
         mAdbSyncProcess = mShellCommandExecutor.executeInBash(command,
-                new SyncResultReceiver(listener));
+                listener);
     }
 
     public void rebootDevice(String deviceSerialNumber) {
@@ -170,7 +170,7 @@ public class DeviceManager {
     @param argument update, flashall, vendor, system, boot, etc..
     @param wipe -w option
     */
-    public void flash(String deviceSerialNumber, boolean wipe, String[] arguments, SyncListener listener) {
+    public void flash(String deviceSerialNumber, boolean wipe, String[] arguments, ShellCommandExecutor.ResultReceiver listener) {
         ArrayList<String> command = new ArrayList<>();
         command.add(mFastBootPath);
         command.add("-s");
@@ -182,7 +182,7 @@ public class DeviceManager {
         for (String argument : arguments) {
             command.add(argument);
         }
-        mFlashProcess = mShellCommandExecutor.executeShellCommand(command, new SyncResultReceiver(listener));
+        mFlashProcess = mShellCommandExecutor.executeShellCommand(command, listener);
     }
 
     public void setTargetProductPath(File directory) {
@@ -198,6 +198,7 @@ public class DeviceManager {
         }
         return System.getenv("ANDROID_HOME");
     }
+
 
     public void addMakeDoneListener(FastBootStateChangeListener fastBootStateChangeListener) {
         mFastBootStateChangeListeners.add(fastBootStateChangeListener);
@@ -222,40 +223,9 @@ public class DeviceManager {
         }
     }
 
-    public interface SyncListener {
-        void newOut(String line);
-
-        void newError(String line);
-
-        void onCompleted(boolean success);
-    }
-
     public interface FastBootStateChangeListener {
         void stateChanged(FastBootState fastBootState);
 
-    }
-
-    private static class SyncResultReceiver implements ShellCommandExecutor.ResultReceiver {
-        private SyncListener mListener;
-
-        SyncResultReceiver(SyncListener listener) {
-            mListener = listener;
-        }
-
-        @Override
-        public void newOut(String line) {
-            mListener.newOut(line);
-        }
-
-        @Override
-        public void newError(String line) {
-            mListener.newError(line);
-        }
-
-        @Override
-        public void onExit(int code) {
-            mListener.onCompleted(code == 0);
-        }
     }
 
     class FastBootState {
