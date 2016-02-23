@@ -28,13 +28,16 @@ public class ArgumentPropertiesManager {
     private ClassLoader mClassLoader;
 
     public ArgumentPropertiesManager() {
-        mClassLoader = this.getClass().getClassLoader();
-        mPropertiesHashMap = new HashMap<>();
+        init(this.getClass().getClassLoader());
     }
 
     public ArgumentPropertiesManager(ClassLoader classLoader) {
-        mClassLoader = classLoader;
-        mPropertiesHashMap = new HashMap<>();
+        init(classLoader);
+    }
+
+    private void init(ClassLoader loader) {
+        mClassLoader = loader;
+        mPropertiesHashMap = new HashMap<String, ArgumentProperties>();
     }
 
     public ArgumentProperties loadProperties(String path) {

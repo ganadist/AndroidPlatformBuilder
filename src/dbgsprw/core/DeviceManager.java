@@ -41,7 +41,7 @@ public class DeviceManager {
     private String mFastBootPath;
 
     public DeviceManager() {
-        mFastBootStateChangeListeners = new ArrayList<>();
+        mFastBootStateChangeListeners = new ArrayList<FastBootStateChangeListener>();
         mShellCommandExecutor = new ShellCommandExecutor();
     }
 
