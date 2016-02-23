@@ -1,488 +1,428 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="dbgsprw.view.AndroidBuilderFactory">
-  <grid id="27dc6" binding="mAndroidBuilderContent" layout-manager="GridLayoutManager" row-count="1" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+<form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="dbgsprw.view.AndroidBuilderView">
+  <grid id="27dc6" binding="mAndroidBuilderContent" layout-manager="GridLayoutManager" row-count="4" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
     <margin top="15" left="15" bottom="15" right="15"/>
     <constraints>
-      <xy x="20" y="20" width="464" height="702"/>
+      <xy x="20" y="20" width="464" height="993"/>
     </constraints>
     <properties/>
     <border type="none">
       <title-color color="-16777216"/>
     </border>
     <children>
-      <splitpane id="8dd39">
+      <grid id="5d0c1" binding="mMakeOptionPanel" layout-manager="GridLayoutManager" row-count="8" column-count="4" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+        <margin top="0" left="10" bottom="10" right="10"/>
         <constraints>
-          <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false">
-            <preferred-size width="200" height="200"/>
-          </grid>
+          <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="1" hsize-policy="1" anchor="9" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
-        <properties>
-          <dividerLocation value="600"/>
-          <orientation value="0"/>
-        </properties>
-        <border type="none"/>
+        <properties/>
+        <border type="line" title="Make">
+          <font name="FreeSans" style="1"/>
+          <color color="-16777216"/>
+        </border>
         <children>
-          <scrollpane id="e1126" binding="mLogScroll">
+          <component id="d5017" class="javax.swing.JLabel" binding="mTargetLabel">
             <constraints>
-              <splitpane position="right"/>
+              <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
             </constraints>
             <properties>
-              <horizontalScrollBarPolicy value="31"/>
+              <labelFor value="26016"/>
+              <text value="Target"/>
             </properties>
-            <border type="none" title="Log"/>
+          </component>
+          <component id="30c18" class="javax.swing.JComboBox" binding="mTargetComboBox">
+            <constraints>
+              <grid row="1" column="1" row-span="1" col-span="3" vsize-policy="0" hsize-policy="2" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <editable value="true"/>
+            </properties>
+          </component>
+          <component id="93b4f" class="javax.swing.JLabel" binding="mJobNumberLabel">
+            <constraints>
+              <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <labelFor value="8d7e7"/>
+              <text value="Jobs"/>
+            </properties>
+          </component>
+          <component id="3fda0" class="javax.swing.JLabel" binding="mMakeCommandLabel">
+            <constraints>
+              <grid row="5" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <text value="Command"/>
+            </properties>
+          </component>
+          <component id="949af" class="javax.swing.JLabel" binding="mMakeLabel">
+            <constraints>
+              <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <text value="Make"/>
+            </properties>
+          </component>
+          <grid id="36a4f" layout-manager="GridLayoutManager" row-count="1" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+            <margin top="0" left="0" bottom="0" right="0"/>
+            <constraints>
+              <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="1" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties/>
+            <border type="line">
+              <color color="-6974059"/>
+            </border>
             <children>
-              <component id="a1e2c" class="dbgsprw.view.FilteredTextArea" binding="mFilteredLogArea">
-                <constraints/>
+              <component id="6640f" class="javax.swing.JRadioButton" binding="mMmRadioButton" default-binding="true">
+                <constraints>
+                  <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                </constraints>
                 <properties>
-                  <editable value="false"/>
+                  <enabled value="true"/>
+                  <text value="mm"/>
+                </properties>
+              </component>
+              <component id="919a3" class="javax.swing.JRadioButton" binding="mMakeRadioButton" default-binding="true">
+                <constraints>
+                  <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                </constraints>
+                <properties>
+                  <text value="make"/>
                 </properties>
               </component>
             </children>
-          </scrollpane>
-          <scrollpane id="f9719">
+          </grid>
+          <component id="11dd9" class="javax.swing.JLabel" binding="mExtraArgumentsLabel">
             <constraints>
-              <splitpane position="left"/>
+              <grid row="4" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
             </constraints>
             <properties>
-              <autoscrolls value="false"/>
-              <horizontalScrollBarPolicy value="31"/>
-              <maximumSize width="32767" height="32767"/>
-              <minimumSize width="27" height="29"/>
-              <preferredSize width="492" height="-1"/>
-              <verticalScrollBarPolicy value="20"/>
+              <horizontalAlignment value="0"/>
+              <horizontalTextPosition value="11"/>
+              <text value="Extra command"/>
             </properties>
-            <border type="none"/>
-            <children>
-              <grid id="26a81" layout-manager="GridLayoutManager" row-count="5" column-count="1" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
-                <margin top="0" left="0" bottom="0" right="0"/>
-                <constraints/>
-                <properties>
-                  <autoscrolls value="true"/>
-                  <maximumSize width="-1" height="-1"/>
-                  <minimumSize width="-1" height="-1"/>
-                  <preferredSize width="-1" height="600"/>
-                </properties>
-                <border type="none"/>
-                <children>
-                  <grid id="5d0c1" binding="mMakeOptionPanel" layout-manager="GridLayoutManager" row-count="8" column-count="4" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
-                    <margin top="0" left="10" bottom="10" right="10"/>
-                    <constraints>
-                      <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="1" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
-                    </constraints>
-                    <properties/>
-                    <border type="line" title="Make">
-                      <font name="FreeSans" style="1"/>
-                      <color color="-16777216"/>
-                    </border>
-                    <children>
-                      <component id="d5017" class="javax.swing.JLabel" binding="mTargetLabel">
-                        <constraints>
-                          <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
-                        </constraints>
-                        <properties>
-                          <labelFor value="26016"/>
-                          <text value="Target"/>
-                        </properties>
-                      </component>
-                      <component id="30c18" class="javax.swing.JComboBox" binding="mTargetComboBox">
-                        <constraints>
-                          <grid row="1" column="1" row-span="1" col-span="3" vsize-policy="0" hsize-policy="2" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
-                        </constraints>
-                        <properties>
-                          <editable value="true"/>
-                        </properties>
-                      </component>
-                      <component id="93b4f" class="javax.swing.JLabel" binding="mJobNumberLabel">
-                        <constraints>
-                          <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
-                        </constraints>
-                        <properties>
-                          <labelFor value="8d7e7"/>
-                          <text value="Jobs"/>
-                        </properties>
-                      </component>
-                      <component id="3fda0" class="javax.swing.JLabel" binding="mMakeCommandLabel">
-                        <constraints>
-                          <grid row="5" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
-                        </constraints>
-                        <properties>
-                          <text value="Command"/>
-                        </properties>
-                      </component>
-                      <component id="949af" class="javax.swing.JLabel" binding="mMakeLabel">
-                        <constraints>
-                          <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
-                        </constraints>
-                        <properties>
-                          <text value="Make"/>
-                        </properties>
-                      </component>
-                      <grid id="36a4f" layout-manager="GridLayoutManager" row-count="1" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
-                        <margin top="0" left="0" bottom="0" right="0"/>
-                        <constraints>
-                          <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="1" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
-                        </constraints>
-                        <properties/>
-                        <border type="line">
-                          <color color="-6974059"/>
-                        </border>
-                        <children>
-                          <component id="6640f" class="javax.swing.JRadioButton" binding="mMmRadioButton" default-binding="true">
-                            <constraints>
-                              <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
-                            </constraints>
-                            <properties>
-                              <enabled value="true"/>
-                              <text value="mm"/>
-                            </properties>
-                          </component>
-                          <component id="919a3" class="javax.swing.JRadioButton" binding="mMakeRadioButton" default-binding="true">
-                            <constraints>
-                              <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
-                            </constraints>
-                            <properties>
-                              <text value="make"/>
-                            </properties>
-                          </component>
-                        </children>
-                      </grid>
-                      <component id="11dd9" class="javax.swing.JLabel" binding="mExtraArgumentsLabel">
-                        <constraints>
-                          <grid row="4" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
-                        </constraints>
-                        <properties>
-                          <horizontalAlignment value="0"/>
-                          <horizontalTextPosition value="11"/>
-                          <text value="Extra command"/>
-                        </properties>
-                      </component>
-                      <component id="816bf" class="javax.swing.JComboBox" binding="mExtraArgumentsComboBox">
-                        <constraints>
-                          <grid row="4" column="1" row-span="1" col-span="3" vsize-policy="0" hsize-policy="2" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
-                        </constraints>
-                        <properties>
-                          <editable value="true"/>
-                        </properties>
-                      </component>
-                      <component id="fc770" class="javax.swing.JTextArea" binding="mMakeCommandTextArea">
-                        <constraints>
-                          <grid row="5" column="1" row-span="1" col-span="3" vsize-policy="1" hsize-policy="7" anchor="0" fill="3" indent="0" use-parent-layout="false">
-                            <minimum-size width="30" height="-1"/>
-                          </grid>
-                        </constraints>
-                        <properties>
-                          <editable value="false"/>
-                          <lineWrap value="true"/>
-                        </properties>
-                      </component>
-                      <component id="b817d" class="javax.swing.JLabel" binding="mTargetDirLabel">
-                        <constraints>
-                          <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
-                        </constraints>
-                        <properties>
-                          <text value="Target Dir"/>
-                        </properties>
-                      </component>
-                      <component id="a90d6" class="javax.swing.JComboBox" binding="mTargetDirComboBox">
-                        <constraints>
-                          <grid row="2" column="1" row-span="1" col-span="3" vsize-policy="0" hsize-policy="2" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
-                        </constraints>
-                        <properties/>
-                      </component>
-                      <component id="4f049" class="javax.swing.JCheckBox" binding="mVerboseCheckBox">
-                        <constraints>
-                          <grid row="0" column="2" row-span="1" col-span="2" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
-                        </constraints>
-                        <properties>
-                          <enabled value="true"/>
-                          <label value="Verbose"/>
-                          <text value="Verbose"/>
-                        </properties>
-                      </component>
-                      <component id="59e73" class="javax.swing.JButton" binding="mMakeButton" default-binding="true">
-                        <constraints>
-                          <grid row="6" column="0" row-span="1" col-span="4" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
-                        </constraints>
-                        <properties>
-                          <enabled value="false"/>
-                          <text value="Make"/>
-                        </properties>
-                      </component>
-                      <component id="38623" class="javax.swing.JButton" binding="mMakeStopButton">
-                        <constraints>
-                          <grid row="7" column="0" row-span="1" col-span="4" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
-                        </constraints>
-                        <properties>
-                          <enabled value="true"/>
-                          <text value="Stop"/>
-                          <visible value="true"/>
-                        </properties>
-                      </component>
-                      <component id="b9e12" class="javax.swing.JSpinner" binding="mJobSpinner">
-                        <constraints>
-                          <grid row="3" column="1" row-span="1" col-span="3" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
-                        </constraints>
-                        <properties/>
-                      </component>
-                    </children>
-                  </grid>
-                  <grid id="8a36d" binding="mFlashOptionPanel" layout-manager="GridLayoutManager" row-count="10" column-count="7" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
-                    <margin top="0" left="10" bottom="10" right="10"/>
-                    <constraints>
-                      <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="1" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
-                    </constraints>
-                    <properties/>
-                    <border type="line" title="Flash &amp; Adb Sync">
-                      <font name="FreeSans" style="1"/>
-                      <color color="-16777216"/>
-                    </border>
-                    <children>
-                      <component id="51dc" class="javax.swing.JLabel" binding="mDeviceListLabel">
-                        <constraints>
-                          <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
-                        </constraints>
-                        <properties>
-                          <text value="Device List"/>
-                        </properties>
-                      </component>
-                      <component id="ca466" class="javax.swing.JComboBox" binding="mDeviceListComboBox">
-                        <constraints>
-                          <grid row="1" column="1" row-span="1" col-span="6" vsize-policy="0" hsize-policy="2" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
-                        </constraints>
-                        <properties>
-                          <editable value="false"/>
-                        </properties>
-                      </component>
-                      <component id="9bf8a" class="javax.swing.JLabel" binding="mFlashCommandLabel">
-                        <constraints>
-                          <grid row="4" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
-                        </constraints>
-                        <properties>
-                          <text value="Command"/>
-                        </properties>
-                      </component>
-                      <component id="7bf8f" class="javax.swing.JLabel" binding="mModeLabel">
-                        <constraints>
-                          <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
-                        </constraints>
-                        <properties>
-                          <text value="Mode"/>
-                        </properties>
-                      </component>
-                      <grid id="b5f02" layout-manager="GridLayoutManager" row-count="1" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
-                        <margin top="0" left="0" bottom="0" right="0"/>
-                        <constraints>
-                          <grid row="0" column="1" row-span="1" col-span="2" vsize-policy="1" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
-                        </constraints>
-                        <properties/>
-                        <border type="line">
-                          <color color="-6974059"/>
-                        </border>
-                        <children>
-                          <component id="6945a" class="javax.swing.JRadioButton" binding="mAdbSyncRadioButton">
-                            <constraints>
-                              <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
-                            </constraints>
-                            <properties>
-                              <enabled value="true"/>
-                              <text value="adb sync"/>
-                            </properties>
-                          </component>
-                          <component id="f77af" class="javax.swing.JRadioButton" binding="mFastbootRadioButton">
-                            <constraints>
-                              <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
-                            </constraints>
-                            <properties>
-                              <text value="fastboot"/>
-                            </properties>
-                          </component>
-                        </children>
-                      </grid>
-                      <component id="95062" class="javax.swing.JTextArea" binding="mFlashCommandTextArea">
-                        <constraints>
-                          <grid row="4" column="1" row-span="1" col-span="6" vsize-policy="1" hsize-policy="7" anchor="0" fill="3" indent="0" use-parent-layout="false">
-                            <minimum-size width="30" height="-1"/>
-                          </grid>
-                        </constraints>
-                        <properties>
-                          <editable value="false"/>
-                          <lineWrap value="true"/>
-                        </properties>
-                      </component>
-                      <component id="16818" class="javax.swing.JLabel" binding="mAdbSyncArgumentLabel">
-                        <constraints>
-                          <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
-                        </constraints>
-                        <properties>
-                          <text value="Argument"/>
-                        </properties>
-                      </component>
-                      <component id="b4f75" class="javax.swing.JComboBox" binding="mAdbSyncArgumentComboBox">
-                        <constraints>
-                          <grid row="3" column="1" row-span="1" col-span="6" vsize-policy="0" hsize-policy="2" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
-                        </constraints>
-                        <properties>
-                          <editable value="false"/>
-                        </properties>
-                      </component>
-                      <component id="2fd7d" class="javax.swing.JLabel" binding="mFastBootArgumentLabel">
-                        <constraints>
-                          <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
-                        </constraints>
-                        <properties>
-                          <text value="Argument"/>
-                        </properties>
-                      </component>
-                      <component id="4f1d3" class="javax.swing.JComboBox" binding="mFastBootArgumentComboBox">
-                        <constraints>
-                          <grid row="2" column="1" row-span="1" col-span="6" vsize-policy="0" hsize-policy="2" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
-                        </constraints>
-                        <properties/>
-                      </component>
-                      <component id="7822d" class="javax.swing.JCheckBox" binding="mWipeCheckBox">
-                        <constraints>
-                          <grid row="0" column="3" row-span="1" col-span="4" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
-                        </constraints>
-                        <properties>
-                          <enabled value="true"/>
-                          <text value="Wipe"/>
-                        </properties>
-                      </component>
-                      <component id="c14cd" class="javax.swing.JButton" binding="mRebootButton" default-binding="true">
-                        <constraints>
-                          <grid row="5" column="0" row-span="1" col-span="7" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
-                        </constraints>
-                        <properties>
-                          <text value="Reboot"/>
-                          <visible value="false"/>
-                        </properties>
-                      </component>
-                      <component id="98e59" class="javax.swing.JButton" binding="mRebootBootloaderButton" default-binding="true">
-                        <constraints>
-                          <grid row="6" column="0" row-span="1" col-span="7" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
-                        </constraints>
-                        <properties>
-                          <enabled value="true"/>
-                          <text value="Reboot Bootloader"/>
-                          <visible value="false"/>
-                        </properties>
-                      </component>
-                      <component id="1b365" class="javax.swing.JButton" binding="mFlashButton">
-                        <constraints>
-                          <grid row="7" column="0" row-span="1" col-span="7" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
-                        </constraints>
-                        <properties>
-                          <enabled value="true"/>
-                          <hideActionText value="false"/>
-                          <text value="Flash"/>
-                          <visible value="false"/>
-                        </properties>
-                      </component>
-                      <component id="7d470" class="javax.swing.JButton" binding="mSyncButton" default-binding="true">
-                        <constraints>
-                          <grid row="9" column="0" row-span="1" col-span="7" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
-                        </constraints>
-                        <properties>
-                          <text value="Sync"/>
-                          <visible value="false"/>
-                        </properties>
-                      </component>
-                      <component id="496f8" class="javax.swing.JButton" binding="mFlashStopButton">
-                        <constraints>
-                          <grid row="8" column="0" row-span="1" col-span="7" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
-                        </constraints>
-                        <properties>
-                          <enabled value="true"/>
-                          <text value="Stop"/>
-                          <visible value="false"/>
-                        </properties>
-                      </component>
-                    </children>
-                  </grid>
-                  <component id="8c949" class="javax.swing.JLabel" binding="mFlashStatusLabel">
-                    <constraints>
-                      <grid row="4" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
-                    </constraints>
-                    <properties>
-                      <text value=""/>
-                    </properties>
-                  </component>
-                  <grid id="bdfd3" layout-manager="GridLayoutManager" row-count="3" column-count="3" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
-                    <margin top="0" left="10" bottom="10" right="10"/>
-                    <constraints>
-                      <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="1" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
-                    </constraints>
-                    <properties/>
-                    <border type="line" title="Common" title-justification="1" title-position="2">
-                      <font name="FreeSans" style="1"/>
-                    </border>
-                    <children>
-                      <component id="4798c" class="javax.swing.JComboBox" binding="mProductComboBox">
-                        <constraints>
-                          <grid row="0" column="1" row-span="1" col-span="2" vsize-policy="0" hsize-policy="2" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
-                        </constraints>
-                        <properties/>
-                      </component>
-                      <component id="fb3f6" class="javax.swing.JComboBox" binding="mVariantComboBox">
-                        <constraints>
-                          <grid row="1" column="1" row-span="1" col-span="2" vsize-policy="0" hsize-policy="2" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
-                        </constraints>
-                        <properties/>
-                      </component>
-                      <component id="6538f" class="javax.swing.JLabel" binding="mProductLabel">
-                        <constraints>
-                          <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
-                        </constraints>
-                        <properties>
-                          <labelFor value="e94d6"/>
-                          <text value="Product"/>
-                        </properties>
-                      </component>
-                      <component id="e95dd" class="javax.swing.JLabel" binding="mVariantLabel">
-                        <constraints>
-                          <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
-                        </constraints>
-                        <properties>
-                          <labelFor value="e94d6"/>
-                          <text value="Variant"/>
-                        </properties>
-                      </component>
-                      <component id="2a576" class="javax.swing.JLabel" binding="mResultPathLabel">
-                        <constraints>
-                          <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
-                        </constraints>
-                        <properties>
-                          <labelFor value="c5200"/>
-                          <text value="Result Path"/>
-                        </properties>
-                      </component>
-                      <component id="e6516" class="javax.swing.JLabel" binding="mResultPathValueLabel">
-                        <constraints>
-                          <grid row="2" column="1" row-span="1" col-span="1" vsize-policy="1" hsize-policy="1" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
-                        </constraints>
-                        <properties>
-                          <text value="Label"/>
-                        </properties>
-                      </component>
-                      <component id="91e31" class="javax.swing.JButton" binding="mOpenDirectoryButton">
-                        <constraints>
-                          <grid row="2" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="4" fill="0" indent="0" use-parent-layout="false">
-                            <preferred-size width="38" height="34"/>
-                          </grid>
-                        </constraints>
-                        <properties>
-                          <enabled value="false"/>
-                          <text value="Open Folder"/>
-                        </properties>
-                      </component>
-                    </children>
-                  </grid>
-                </children>
+          </component>
+          <component id="816bf" class="javax.swing.JComboBox" binding="mExtraArgumentsComboBox">
+            <constraints>
+              <grid row="4" column="1" row-span="1" col-span="3" vsize-policy="0" hsize-policy="2" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <editable value="true"/>
+            </properties>
+          </component>
+          <component id="fc770" class="javax.swing.JTextArea" binding="mMakeCommandTextArea">
+            <constraints>
+              <grid row="5" column="1" row-span="1" col-span="3" vsize-policy="1" hsize-policy="7" anchor="0" fill="3" indent="0" use-parent-layout="false">
+                <minimum-size width="30" height="-1"/>
               </grid>
-            </children>
-          </scrollpane>
+            </constraints>
+            <properties>
+              <editable value="false"/>
+              <lineWrap value="true"/>
+            </properties>
+          </component>
+          <component id="b817d" class="javax.swing.JLabel" binding="mTargetDirLabel">
+            <constraints>
+              <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <text value="Target Dir"/>
+            </properties>
+          </component>
+          <component id="a90d6" class="javax.swing.JComboBox" binding="mTargetDirComboBox">
+            <constraints>
+              <grid row="2" column="1" row-span="1" col-span="3" vsize-policy="0" hsize-policy="2" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties/>
+          </component>
+          <component id="4f049" class="javax.swing.JCheckBox" binding="mVerboseCheckBox">
+            <constraints>
+              <grid row="0" column="2" row-span="1" col-span="2" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <enabled value="true"/>
+              <label value="Verbose"/>
+              <text value="Verbose"/>
+            </properties>
+          </component>
+          <component id="59e73" class="javax.swing.JButton" binding="mMakeButton" default-binding="true">
+            <constraints>
+              <grid row="6" column="0" row-span="1" col-span="4" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <enabled value="false"/>
+              <text value="Make"/>
+            </properties>
+          </component>
+          <component id="38623" class="javax.swing.JButton" binding="mMakeStopButton">
+            <constraints>
+              <grid row="7" column="0" row-span="1" col-span="4" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <enabled value="true"/>
+              <text value="Stop"/>
+              <visible value="true"/>
+            </properties>
+          </component>
+          <component id="b9e12" class="javax.swing.JSpinner" binding="mJobSpinner">
+            <constraints>
+              <grid row="3" column="1" row-span="1" col-span="3" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties/>
+          </component>
         </children>
-      </splitpane>
+      </grid>
+      <grid id="8a36d" binding="mFlashOptionPanel" layout-manager="GridLayoutManager" row-count="10" column-count="7" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+        <margin top="0" left="10" bottom="10" right="10"/>
+        <constraints>
+          <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="1" hsize-policy="1" anchor="9" fill="0" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties/>
+        <border type="line" title="Flash &amp; Adb Sync">
+          <font name="FreeSans" style="1"/>
+          <color color="-16777216"/>
+        </border>
+        <children>
+          <component id="51dc" class="javax.swing.JLabel" binding="mDeviceListLabel">
+            <constraints>
+              <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <text value="Device List"/>
+            </properties>
+          </component>
+          <component id="ca466" class="javax.swing.JComboBox" binding="mDeviceListComboBox">
+            <constraints>
+              <grid row="1" column="1" row-span="1" col-span="6" vsize-policy="0" hsize-policy="2" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <editable value="false"/>
+            </properties>
+          </component>
+          <component id="9bf8a" class="javax.swing.JLabel" binding="mFlashCommandLabel">
+            <constraints>
+              <grid row="4" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <text value="Command"/>
+            </properties>
+          </component>
+          <component id="7bf8f" class="javax.swing.JLabel" binding="mModeLabel">
+            <constraints>
+              <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <text value="Mode"/>
+            </properties>
+          </component>
+          <grid id="b5f02" layout-manager="GridLayoutManager" row-count="1" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+            <margin top="0" left="0" bottom="0" right="0"/>
+            <constraints>
+              <grid row="0" column="1" row-span="1" col-span="2" vsize-policy="1" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties/>
+            <border type="line">
+              <color color="-6974059"/>
+            </border>
+            <children>
+              <component id="6945a" class="javax.swing.JRadioButton" binding="mAdbSyncRadioButton">
+                <constraints>
+                  <grid row="0" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                </constraints>
+                <properties>
+                  <enabled value="true"/>
+                  <text value="adb sync"/>
+                </properties>
+              </component>
+              <component id="f77af" class="javax.swing.JRadioButton" binding="mFastbootRadioButton">
+                <constraints>
+                  <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+                </constraints>
+                <properties>
+                  <text value="fastboot"/>
+                </properties>
+              </component>
+            </children>
+          </grid>
+          <component id="95062" class="javax.swing.JTextArea" binding="mFlashCommandTextArea">
+            <constraints>
+              <grid row="4" column="1" row-span="1" col-span="6" vsize-policy="1" hsize-policy="7" anchor="0" fill="3" indent="0" use-parent-layout="false">
+                <minimum-size width="30" height="-1"/>
+              </grid>
+            </constraints>
+            <properties>
+              <editable value="false"/>
+              <lineWrap value="true"/>
+            </properties>
+          </component>
+          <component id="16818" class="javax.swing.JLabel" binding="mAdbSyncArgumentLabel">
+            <constraints>
+              <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <text value="Argument"/>
+            </properties>
+          </component>
+          <component id="b4f75" class="javax.swing.JComboBox" binding="mAdbSyncArgumentComboBox">
+            <constraints>
+              <grid row="3" column="1" row-span="1" col-span="6" vsize-policy="0" hsize-policy="2" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <editable value="false"/>
+            </properties>
+          </component>
+          <component id="2fd7d" class="javax.swing.JLabel" binding="mFastBootArgumentLabel">
+            <constraints>
+              <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <text value="Argument"/>
+            </properties>
+          </component>
+          <component id="4f1d3" class="javax.swing.JComboBox" binding="mFastBootArgumentComboBox">
+            <constraints>
+              <grid row="2" column="1" row-span="1" col-span="6" vsize-policy="0" hsize-policy="2" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties/>
+          </component>
+          <component id="7822d" class="javax.swing.JCheckBox" binding="mWipeCheckBox">
+            <constraints>
+              <grid row="0" column="3" row-span="1" col-span="4" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <enabled value="true"/>
+              <text value="Wipe"/>
+            </properties>
+          </component>
+          <component id="c14cd" class="javax.swing.JButton" binding="mRebootButton" default-binding="true">
+            <constraints>
+              <grid row="5" column="0" row-span="1" col-span="7" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <text value="Reboot"/>
+              <visible value="false"/>
+            </properties>
+          </component>
+          <component id="98e59" class="javax.swing.JButton" binding="mRebootBootloaderButton" default-binding="true">
+            <constraints>
+              <grid row="6" column="0" row-span="1" col-span="7" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <enabled value="true"/>
+              <text value="Reboot Bootloader"/>
+              <visible value="false"/>
+            </properties>
+          </component>
+          <component id="1b365" class="javax.swing.JButton" binding="mFlashButton">
+            <constraints>
+              <grid row="7" column="0" row-span="1" col-span="7" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <enabled value="true"/>
+              <hideActionText value="false"/>
+              <text value="Flash"/>
+              <visible value="false"/>
+            </properties>
+          </component>
+          <component id="7d470" class="javax.swing.JButton" binding="mSyncButton" default-binding="true">
+            <constraints>
+              <grid row="9" column="0" row-span="1" col-span="7" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <text value="Sync"/>
+              <visible value="false"/>
+            </properties>
+          </component>
+          <component id="496f8" class="javax.swing.JButton" binding="mFlashStopButton">
+            <constraints>
+              <grid row="8" column="0" row-span="1" col-span="7" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <enabled value="true"/>
+              <text value="Stop"/>
+              <visible value="false"/>
+            </properties>
+          </component>
+        </children>
+      </grid>
+      <component id="8c949" class="javax.swing.JLabel" binding="mFlashStatusLabel">
+        <constraints>
+          <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="9" fill="0" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties>
+          <text value=""/>
+        </properties>
+      </component>
+      <grid id="bdfd3" layout-manager="GridLayoutManager" row-count="3" column-count="3" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+        <margin top="0" left="10" bottom="10" right="10"/>
+        <constraints>
+          <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="1" hsize-policy="1" anchor="1" fill="1" indent="0" use-parent-layout="false"/>
+        </constraints>
+        <properties/>
+        <border type="line" title="Common" title-justification="1" title-position="2">
+          <font name="FreeSans" style="1"/>
+        </border>
+        <children>
+          <component id="4798c" class="javax.swing.JComboBox" binding="mProductComboBox">
+            <constraints>
+              <grid row="0" column="1" row-span="1" col-span="2" vsize-policy="0" hsize-policy="2" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties/>
+          </component>
+          <component id="fb3f6" class="javax.swing.JComboBox" binding="mVariantComboBox">
+            <constraints>
+              <grid row="1" column="1" row-span="1" col-span="2" vsize-policy="0" hsize-policy="2" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties/>
+          </component>
+          <component id="6538f" class="javax.swing.JLabel" binding="mProductLabel">
+            <constraints>
+              <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <labelFor value="e94d6"/>
+              <text value="Product"/>
+            </properties>
+          </component>
+          <component id="e95dd" class="javax.swing.JLabel" binding="mVariantLabel">
+            <constraints>
+              <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <labelFor value="e94d6"/>
+              <text value="Variant"/>
+            </properties>
+          </component>
+          <component id="2a576" class="javax.swing.JLabel" binding="mResultPathLabel">
+            <constraints>
+              <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <labelFor value="c5200"/>
+              <text value="Result Path"/>
+            </properties>
+          </component>
+          <component id="e6516" class="javax.swing.JLabel" binding="mResultPathValueLabel">
+            <constraints>
+              <grid row="2" column="1" row-span="1" col-span="1" vsize-policy="1" hsize-policy="1" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+            </constraints>
+            <properties>
+              <text value="Label"/>
+            </properties>
+          </component>
+          <component id="91e31" class="javax.swing.JButton" binding="mOpenDirectoryButton">
+            <constraints>
+              <grid row="2" column="2" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="4" fill="0" indent="0" use-parent-layout="false">
+                <preferred-size width="38" height="34"/>
+              </grid>
+            </constraints>
+            <properties>
+              <enabled value="false"/>
+              <text value="Open Folder"/>
+            </properties>
+          </component>
+        </children>
+      </grid>
     </children>
   </grid>
 </form>

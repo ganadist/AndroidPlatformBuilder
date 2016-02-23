@@ -5,6 +5,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.ShortcutSet;
 import com.intellij.openapi.ui.Messages;
 import dbgsprw.view.AndroidBuilderFactory;
+import dbgsprw.view.AndroidBuilderView;
 
 /**
  * Copyright 2016 dbgsprw / dbgsprw@gmail.com
@@ -26,9 +27,10 @@ public class MakeAction extends AnAction {
 
     @Override
     public void actionPerformed(AnActionEvent e) {
-        AndroidBuilderFactory androidBuilderFactory = AndroidBuilderFactory.getInstance();
-        if(androidBuilderFactory.isCreated()) {
-            androidBuilderFactory.doMake();
+
+        AndroidBuilderView view = AndroidBuilderFactory.getInstance(e.getProject());
+        if(view.isAvailable()) {
+            view.doMake();
         } else {
             Messages.showMessageDialog(e.getProject(), "Please Enable Tool Window First", "Android Builder",
                     Messages.getInformationIcon());
