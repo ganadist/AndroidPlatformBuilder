@@ -53,12 +53,14 @@ public class AndroidBuilderFactory implements ToolWindowFactory, ProjectManagerL
                 return;
             }
 
+            // FIXME
             // change Android Builder to be canWorkInDumbMode
             ToolWindowManagerEx toolWindowManagerEx = ToolWindowManagerEx.getInstanceEx(project);
             toolWindowManagerEx.unregisterToolWindow("Android Builder");
             toolWindow = toolWindowManagerEx.registerToolWindow("Android Builder", false, ToolWindowAnchor.RIGHT,
                     project, true);
 
+            // FIXME
             // for refresh gui
             toolWindow.hide(null);
             toolWindow.show(null);
