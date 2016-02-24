@@ -8,9 +8,11 @@ import com.intellij.notification.Notifications;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.roots.ui.configuration.ProjectStructureConfigurable;
 import com.intellij.openapi.ui.Messages;
@@ -32,6 +34,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 
 /**
  * Created by ganadist on 16. 2. 23.
@@ -80,8 +83,6 @@ public class AndroidBuilderView {
     private JLabel mResultPathLabel;
     private JLabel mResultPathValueLabel;
     private JButton mOpenDirectoryButton;
-    private JButton mOpenWorkspaceButton;
-    private JPanel mContainerPanel;
 
     private final static String CURRENT_PATH = "Current Path";
     private final static String ADB_PROPERTIES_PATH = "properties/adb_sync_argument.properties";
@@ -118,66 +119,29 @@ public class AndroidBuilderView {
     }
 
     AndroidBuilderView(Project project, ToolWindow toolWindow) {
-        // set Make configuration
         mProject = project;
         mProjectPath = mProject.getBasePath();
 
-        mOpenWorkspaceButton.addActionListener(new ActionListener() {
+
+        mBuilder = new Builder(mProjectPath, new Builder.LunchDoneListener() {
             @Override
-            public void actionPerformed(ActionEvent actionEvent) {
-                JFileChooser jFileChooser = new JFileChooser();
-                jFileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-                if (jFileChooser.showDialog(mAndroidBuilderContent, "Choose Directory") ==
-                        JFileChooser.APPROVE_OPTION) {
-                    File selectedFile = jFileChooser.getSelectedFile();
-                    if (selectedFile.exists()) {
-                        try {
-                            mProjectPath = selectedFile.getCanonicalPath();
-                            mBuilder.changeProjectPath(mProjectPath);
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    } else {
-                        mOpenWorkspaceButton.setVisible(true);
-                        mContainerPanel.setVisible(false);
-                        Messages.showMessageDialog(mProject, "Choose exist directory", "Andorid Builder",
-                                Messages.getInformationIcon());
+            public void lunchDone(ArrayList<String> mLunchMenuList) {
+                HistoryComboModel history = new HistoryComboModel(mLunchMenuList);
+                mProductComboBox.setPrototypeDisplayValue("XXXXXXXXX");
+                mProductComboBox.setModel(history);
+                mProductComboBox.setSelectedIndex(0); // set explicitly for fire action
+                mProductComboBox.addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent actionEvent) {
+                        mBuilder.setTargetProduct(String.valueOf(mProductComboBox.getSelectedItem()));
+                        updateResultPath();
+                        updateCommandTextView();
                     }
-                } else {
-                    mOpenWorkspaceButton.setVisible(true);
-                    mContainerPanel.setVisible(false);
-                }
+                });
             }
         });
 
-        mBuilder = new Builder(mProjectPath, new Builder.MakeSetReceiver() {
-            @Override
-            public void optionChanged(int state) {
-                if (mBuilder.FOUND_AOSP_HOME == state) {
-                    if (mBuilder.isAOSPPath()) {
-                        mContainerPanel.setVisible(true);
-                        mOpenWorkspaceButton.setVisible(false);
-                        HistoryComboModel history;
-                        history = new HistoryComboModel(mBuilder.getLunchMenuList());
-                        mProductComboBox.setPrototypeDisplayValue("XXXXXXXXX");
-                        mProductComboBox.setModel(history);
-                        mProductComboBox.setSelectedIndex(0); // set explicitly for fire action
-                        mMakeButton.setEnabled(true);
-                    } else {
-                        ToolWindowManagerEx toolWindowManagerEx = ToolWindowManagerEx.getInstanceEx(mProject);
-                        toolWindowManagerEx.unregisterToolWindow("Android Builder");
-                        showNotification("This project is not AOSP.", NotificationType.ERROR);
-
-
-                    }
-                }
-            }
-
-        });
-
-        //changeShortCut();
         notifySetSdk(project);
-        // set FastBoot configuration
 
         mDeviceManager = new DeviceManager();
 
@@ -188,7 +152,6 @@ public class AndroidBuilderView {
         Content content = contentFactory.createContent(mAndroidBuilderContent, "", false);
         toolWindow.getContentManager().addContent(content);
 
-        // make panel setScroll
 
         initMakePanelComboBoxes();
         initMakePanelButtons();
@@ -202,8 +165,6 @@ public class AndroidBuilderView {
             e.printStackTrace();
             return;
         }
-
-        // flash panel setScroll
 
         initFlashPanelRadioButtons();
         initFlashPanelComboBoxes();
@@ -405,9 +366,11 @@ public class AndroidBuilderView {
                     mBuilder.setTarget(mTargetComboBox.getSelectedItem().toString());
                 }
 
-                Sdk projectSdk = ProjectRootManager.getInstance(mProject).getProjectSdk();
-                if (projectSdk != null) {
-                    mBuilder.setAndroidJavaHome(projectSdk.getHomePath());
+                Module module = AndroidBuilderFactory.getAndroidModule(mProject);
+                Sdk moduleSdk = ModuleRootManager.getInstance(module).getSdk();
+
+                if (moduleSdk != null) {
+                    mBuilder.setAndroidJavaHome(moduleSdk.getHomePath());
                 }
 
                 mBuilder.executeMake(mConsole.run(
@@ -488,6 +451,7 @@ public class AndroidBuilderView {
 
     private void initMakePanelComboBoxes() {
         HistoryComboModel history;
+
         addPropertiesToComboBox(sTargetProperties, mTargetComboBox);
 
         mTargetComboBox.addActionListener(new ActionListener() {
@@ -505,15 +469,6 @@ public class AndroidBuilderView {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
                 mBuilder.setOneShotMakefile(String.valueOf(mTargetDirComboBox.getSelectedItem()));
-                updateCommandTextView();
-            }
-        });
-
-        mProductComboBox.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent actionEvent) {
-                mBuilder.setTargetProduct(String.valueOf(mProductComboBox.getSelectedItem()));
-                updateResultPath();
                 updateCommandTextView();
             }
         });

@@ -1,12 +1,17 @@
 package dbgsprw.view;
 
+import com.intellij.notification.Notification;
+import com.intellij.notification.NotificationType;
+import com.intellij.notification.Notifications;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.project.ProjectManagerListener;
 import com.intellij.openapi.wm.ToolWindow;
+import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.openapi.wm.ToolWindowFactory;
+import com.intellij.openapi.wm.ex.ToolWindowManagerEx;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
@@ -41,12 +46,25 @@ public class AndroidBuilderFactory implements ToolWindowFactory, ProjectManagerL
             }
 
             if (getAndroidModule(project) == null) {
-                // this project is not android platform project.
-                // need to unregister tool window
+                ToolWindowManagerEx toolWindowManagerEx = ToolWindowManagerEx.getInstanceEx(project);
+                toolWindowManagerEx.unregisterToolWindow("Android Builder");
+                Notifications.Bus.notify(new Notification("Android Builder", "Android Builder",
+                        "This project is not AOSP.", NotificationType.ERROR));
                 return;
             }
 
+            // change Android Builder to be canWorkInDumbMode
+            ToolWindowManagerEx toolWindowManagerEx = ToolWindowManagerEx.getInstanceEx(project);
+            toolWindowManagerEx.unregisterToolWindow("Android Builder");
+            toolWindow = toolWindowManagerEx.registerToolWindow("Android Builder", false, ToolWindowAnchor.RIGHT,
+                    project, true);
+
+            // for refresh gui
+            toolWindow.hide(null);
+            toolWindow.show(null);
+
             AndroidBuilderView view = new AndroidBuilderView(project, toolWindow);
+
             sProjectMap.put(projectPath, view);
             ProjectManager.getInstance().addProjectManagerListener(project, this);
         }

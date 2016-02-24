@@ -22,7 +22,7 @@ import java.util.Map;
 
 public class Builder {
 
-    public final static int FOUND_AOSP_HOME = 0;
+    private final LunchDoneListener mLunchDoneListener;
     ShellCommandExecutor mShellCommandExecutor;
     private ArrayList<String> mLunchMenuList;
     private String mProjectPath;
@@ -35,17 +35,13 @@ public class Builder {
     private String mOneShotMakefile;
     private int mJobNumber = 1;
     private Process mMakeProcess;
-    private boolean mIsAOSPPath;
-    private String mProductOutPath;
-    private MakeSetReceiver mMakeSetReceiver;
 
-
-    public Builder(String projectPath, MakeSetReceiver makeSetReceiver) {
+    public Builder(String projectPath, LunchDoneListener lunchDoneListener) {
         mLunchMenuList = new ArrayList<String>();
         mProjectPath = projectPath;
         mShellCommandExecutor = new ShellCommandExecutor();
         mShellCommandExecutor.directory(new File(mProjectPath));
-        mMakeSetReceiver = makeSetReceiver;
+        mLunchDoneListener = lunchDoneListener;
 
         updateLunchMenu();
     }
@@ -165,10 +161,7 @@ public class Builder {
         mShellCommandExecutor.executeInBash(lunchCommand, new ShellCommandExecutor.ResultReceiver() {
             @Override
             public void newOut(String line) {
-                if ("".equals(line)) {
-                    mIsAOSPPath = false;
-                } else {
-                    mIsAOSPPath = true;
+                if (!"".equals(line)) {
                     String[] lunchMenus = line.split(" ");
                     for (String lunchMenu : lunchMenus) mLunchMenuList.add(lunchMenu);
                 }
@@ -181,13 +174,9 @@ public class Builder {
 
             @Override
             public void onExit(int code) {
-                mMakeSetReceiver.optionChanged(FOUND_AOSP_HOME);
+                mLunchDoneListener.lunchDone(mLunchMenuList);
             }
-        });
-    }
-
-    public boolean isAOSPPath() {
-        return mIsAOSPPath;
+        });;
     }
 
     public void findOriginalProductOutPath(ShellCommandExecutor.ResultReceiver receiver) {
@@ -198,7 +187,8 @@ public class Builder {
         mShellCommandExecutor.executeInBash(command, receiver);
     }
 
-    public interface MakeSetReceiver {
-        public void optionChanged(int state);
+    public interface LunchDoneListener {
+        public void lunchDone(ArrayList<String> mLunchMenuList);
     }
+
 }
