@@ -7,6 +7,9 @@
  * Java compiler can be selected via module Sdk to build platform.
  * Flash ROM image on your devices with fastboot or adb.
 
+## Screenshot
+ ![alt idea](https://i.imgur.com/jJ0aCiq.png "build log when it failed")
+
 ## Setup for usage
  1. You must get android platform sources and prepare to build. For details, see http://s.android.com/source/requirements.html
  1. Enter android source directory and run this command to generate Idea project file.
