@@ -4,7 +4,10 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.project.ProjectManagerListener;
 import com.intellij.openapi.wm.ToolWindow;
+import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.openapi.wm.ToolWindowFactory;
+import com.intellij.openapi.wm.ToolWindowManager;
+import com.intellij.openapi.wm.ex.ToolWindowManagerEx;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
@@ -33,10 +36,16 @@ public class AndroidBuilderFactory implements ToolWindowFactory, ProjectManagerL
     public void createToolWindowContent(@NotNull final Project project, @NotNull ToolWindow toolWindow) {
         final String projectPath = project.getProjectFilePath();
 
+
         synchronized (sProjectMap) {
             if (sProjectMap.containsKey(projectPath)) {
                 return;
             }
+
+            ToolWindowManagerEx toolWindowManagerEx = ToolWindowManagerEx.getInstanceEx(project);
+            toolWindowManagerEx.unregisterToolWindow("Android Builder");
+            toolWindow = toolWindowManagerEx.registerToolWindow("Android Builder", false, ToolWindowAnchor.RIGHT,
+                    project, true);
 
             AndroidBuilderView view = new AndroidBuilderView(project, toolWindow);
             sProjectMap.put(projectPath, view);
