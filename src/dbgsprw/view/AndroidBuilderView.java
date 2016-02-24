@@ -16,6 +16,7 @@ import com.intellij.openapi.roots.ui.configuration.ProjectStructureConfigurable;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.ToolWindow;
+import com.intellij.openapi.wm.ex.ToolWindowManagerEx;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
 import dbgsprw.core.*;
@@ -79,8 +80,6 @@ public class AndroidBuilderView {
     private JLabel mResultPathLabel;
     private JLabel mResultPathValueLabel;
     private JButton mOpenDirectoryButton;
-    private JButton mOpenWorkspaceButton;
-    private JPanel mContainerPanel;
 
     private final static String CURRENT_PATH = "Current Path";
     private final static String ADB_PROPERTIES_PATH = "properties/adb_sync_argument.properties";
@@ -96,7 +95,6 @@ public class AndroidBuilderView {
     private String mProjectPath;
     private Builder mBuilder;
     private Project mProject;
-    private ToolWindow mToolWindow;
     private String mProductOut;
     private boolean mIsCreated;
 
@@ -121,41 +119,12 @@ public class AndroidBuilderView {
         mProject = project;
         mProjectPath = mProject.getBasePath();
 
-        mOpenWorkspaceButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent actionEvent) {
-                JFileChooser jFileChooser = new JFileChooser();
-                jFileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-                if (jFileChooser.showDialog(mAndroidBuilderContent, "Choose Directory") ==
-                        JFileChooser.APPROVE_OPTION) {
-                    File selectedFile = jFileChooser.getSelectedFile();
-                    if (selectedFile.exists()) {
-                        try {
-                            mProjectPath = selectedFile.getCanonicalPath();
-                            mBuilder.changeProjectPath(mProjectPath);
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    } else {
-                        mOpenWorkspaceButton.setVisible(true);
-                        mContainerPanel.setVisible(false);
-                        Messages.showMessageDialog(mProject, "Choose exist directory", "Andorid Builder",
-                                Messages.getInformationIcon());
-                    }
-                } else {
-                    mOpenWorkspaceButton.setVisible(true);
-                    mContainerPanel.setVisible(false);
-                }
-            }
-        });
 
         mBuilder = new Builder(mProjectPath, new Builder.MakeSetReceiver() {
             @Override
             public void optionChanged(int state) {
                 if (mBuilder.FOUND_AOSP_HOME == state) {
                     if (mBuilder.isAOSPPath()) {
-                        mContainerPanel.setVisible(true);
-                        mOpenWorkspaceButton.setVisible(false);
                         HistoryComboModel history;
                         history = new HistoryComboModel(mBuilder.getLunchMenuList());
                         mProductComboBox.setPrototypeDisplayValue("XXXXXXXXX");
@@ -163,14 +132,10 @@ public class AndroidBuilderView {
                         mProductComboBox.setSelectedIndex(0); // set explicitly for fire action
                         mMakeButton.setEnabled(true);
                     } else {
-                        if (Messages.OK == Messages.showOkCancelDialog(mProject, "This Project is Not AOSP \n" +
-                                        "Find AOSP working directory path?", "Android Builder",
-                                Messages.getInformationIcon())) {
-                            mOpenWorkspaceButton.doClick();
-                        } else {
-                            mOpenWorkspaceButton.setVisible(true);
-                            mContainerPanel.setVisible(false);
-                        }
+                        ToolWindowManagerEx toolWindowManagerEx = ToolWindowManagerEx.getInstanceEx(mProject);
+                        toolWindowManagerEx.unregisterToolWindow("Android Builder");
+                        showNotification("This project is not AOSP.", NotificationType.ERROR);
+
 
                     }
                 }
@@ -184,11 +149,10 @@ public class AndroidBuilderView {
 
         mDeviceManager = new DeviceManager();
 
-        mToolWindow = toolWindow;
         setupConsole(project);
 
         ContentFactory contentFactory = ContentFactory.SERVICE.getInstance();
-        Content content = contentFactory.createContent(mAndroidBuilderContent, "", false);
+        Content content = contentFactory.createContent(mAndroidBuilderContent, "", true);
         toolWindow.getContentManager().addContent(content);
 
         // make panel setScroll
