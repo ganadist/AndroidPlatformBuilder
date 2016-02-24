@@ -1,5 +1,7 @@
 package dbgsprw.view;
 
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.project.ProjectManagerListener;
@@ -38,10 +40,20 @@ public class AndroidBuilderFactory implements ToolWindowFactory, ProjectManagerL
                 return;
             }
 
+            if (getAndroidModule(project) == null) {
+                // this project is not android platform project.
+                // need to unregister tool window
+                return;
+            }
+
             AndroidBuilderView view = new AndroidBuilderView(project, toolWindow);
             sProjectMap.put(projectPath, view);
             ProjectManager.getInstance().addProjectManagerListener(project, this);
         }
+    }
+
+    static Module getAndroidModule(Project project) {
+        return ModuleManager.getInstance(project).findModuleByName("android");
     }
 
     public static AndroidBuilderView getInstance(final Project project) {
