@@ -8,9 +8,11 @@ import com.intellij.notification.Notifications;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.module.Module;
 import com.intellij.openapi.options.ShowSettingsUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.projectRoots.Sdk;
+import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.roots.ui.configuration.ProjectStructureConfigurable;
 import com.intellij.openapi.ui.Messages;
@@ -373,9 +375,11 @@ public class AndroidBuilderView {
                     mBuilder.setTarget(mTargetComboBox.getSelectedItem().toString());
                 }
 
-                Sdk projectSdk = ProjectRootManager.getInstance(mProject).getProjectSdk();
-                if (projectSdk != null) {
-                    mBuilder.setAndroidJavaHome(projectSdk.getHomePath());
+                Module module = AndroidBuilderFactory.getAndroidModule(mProject);
+                Sdk moduleSdk = ModuleRootManager.getInstance(module).getSdk();
+
+                if (moduleSdk != null) {
+                    mBuilder.setAndroidJavaHome(moduleSdk.getHomePath());
                 }
 
                 mBuilder.executeMake(mConsole.run(
