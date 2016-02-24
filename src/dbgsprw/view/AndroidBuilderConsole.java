@@ -90,7 +90,7 @@ public class AndroidBuilderConsole implements Disposable, ShellCommandExecutor.R
         print(line);
     }
 
-    private static final String FILE_POSITION_REGEX = "(.+?):(\\d+):(?:(\\d+):)? (.*)$";
+    private static final String FILE_POSITION_REGEX = "(.*: )?(.+?):(\\d+):(?:(\\d+):)? (.*)$";
     private static final Pattern FILE_POSITION_PATTERN = Pattern.compile(FILE_POSITION_REGEX);
     private static final String SEPERATOR = ": ";
 
@@ -98,11 +98,14 @@ public class AndroidBuilderConsole implements Disposable, ShellCommandExecutor.R
     public void newError(String line) {
         final Matcher m = FILE_POSITION_PATTERN.matcher(line);;
         if (m.find()) {
-            final String filename = m.group(1);
-            final int lineNo = Integer.parseInt(m.group(2)) - 1;
-            final int column = m.group(3) == null ? -1 : (Integer.parseInt(m.group(3)) - 1);
-            final String message = m.group(4);
-            final String location = m.group(0).substring(0, m.start(4) - SEPERATOR.length());
+            final String messageType = m.group(1);
+            final String filename = m.group(2);
+            final int lineNo = Integer.parseInt(m.group(3)) - 1;
+            final int column = m.group(4) == null ? -1 : (Integer.parseInt(m.group(3)) - 1);
+            final String message = m.group(5);
+            final String location = m.group(0).substring(
+                    messageType == null ? 0 : messageType.length(),
+                    m.start(5) - SEPERATOR.length());
 
             final VirtualFile file = VfsUtil.findRelativeFile(filename, mProject.getBaseDir());
             if (file == null) {
@@ -110,7 +113,9 @@ public class AndroidBuilderConsole implements Disposable, ShellCommandExecutor.R
             } else {
                 final HyperlinkInfo linkInfo = new OpenFileHyperlinkInfo(mProject,
                         file, lineNo, column);
-
+                if (messageType != null) {
+                    mConsoleView.print(messageType, ConsoleViewContentType.ERROR_OUTPUT);
+                }
                 mConsoleView.printHyperlink(location, linkInfo);
                 mConsoleView.print(SEPERATOR, ConsoleViewContentType.ERROR_OUTPUT);
                 mConsoleView.print(message, ConsoleViewContentType.ERROR_OUTPUT);
