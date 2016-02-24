@@ -111,6 +111,7 @@ public class AndroidBuilderView {
     private ButtonGroup mFlashButtonGroup;
 
     private String mUpdateFilePath;
+    private String mBootLoaderFilePath;
     private String mProjectPath;
     private Builder mBuilder;
     private Project mProject;
@@ -753,6 +754,28 @@ public class AndroidBuilderView {
                             try {
                                 mUpdateFilePath = selectedFile.getCanonicalPath();
                                 sFastbootProperties.setProperty("update", "update\t" + mUpdateFilePath);
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        }
+
+                    }
+                } else if (mFastBootArgumentComboBox.getSelectedItem().toString().equals("bootloader")) {
+                    JFileChooser jFileChooser = new JFileChooser();
+                    File productOutDirectory = new File(mProductOut);
+                    if (productOutDirectory.exists()) {
+                        jFileChooser.setCurrentDirectory(productOutDirectory);
+                    } else {
+                        jFileChooser.setCurrentDirectory(new File(mProjectPath));
+                    }
+
+                    if (jFileChooser.showDialog(mAndroidBuilderContent, "Choose Bootloader Package File") ==
+                            JFileChooser.APPROVE_OPTION) {
+                        File selectedFile = jFileChooser.getSelectedFile();
+                        if (selectedFile.exists()) {
+                            try {
+                                mBootLoaderFilePath = selectedFile.getCanonicalPath();
+                                sFastbootProperties.setProperty("bootloader", "flash\tbootloader\t" + mBootLoaderFilePath);
                             } catch (IOException e) {
                                 e.printStackTrace();
                             }
