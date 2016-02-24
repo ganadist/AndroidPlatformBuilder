@@ -45,7 +45,7 @@ public class DirectoryOpener {
         if (sFileManagerCommand == null) {
             throw new FileManagerNotFoundException();
         }
-        ArrayList<String> command = new ArrayList<>();
+        ArrayList<String> command = new ArrayList<String>();
         command.add(sFileManagerCommand);
         command.add(path);
         sShellCommandExecutor.executeShellCommand(command);

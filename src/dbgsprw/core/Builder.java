@@ -41,7 +41,7 @@ public class Builder {
 
 
     public Builder(String projectPath, MakeSetReceiver makeSetReceiver) {
-        mLunchMenuList = new ArrayList<>();
+        mLunchMenuList = new ArrayList<String>();
         mProjectPath = projectPath;
         mShellCommandExecutor = new ShellCommandExecutor();
         mShellCommandExecutor.directory(new File(mProjectPath));

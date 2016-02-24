@@ -117,7 +117,7 @@ public class ShellCommandExecutor {
     }
 
     public Process executeInBash(ArrayList<String> command, final ResultReceiver resultReceiver) {
-        ArrayList<String> bashCommand = new ArrayList<>();
+        ArrayList<String> bashCommand = new ArrayList<String>();
         bashCommand.add("bash");
         bashCommand.add("-c");
         bashCommand.add(Utils.join(' ', command.toArray()));

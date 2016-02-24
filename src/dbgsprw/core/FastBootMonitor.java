@@ -33,7 +33,7 @@ public class FastBootMonitor {
 
     synchronized public static void init(final String fastbootPath) {
         sIsTerminate = false;
-        sIDeviceChangeListeners = new ArrayList<>();
+        sIDeviceChangeListeners = new ArrayList<DeviceChangeListener>();
         sShellCommandExecutor = new ShellCommandExecutor();
         sDeviceSerialNumbers = new ArrayList<>();
         sThread = new Thread(new Runnable() {

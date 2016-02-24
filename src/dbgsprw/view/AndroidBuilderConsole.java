@@ -2,7 +2,8 @@ package dbgsprw.view;
 
 import com.intellij.execution.filters.HyperlinkInfo;
 import com.intellij.execution.filters.OpenFileHyperlinkInfo;
-import com.intellij.execution.impl.ConsoleViewImpl;
+import com.intellij.execution.filters.TextConsoleBuilderFactory;
+import com.intellij.execution.ui.ConsoleView;
 import com.intellij.execution.ui.ConsoleViewContentType;
 import com.intellij.execution.ui.RunnerLayoutUi;
 import com.intellij.execution.ui.layout.PlaceInGrid;
@@ -27,6 +28,8 @@ import org.jetbrains.annotations.NotNull;
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Created by ganadist on 16. 2. 23.
@@ -36,7 +39,7 @@ public class AndroidBuilderConsole implements Disposable, ShellCommandExecutor.R
     private static final String TOOL_WINDOW_ID = "Android Build";
     private final Project mProject;
 
-    private ConsoleViewImpl mConsoleView;
+    private ConsoleView mConsoleView;
     private final JPanel mPanel = new JPanel(new BorderLayout());
     private ToolWindow mWindow;
 
@@ -51,7 +54,7 @@ public class AndroidBuilderConsole implements Disposable, ShellCommandExecutor.R
         final RunnerLayoutUi.Factory factory = RunnerLayoutUi.Factory.getInstance(project);
         final RunnerLayoutUi layoutUi = factory.create("", "", "session", project);
 
-        mConsoleView = new ConsoleViewImpl(project, GlobalSearchScope.allScope(project), false, false);
+        mConsoleView = TextConsoleBuilderFactory.getInstance().createBuilder(project).getConsole();
         Disposer.register(this, mConsoleView);
         final Content console = layoutUi.createContent(CONSOLE_ID, mConsoleView.getComponent(),
                 "", null, null);
@@ -78,7 +81,8 @@ public class AndroidBuilderConsole implements Disposable, ShellCommandExecutor.R
     }
 
     public void print(String line) {
-        mConsoleView.print(line + "\n", ConsoleViewContentType.NORMAL_OUTPUT);
+        mConsoleView.print(line, ConsoleViewContentType.NORMAL_OUTPUT);
+        mConsoleView.print("\n", ConsoleViewContentType.NORMAL_OUTPUT);
     }
 
     @Override
@@ -86,24 +90,36 @@ public class AndroidBuilderConsole implements Disposable, ShellCommandExecutor.R
         print(line);
     }
 
+    private static final String FILE_POSITION_REGEX = "(.*: )?(.+?):(\\d+):(?:(\\d+):)? (.*)$";
+    private static final Pattern FILE_POSITION_PATTERN = Pattern.compile(FILE_POSITION_REGEX);
+    private static final String SEPERATOR = ": ";
+
     @Override
     public void newError(String line) {
-        String[] parsed = line.split(":", 3);
-        HyperlinkInfo linkInfo = null;
+        final Matcher m = FILE_POSITION_PATTERN.matcher(line);;
+        if (m.find()) {
+            final String messageType = m.group(1);
+            final String filename = m.group(2);
+            final int lineNo = Integer.parseInt(m.group(3)) - 1;
+            final int column = m.group(4) == null ? -1 : (Integer.parseInt(m.group(3)) - 1);
+            final String message = m.group(5);
+            final String location = m.group(0).substring(
+                    messageType == null ? 0 : messageType.length(),
+                    m.start(5) - SEPERATOR.length());
 
-        if (parsed.length == 3) {
-            final String filename = parsed[0];
-            final int lineNo = Integer.parseInt(parsed[1]);
-            VirtualFile file = VfsUtil.findRelativeFile(filename, mProject.getBaseDir());
-            if (file != null) {
-                linkInfo = new OpenFileHyperlinkInfo(mProject, file, lineNo - 1, -1);
+            final VirtualFile file = VfsUtil.findRelativeFile(filename, mProject.getBaseDir());
+            if (file == null) {
+                mConsoleView.print(line, ConsoleViewContentType.ERROR_OUTPUT);
+            } else {
+                final HyperlinkInfo linkInfo = new OpenFileHyperlinkInfo(mProject,
+                        file, lineNo, column);
+                if (messageType != null) {
+                    mConsoleView.print(messageType, ConsoleViewContentType.ERROR_OUTPUT);
+                }
+                mConsoleView.printHyperlink(location, linkInfo);
+                mConsoleView.print(SEPERATOR, ConsoleViewContentType.ERROR_OUTPUT);
+                mConsoleView.print(message, ConsoleViewContentType.ERROR_OUTPUT);
             }
-        }
-
-        if (linkInfo != null) {
-            mConsoleView.printHyperlink(Utils.join(':', parsed[0], parsed[1]), linkInfo);
-            mConsoleView.print(":", ConsoleViewContentType.ERROR_OUTPUT);
-            mConsoleView.print(parsed[2], ConsoleViewContentType.ERROR_OUTPUT);
         } else {
             mConsoleView.print(line, ConsoleViewContentType.ERROR_OUTPUT);
         }
@@ -123,9 +139,10 @@ public class AndroidBuilderConsole implements Disposable, ShellCommandExecutor.R
         if (code == 0) {
             mWindow.hide(null);
         } else if (code < 128) {
-            final String message = "build failed with exit code: " + code;
+            final String message = "execution is failed with exit code: " + code;
             showNotification(message, NotificationType.ERROR);
-            mConsoleView.print(message + "\n", ConsoleViewContentType.SYSTEM_OUTPUT);
+            mConsoleView.print(message, ConsoleViewContentType.SYSTEM_OUTPUT);
+            mConsoleView.print("\n", ConsoleViewContentType.SYSTEM_OUTPUT);
         }
     }
 
