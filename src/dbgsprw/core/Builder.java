@@ -26,8 +26,8 @@ public class Builder {
     ShellCommandExecutor mShellCommandExecutor;
     private ArrayList<String> mLunchMenuList;
     private String mProjectPath;
-    private String mTargetProduct = "";
-    private String mTargetBuildVariant = "eng";
+    private String mTargetProduct;
+    private String mTargetBuildVariant;
     private String mOutDir;
     private String mTarget;
     private String mExtraArguments = "";
@@ -35,6 +35,7 @@ public class Builder {
     private String mOneShotMakefile;
     private int mJobNumber = 1;
     private Process mMakeProcess;
+    private Process mProductOutRetriever;
 
     public Builder(String projectPath, LunchDoneListener lunchDoneListener) {
         mLunchMenuList = new ArrayList<String>();
@@ -137,8 +138,15 @@ public class Builder {
     }
 
     private void updateOutDir() {
+        if (mTargetProduct == null || mTargetBuildVariant == null) {
+            return;
+        }
         mOutDir = Utils.join('-', "out", mTargetProduct, mTargetBuildVariant);
         mShellCommandExecutor.environment().put("OUT_DIR", mOutDir);
+        if (mOutListener != null) {
+            mOutListener.onOutDirChanged(mOutDir);
+        }
+        findProductOutPath();
     }
 
     public String getOutDir() {
@@ -179,16 +187,43 @@ public class Builder {
         });;
     }
 
-    public void findOriginalProductOutPath(ShellCommandExecutor.ResultReceiver receiver) {
+    private void findProductOutPath() {
         String selectedTarget = mTargetProduct + '-' + mTargetBuildVariant;
         ArrayList<String> command = new ArrayList<>();
         command.add("source build/envsetup.sh > /dev/null;" +
                 " lunch " + selectedTarget + " > /dev/null; echo $ANDROID_PRODUCT_OUT");
-        mShellCommandExecutor.executeInBash(command, receiver);
+        if (mProductOutRetriever != null) {
+            mProductOutRetriever.destroy();
+        }
+        mProductOutRetriever = mShellCommandExecutor.executeInBash(command, new ShellCommandExecutor.ResultReceiver() {
+            @Override
+            public void newOut(String line) {
+                if (mOutListener != null) {
+                    mOutListener.onAndroidProductOutChanged(line);
+                }
+                mProductOutRetriever = null;
+            }
+
+            @Override
+            public void newError(String line) {}
+
+            @Override
+            public void onExit(int code) {}
+        });
     }
 
     public interface LunchDoneListener {
         public void lunchDone(ArrayList<String> mLunchMenuList);
     }
 
+    public void setOutDirListener(OutPathChangedListener listener) {
+        mOutListener = listener;
+    }
+
+    private OutPathChangedListener mOutListener;
+
+    public interface OutPathChangedListener {
+        void onOutDirChanged(String path);
+        void onAndroidProductOutChanged(String path);
+    }
 }

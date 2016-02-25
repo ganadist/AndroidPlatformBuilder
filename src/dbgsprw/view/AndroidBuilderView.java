@@ -55,7 +55,7 @@ import java.util.ArrayList;
 /**
  * Created by ganadist on 16. 2. 23.
  */
-public class AndroidBuilderView {
+public class AndroidBuilderView implements Builder.OutPathChangedListener {
     private JPanel mAndroidBuilderContent;
     private JPanel mMakeOptionPanel;
     private JLabel mTargetLabel;
@@ -124,7 +124,6 @@ public class AndroidBuilderView {
     private static final ArgumentProperties sTargetProperties;
     private static final ArgumentProperties sVariantProperties;
     private DeviceManager mDeviceManager;
-    private ShellCommandExecutor.ResultReceiver finalReceiver;
     private AndroidBuilderConsole mConsole;
 
     static {
@@ -146,17 +145,18 @@ public class AndroidBuilderView {
                 HistoryComboModel history = new HistoryComboModel(mLunchMenuList);
                 mProductComboBox.setPrototypeDisplayValue("XXXXXXXXX");
                 mProductComboBox.setModel(history);
-                mProductComboBox.setSelectedIndex(0); // set explicitly for fire action
                 mProductComboBox.addActionListener(new ActionListener() {
                     @Override
                     public void actionPerformed(ActionEvent actionEvent) {
                         mBuilder.setTargetProduct(String.valueOf(mProductComboBox.getSelectedItem()));
-                        updateResultPath();
+
                         updateCommandTextView();
                     }
                 });
+                mProductComboBox.setSelectedIndex(0); // set explicitly for fire action
             }
         });
+        mBuilder.setOutDirListener(this);
 
         notifySetSdk(project);
 
@@ -211,37 +211,6 @@ public class AndroidBuilderView {
                         }
                     }));
         }
-    }
-
-    private void updateResultPath() {
-        mOpenDirectoryButton.setEnabled(false);
-        mFlashButton.setEnabled(false);
-        mSyncButton.setEnabled(false);
-
-        mResultPathValueLabel.setText(mBuilder.getOutDir());
-        finalReceiver = new ShellCommandExecutor.ResultReceiver() {
-            @Override
-            public void newOut(String line) {
-                if(this.equals(finalReceiver)) {
-                    mProductOut = line;
-                    mDeviceManager.setTargetProductPath(new File(mProductOut));
-                    mOpenDirectoryButton.setEnabled(true);
-                    mFlashButton.setEnabled(true);
-                    mSyncButton.setEnabled(true);
-                }
-            }
-
-            @Override
-            public void newError(String line) {
-
-            }
-
-            @Override
-            public void onExit(int code) {
-            }
-        };
-
-        mBuilder.findOriginalProductOutPath(finalReceiver);
     }
 
     private void updateCommandTextView() {
@@ -494,7 +463,6 @@ public class AndroidBuilderView {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
                 mBuilder.setTargetBuildVariant(String.valueOf(mVariantComboBox.getSelectedItem()));
-                updateResultPath();
                 updateCommandTextView();
             }
         });
@@ -834,4 +802,20 @@ public class AndroidBuilderView {
         mConsole = new AndroidBuilderConsole(project);
     }
 
+    @Override
+    public void onOutDirChanged(String path) {
+        mOpenDirectoryButton.setEnabled(false);
+        mFlashButton.setEnabled(false);
+        mSyncButton.setEnabled(false);
+        mResultPathValueLabel.setText(path);
+    }
+
+    @Override
+    public void onAndroidProductOutChanged(String path) {
+        mProductOut = path;
+        mDeviceManager.setTargetProductPath(new File(mProductOut));
+        mOpenDirectoryButton.setEnabled(true);
+        mFlashButton.setEnabled(true);
+        mSyncButton.setEnabled(true);
+    }
 }
