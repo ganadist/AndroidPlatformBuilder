@@ -808,6 +808,7 @@ public class AndroidBuilderView implements Builder.OutPathChangedListener {
         mFlashButton.setEnabled(false);
         mSyncButton.setEnabled(false);
         mResultPathValueLabel.setText(path);
+        AndroidBuilderFactory.updateExcludeFolders(mProject, path);
     }
 
     @Override

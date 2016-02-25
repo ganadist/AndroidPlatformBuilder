@@ -8,12 +8,19 @@ import com.intellij.openapi.module.ModuleManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.project.ProjectManager;
 import com.intellij.openapi.project.ProjectManagerListener;
+import com.intellij.openapi.roots.ModuleRootManager;
+import com.intellij.openapi.roots.ModuleRootModificationUtil;
+import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.openapi.wm.ToolWindowFactory;
 import com.intellij.openapi.wm.ex.ToolWindowManagerEx;
+import dbgsprw.core.Utils;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.File;
+import java.io.FilenameFilter;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -49,7 +56,7 @@ public class AndroidBuilderFactory implements ToolWindowFactory, ProjectManagerL
                 ToolWindowManagerEx toolWindowManagerEx = ToolWindowManagerEx.getInstanceEx(project);
                 toolWindowManagerEx.unregisterToolWindow("Android Builder");
                 Notifications.Bus.notify(new Notification("Android Builder", "Android Builder",
-                        "This project is not AOSP.", NotificationType.ERROR));
+                        "This project is not AOSP.", NotificationType.WARNING));
                 return;
             }
 
@@ -65,6 +72,7 @@ public class AndroidBuilderFactory implements ToolWindowFactory, ProjectManagerL
             toolWindow.hide(null);
             toolWindow.show(null);
 
+            updateExcludeFoldersFirst(project);
             AndroidBuilderView view = new AndroidBuilderView(project, toolWindow);
 
             sProjectMap.put(projectPath, view);
@@ -74,6 +82,75 @@ public class AndroidBuilderFactory implements ToolWindowFactory, ProjectManagerL
 
     static Module getAndroidModule(Project project) {
         return ModuleManager.getInstance(project).findModuleByName("android");
+    }
+
+    private static final String[] EXCLUDE_FOLDER_INITIAL = {
+            "abi",
+            "bootable",
+            "build",
+            "developers",
+            "development",
+            "device",
+            "docs",
+            "kernel",
+            "ndk",
+            "pdk",
+            "prebuilts",
+            "sdk",
+            "tools",
+    };
+
+    private static final String[] EXCLUDE_FOLDER_TEMPLATES = {
+            "eclipse",
+            "host",
+            "target/common/docs",
+            "target/common/obj/JAVA_LIBRARIES/android_stubs_current_intermediates",
+            "target/common/R",
+            "target/product",
+    };
+
+    private static class OutDirFileFilter implements FilenameFilter {
+        private final String mOutDir;
+        OutDirFileFilter(String outdir) {
+            mOutDir = outdir;
+        }
+        @Override
+        public boolean accept(File dir, String name) {
+            if (mOutDir.equals(name)) {
+                return false;
+            }
+            return name.startsWith("out");
+        }
+    }
+
+    private static void updateExcludeFoldersFirst(Project project) {
+        final Module module = getAndroidModule(project);
+        final VirtualFile root = module.getModuleFile().getParent();
+        final String rootUrl = root.getUrl();
+        final ArrayList<String> excludedDirs = new ArrayList<String>();
+        final ArrayList<String> unExcludedDirs = new ArrayList<String>();
+        for (String dirname: EXCLUDE_FOLDER_INITIAL) {
+            excludedDirs.add(Utils.join('/', rootUrl, dirname));
+        }
+        ModuleRootModificationUtil.updateExcludedFolders(module, root, unExcludedDirs, excludedDirs);
+    }
+
+    public static void updateExcludeFolders(Project project, final String outDir) {
+        final Module module = getAndroidModule(project);
+        final VirtualFile root = module.getModuleFile().getParent();
+        final String rootUrl = root.getUrl();
+        final ArrayList<String> excludedDirs = new ArrayList<String>();
+        final ArrayList<String> unExcludedDirs = new ArrayList<String>();
+        for (String dirname:
+                new File(root.getPath()).list(new OutDirFileFilter(outDir))) {
+            excludedDirs.add(Utils.join('/', rootUrl, dirname));
+        }
+        for (String dirname: EXCLUDE_FOLDER_TEMPLATES) {
+            excludedDirs.add(Utils.join('/', rootUrl, outDir, dirname));
+        }
+        unExcludedDirs.add(Utils.join('/', rootUrl, outDir));
+
+        ModuleRootModificationUtil.updateExcludedFolders(module, root, unExcludedDirs, excludedDirs);
     }
 
     public static AndroidBuilderView getInstance(final Project project) {
