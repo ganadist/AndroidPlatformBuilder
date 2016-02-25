@@ -21,6 +21,10 @@ intellij {
     plugins 'coverage'
     plugins 'android'
     pluginName 'AndroidBuilder'
+    publish {
+        pluginId '8216'
+        apply from: "jetbrains_account.properties"
+    }
 }
 
 version '1.3.1'
