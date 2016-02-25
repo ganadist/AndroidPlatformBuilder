@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package dbgsprw.test;
+package dbgsprw.core.test;
 
 import dbgsprw.core.Utils;
 import junit.framework.TestCase;
