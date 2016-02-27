@@ -34,23 +34,20 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.openapi.wm.ToolWindowManager;
-import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
-import dbgsprw.core.ShellCommandExecutor;
-import dbgsprw.core.Utils;
+import dbgsprw.core.CommandExecutor;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
-import java.io.File;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
  * Created by ganadist on 16. 2. 23.
  */
-public class AndroidBuilderConsole implements Disposable, ShellCommandExecutor.ResultReceiver {
+public class AndroidBuilderConsole implements Disposable, CommandExecutor.CommandHandler {
     private static final String CONSOLE_ID = "Android Builder Console";
     private static final String TOOL_WINDOW_ID = "Android Build";
     private final Project mProject;
@@ -89,7 +86,7 @@ public class AndroidBuilderConsole implements Disposable, ShellCommandExecutor.R
     }
 
     public AndroidBuilderConsole run(ExitListener listener) {
-        assert(mExitListener == null);
+        assert (mExitListener == null);
         mExitListener = listener;
         mConsoleView.clear();
         show(true);
@@ -102,7 +99,7 @@ public class AndroidBuilderConsole implements Disposable, ShellCommandExecutor.R
     }
 
     @Override
-    public void newOut(String line) {
+    public void onOut(String line) {
         print(line);
     }
 
@@ -111,13 +108,13 @@ public class AndroidBuilderConsole implements Disposable, ShellCommandExecutor.R
     private static final String SEPERATOR = ": ";
 
     @Override
-    public void newError(String line) {
-        final Matcher m = FILE_POSITION_PATTERN.matcher(line);;
+    public void onError(String line) {
+        final Matcher m = FILE_POSITION_PATTERN.matcher(line);
         if (m.find()) {
             final String messageType = m.group(1);
             final String filename = m.group(2);
             final int lineNo = Integer.parseInt(m.group(3)) - 1;
-            final int column = m.group(4) == null ? -1 : (Integer.parseInt(m.group(3)) - 1);
+            final int column = m.group(4) == null ? -1 : (Integer.parseInt(m.group(4)) - 1);
             final String message = m.group(5);
             final String location = m.group(0).substring(
                     messageType == null ? 0 : messageType.length(),

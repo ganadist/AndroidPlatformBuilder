@@ -29,7 +29,7 @@ public class MakeAction extends AnAction {
     public void actionPerformed(AnActionEvent e) {
 
         AndroidBuilderView view = AndroidBuilderFactory.getInstance(e.getProject());
-        if(view.isAvailable()) {
+        if (view.canBuild()) {
             view.doMake();
         } else {
             Messages.showMessageDialog(e.getProject(), "Please Enable Tool Window First", "Android Builder",

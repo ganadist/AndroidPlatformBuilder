@@ -1,14 +1,25 @@
+buildscript {
+    ext.kotlin_version = '1.0.0'
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+    }
+}
+
 plugins {
-    id "org.jetbrains.intellij" version "0.0.39"
+    id "org.jetbrains.intellij" version "0.0.42"
 }
 
 apply plugin: 'org.jetbrains.intellij'
+apply plugin: 'kotlin'
 apply plugin: 'java'
 apply plugin: 'idea'
 
 compileJava {
-    sourceCompatibility = 1.7
-    targetCompatibility = 1.7
+    sourceCompatibility = 1.6
+    targetCompatibility = 1.6
 }
 
 sourceSets {
@@ -17,7 +28,7 @@ sourceSets {
 }
 
 intellij {
-    version 'IC-15.0.3'
+    version 'IC-15.0.4'
     plugins 'coverage'
     plugins 'android'
     pluginName 'AndroidBuilder'
@@ -36,4 +47,6 @@ repositories {
 dependencies {
   compile 'com.android.tools.ddms:ddmlib:22.0'
   testCompile 'junit:junit:4.12'
+  compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
 }
+

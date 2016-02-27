@@ -78,4 +78,10 @@ public class Utils {
             SwingUtilities.invokeLater(runnable);
         }
     }
+
+    public static void log(String tag, String message) {
+        System.out.print(tag);
+        System.out.print(": ");
+        System.out.println(message);
+    }
 }

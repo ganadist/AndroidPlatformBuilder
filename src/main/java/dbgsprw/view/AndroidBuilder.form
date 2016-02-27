@@ -32,7 +32,7 @@
             </constraints>
             <properties/>
           </component>
-          <component id="6538f" class="javax.swing.JLabel" binding="mProductLabel">
+          <component id="6538f" class="javax.swing.JLabel">
             <constraints>
               <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
             </constraints>
@@ -41,7 +41,7 @@
               <text value="Product"/>
             </properties>
           </component>
-          <component id="e95dd" class="javax.swing.JLabel" binding="mVariantLabel">
+          <component id="e95dd" class="javax.swing.JLabel">
             <constraints>
               <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
             </constraints>
@@ -50,7 +50,7 @@
               <text value="Variant"/>
             </properties>
           </component>
-          <component id="2a576" class="javax.swing.JLabel" binding="mResultPathLabel">
+          <component id="2a576" class="javax.swing.JLabel">
             <constraints>
               <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
             </constraints>
@@ -80,7 +80,7 @@
           </component>
         </children>
       </grid>
-      <grid id="5d0c1" binding="mMakeOptionPanel" layout-manager="GridLayoutManager" row-count="8" column-count="3" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+      <grid id="5d0c1" binding="mMakeOptionPanel" layout-manager="GridLayoutManager" row-count="7" column-count="3" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
         <margin top="0" left="10" bottom="10" right="10"/>
         <constraints>
           <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="1" hsize-policy="1" anchor="1" fill="1" indent="0" use-parent-layout="false"/>
@@ -108,7 +108,7 @@
               <editable value="true"/>
             </properties>
           </component>
-          <component id="93b4f" class="javax.swing.JLabel" binding="mJobNumberLabel">
+          <component id="93b4f" class="javax.swing.JLabel">
             <constraints>
               <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
             </constraints>
@@ -117,15 +117,7 @@
               <text value="Jobs"/>
             </properties>
           </component>
-          <component id="3fda0" class="javax.swing.JLabel" binding="mMakeCommandLabel">
-            <constraints>
-              <grid row="5" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
-            </constraints>
-            <properties>
-              <text value="Command"/>
-            </properties>
-          </component>
-          <component id="949af" class="javax.swing.JLabel" binding="mMakeLabel">
+          <component id="949af" class="javax.swing.JLabel">
             <constraints>
               <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
             </constraints>
@@ -162,7 +154,7 @@
               </component>
             </children>
           </grid>
-          <component id="11dd9" class="javax.swing.JLabel" binding="mExtraArgumentsLabel">
+          <component id="11dd9" class="javax.swing.JLabel">
             <constraints>
               <grid row="4" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
             </constraints>
@@ -178,17 +170,6 @@
             </constraints>
             <properties>
               <editable value="true"/>
-            </properties>
-          </component>
-          <component id="fc770" class="javax.swing.JTextArea" binding="mMakeCommandTextArea">
-            <constraints>
-              <grid row="5" column="1" row-span="1" col-span="2" vsize-policy="1" hsize-policy="7" anchor="0" fill="3" indent="0" use-parent-layout="false">
-                <minimum-size width="30" height="-1"/>
-              </grid>
-            </constraints>
-            <properties>
-              <editable value="false"/>
-              <lineWrap value="true"/>
             </properties>
           </component>
           <component id="b817d" class="javax.swing.JLabel" binding="mTargetDirLabel">
@@ -217,7 +198,7 @@
           </component>
           <component id="59e73" class="javax.swing.JButton" binding="mMakeButton" default-binding="true">
             <constraints>
-              <grid row="6" column="0" row-span="1" col-span="3" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+              <grid row="5" column="0" row-span="1" col-span="3" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
             </constraints>
             <properties>
               <enabled value="true"/>
@@ -226,7 +207,7 @@
           </component>
           <component id="38623" class="javax.swing.JButton" binding="mMakeStopButton">
             <constraints>
-              <grid row="7" column="0" row-span="1" col-span="3" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+              <grid row="6" column="0" row-span="1" col-span="3" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
             </constraints>
             <properties>
               <enabled value="true"/>
@@ -242,7 +223,7 @@
           </component>
         </children>
       </grid>
-      <grid id="8a36d" binding="mFlashOptionPanel" layout-manager="GridLayoutManager" row-count="10" column-count="7" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+      <grid id="8a36d" binding="mFlashOptionPanel" layout-manager="GridLayoutManager" row-count="8" column-count="7" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
         <margin top="0" left="10" bottom="10" right="10"/>
         <constraints>
           <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="1" hsize-policy="1" anchor="1" fill="1" indent="0" use-parent-layout="false"/>
@@ -253,7 +234,7 @@
           <color color="-16777216"/>
         </border>
         <children>
-          <component id="51dc" class="javax.swing.JLabel" binding="mDeviceListLabel">
+          <component id="51dc" class="javax.swing.JLabel">
             <constraints>
               <grid row="1" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
             </constraints>
@@ -269,15 +250,7 @@
               <editable value="false"/>
             </properties>
           </component>
-          <component id="9bf8a" class="javax.swing.JLabel" binding="mFlashCommandLabel">
-            <constraints>
-              <grid row="4" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
-            </constraints>
-            <properties>
-              <text value="Command"/>
-            </properties>
-          </component>
-          <component id="7bf8f" class="javax.swing.JLabel" binding="mModeLabel">
+          <component id="7bf8f" class="javax.swing.JLabel">
             <constraints>
               <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
             </constraints>
@@ -314,34 +287,7 @@
               </component>
             </children>
           </grid>
-          <component id="95062" class="javax.swing.JTextArea" binding="mFlashCommandTextArea">
-            <constraints>
-              <grid row="4" column="1" row-span="1" col-span="6" vsize-policy="1" hsize-policy="7" anchor="0" fill="3" indent="0" use-parent-layout="false">
-                <minimum-size width="30" height="-1"/>
-              </grid>
-            </constraints>
-            <properties>
-              <editable value="false"/>
-              <lineWrap value="true"/>
-            </properties>
-          </component>
-          <component id="16818" class="javax.swing.JLabel" binding="mAdbSyncArgumentLabel">
-            <constraints>
-              <grid row="3" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
-            </constraints>
-            <properties>
-              <text value="Argument"/>
-            </properties>
-          </component>
-          <component id="b4f75" class="javax.swing.JComboBox" binding="mAdbSyncArgumentComboBox">
-            <constraints>
-              <grid row="3" column="1" row-span="1" col-span="6" vsize-policy="0" hsize-policy="2" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
-            </constraints>
-            <properties>
-              <editable value="false"/>
-            </properties>
-          </component>
-          <component id="2fd7d" class="javax.swing.JLabel" binding="mFastBootArgumentLabel">
+          <component id="2fd7d" class="javax.swing.JLabel">
             <constraints>
               <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="0" anchor="4" fill="0" indent="0" use-parent-layout="false"/>
             </constraints>
@@ -349,7 +295,7 @@
               <text value="Argument"/>
             </properties>
           </component>
-          <component id="4f1d3" class="javax.swing.JComboBox" binding="mFastBootArgumentComboBox">
+          <component id="4f1d3" class="javax.swing.JComboBox" binding="mWriteArgumentComboBox">
             <constraints>
               <grid row="2" column="1" row-span="1" col-span="6" vsize-policy="0" hsize-policy="2" anchor="8" fill="1" indent="0" use-parent-layout="false"/>
             </constraints>
@@ -366,7 +312,7 @@
           </component>
           <component id="c14cd" class="javax.swing.JButton" binding="mRebootButton" default-binding="true">
             <constraints>
-              <grid row="5" column="0" row-span="1" col-span="7" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+              <grid row="3" column="0" row-span="1" col-span="7" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
             </constraints>
             <properties>
               <text value="Reboot"/>
@@ -375,7 +321,7 @@
           </component>
           <component id="98e59" class="javax.swing.JButton" binding="mRebootBootloaderButton" default-binding="true">
             <constraints>
-              <grid row="6" column="0" row-span="1" col-span="7" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+              <grid row="4" column="0" row-span="1" col-span="7" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
             </constraints>
             <properties>
               <enabled value="true"/>
@@ -385,7 +331,7 @@
           </component>
           <component id="1b365" class="javax.swing.JButton" binding="mFlashButton">
             <constraints>
-              <grid row="7" column="0" row-span="1" col-span="7" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+              <grid row="5" column="0" row-span="1" col-span="7" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
             </constraints>
             <properties>
               <enabled value="true"/>
@@ -396,7 +342,7 @@
           </component>
           <component id="7d470" class="javax.swing.JButton" binding="mSyncButton" default-binding="true">
             <constraints>
-              <grid row="9" column="0" row-span="1" col-span="7" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+              <grid row="7" column="0" row-span="1" col-span="7" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
             </constraints>
             <properties>
               <text value="Sync"/>
@@ -405,7 +351,7 @@
           </component>
           <component id="496f8" class="javax.swing.JButton" binding="mFlashStopButton">
             <constraints>
-              <grid row="8" column="0" row-span="1" col-span="7" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
+              <grid row="6" column="0" row-span="1" col-span="7" vsize-policy="0" hsize-policy="3" anchor="0" fill="1" indent="0" use-parent-layout="false"/>
             </constraints>
             <properties>
               <enabled value="true"/>
