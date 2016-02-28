@@ -93,7 +93,7 @@ public class AndroidBuilderView implements Builder.OutPathListener, DeviceStateL
     private String mProjectPath;
     private Builder mBuilder;
     private Project mProject;
-    private String mProductOut;
+    private File mProductOut;
 
     private static final ArgumentProperties sAdbSyncProperties;
     private static final ArgumentProperties sFastbootProperties;
@@ -233,14 +233,13 @@ public class AndroidBuilderView implements Builder.OutPathListener, DeviceStateL
     }
 
     private void doOpenOutDirectory() {
-        File out = new File(mProjectPath, mProductOut);
-        if (!out.exists()) {
-            if (!out.mkdirs()) {
+        if (!mProductOut.exists()) {
+            if (!mProductOut.mkdirs()) {
                 showNotification("cannot open ANDROID_PRODUCT_OUT directory.", NotificationType.ERROR);
             }
         }
         try {
-            DirectoryOpener.openDirectory(mBuilder, mProductOut);
+            DirectoryOpener.openDirectory(mBuilder, mProductOut.getPath());
         } catch (FileManagerNotFoundException e) {
             showNotification("can't find file manager command.", NotificationType.ERROR);
         }
@@ -465,7 +464,7 @@ public class AndroidBuilderView implements Builder.OutPathListener, DeviceStateL
             Messages.showMessageDialog(mProject, "Can't find device", "Android Builder",
                     Messages.getInformationIcon());
             return false;
-        } else if (!new File(mProductOut).exists()) {
+        } else if (!mProductOut.exists()) {
             Messages.showMessageDialog(mProject, mProductOut + " is not exist path.\n Please make first",
                     "Android Builder",
                     Messages.getInformationIcon());
@@ -531,9 +530,8 @@ public class AndroidBuilderView implements Builder.OutPathListener, DeviceStateL
             String argument = (String) mWriteArgumentComboBox.getSelectedItem();
             if ("update" .equals(argument) || "bootloader" .equals(argument)) {
                 JFileChooser jFileChooser = new JFileChooser();
-                File productOutDirectory = new File(mProductOut);
-                if (productOutDirectory.exists()) {
-                    jFileChooser.setCurrentDirectory(productOutDirectory);
+                if (mProductOut.exists()) {
+                    jFileChooser.setCurrentDirectory(mProductOut);
                 } else {
                     jFileChooser.setCurrentDirectory(new File(mProjectPath));
                 }
@@ -617,7 +615,7 @@ public class AndroidBuilderView implements Builder.OutPathListener, DeviceStateL
 
     @Override
     public void onAndroidProductOutChanged(String path) {
-        mProductOut = path;
+        mProductOut = new File(mProjectPath, path);
         mOpenDirectoryButton.setEnabled(true);
         mFlashButton.setEnabled(true);
         mSyncButton.setEnabled(true);
