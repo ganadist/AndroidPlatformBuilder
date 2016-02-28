@@ -11,6 +11,8 @@
 
   <change-notes><![CDATA[
       <html><dl>
+		<dt>1.4.2</dt>
+		<dd>fix to handle mProductOut directory</dd>
 		<dt>1.4.1</dt>
 		<dd>plugin now supports idea 14.0</dd>
 		<dd>handle IOException while run executable</dd>
