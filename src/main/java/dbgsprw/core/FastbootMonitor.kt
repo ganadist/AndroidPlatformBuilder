@@ -19,6 +19,7 @@
 package dbgsprw.core
 
 import java.io.BufferedReader
+import java.io.IOException
 import java.io.InputStreamReader
 
 /**
@@ -37,8 +38,13 @@ class FastbootMonitor(val mFastbootPath: String) {
                         builder.command(mFastbootPath, "devices")
                         val process = builder.start()
                         val br = BufferedReader(InputStreamReader(process.inputStream))
-                        for (line in br.readLines()) {
-                            newDevices.add(line.split("\t")[0])
+                        try {
+                            for (line in br.readLines()) {
+                                newDevices.add(line.split("\t")[0])
+                            }
+                        } catch (e: IOException) {
+                            Thread.sleep(1000)
+                            continue;
                         }
 
                         val removed = mDevices.toSet().subtract(newDevices)

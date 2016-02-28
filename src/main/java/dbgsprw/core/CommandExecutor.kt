@@ -18,10 +18,7 @@
 
 package dbgsprw.core
 
-import java.io.BufferedReader
-import java.io.File
-import java.io.InputStream
-import java.io.InputStreamReader
+import java.io.*
 
 /**
  * Created by ganadist on 16. 2. 25.
@@ -52,10 +49,15 @@ open class CommandExecutor {
     private fun readInputStream(stream: InputStream, reader: OutputReader) {
         val br = BufferedReader(InputStreamReader(stream))
         Thread({
-            for (line in br.readLines()) {
-                Utils.runOnUi { reader.onRead(line) }
+            try {
+                for (line in br.readLines()) {
+                    Utils.runOnUi { reader.onRead(line) }
+                }
+            } catch (e: IOException) {
+
+            } finally {
+                Utils.runOnUi { reader.onExit() }
             }
-            Utils.runOnUi { reader.onExit() }
         }).start()
     }
 
