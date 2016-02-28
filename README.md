@@ -1,5 +1,7 @@
 # Android Platform Builder plugin for Intellij Idea
 
+[![Build Status](https://travis-ci.org/ganadist/AndroidPlatformBuilder.svg?branch=develop)](https://travis-ci.org/ganadist/AndroidPlatformBuilder)
+
 ## Features
  * Show available build configuration on your android platform sources.
  * Support full image build and partial build.
