@@ -28,17 +28,19 @@ sourceSets {
 }
 
 intellij {
-    version 'IC-15.0.4'
+    version 'IC-14.0.3'
     plugins 'coverage'
     plugins 'android'
     pluginName 'AndroidBuilder'
+    updateSinceUntilBuild false
     publish {
         pluginId '8216'
-        apply from: "jetbrains_account.properties"
+	username publishUsername
+	password publishPassword
     }
 }
 
-version '1.3.1'
+apply from: "version.properties"
 
 repositories {
   mavenCentral()

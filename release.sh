@@ -1,12 +1,14 @@
 #!/bin/bash
 dirname=$(dirname $0)
-META_INF=${dirname}/resources/META-INF/
+META_INF=${dirname}/src/main/resources/META-INF/
 PLUGIN_XML=${META_INF}/plugin.xml
+VERSION_PROPERTIES=${dirname}/version.properties
 
-apply_version_plugin_xml() {
+apply_version() {
   local VERSION=$1
   sed 's/<version>\([0-9.].*\)<\/version>/<version>'$VERSION'<\/version>/' < ${PLUGIN_XML} > ${PLUGIN_XML}.new
   mv -f ${PLUGIN_XML}.new ${PLUGIN_XML}
+  echo "version='${VERSION}'" > $VERSION_PROPERTIES
 }
 
 usage() {
@@ -18,10 +20,15 @@ commit() {
   local VERSION=$1
   local FORCE=$2
 
-  git diff ${PLUGIN_XML}
+  local LINE=$(grep -n -h \<change-notes\> ${PLUGIN_XML} | cut -f1 -d:)
+
+
+  vim +$((${LINE}+1)) ${PLUGIN_XML}
+
+  git diff ${PLUGIN_XML} ${VERSION_PROPERTIES}
 
   if [ $FORCE -eq 0 ]; then
-    echo Do you want to commit?[Y/n]
+    echo -n Do you want to commit? [Y/n]
     read R
     if [ $R != 'Y' ];then
 	echo "aborted!" >&2
@@ -29,7 +36,7 @@ commit() {
     fi
   fi
 
-  git add ${PLUGIN_XML}
+  git add ${PLUGIN_XML} ${VERSION_PROPERTIES}
   git commit -s -m "version $VERSION release"
   git tag -f v${VERSION}
 }
@@ -54,5 +61,5 @@ fi
 
 VERSION=$@
 
-apply_version_plugin_xml $VERSION
+apply_version $VERSION
 commit $VERSION $FORCE
