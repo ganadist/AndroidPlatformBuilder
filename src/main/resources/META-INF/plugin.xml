@@ -11,6 +11,9 @@
 
   <change-notes><![CDATA[
       <html><dl>
+		<dt>1.4.1</dt>
+		<dd>plugin now supports idea 14.0</dd>
+		<dd>handle IOException while run executable</dd>
 		<dt>1.4.0</dt>
 		<dd>use gradle build system</dd>
 		<dd>port core api to kotlin</dd>
