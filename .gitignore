@@ -7,4 +7,5 @@
 **/*.iml
 **/*.ipr
 **/*.iws
+testproject/out*
 gradle.properties
