@@ -233,14 +233,14 @@ public class AndroidBuilderView implements Builder.OutPathListener, DeviceStateL
     }
 
     private void doOpenOutDirectory() {
-        File out = new File(mProductOut);
+        File out = new File(mProjectPath, mProductOut);
         if (!out.exists()) {
             if (!out.mkdirs()) {
                 showNotification("cannot open ANDROID_PRODUCT_OUT directory.", NotificationType.ERROR);
             }
         }
         try {
-            DirectoryOpener.openDirectory(mProductOut);
+            DirectoryOpener.openDirectory(mBuilder, mProductOut);
         } catch (FileManagerNotFoundException e) {
             showNotification("can't find file manager command.", NotificationType.ERROR);
         }

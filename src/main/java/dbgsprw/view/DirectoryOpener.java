@@ -24,7 +24,6 @@ import java.util.ArrayList;
 
 public class DirectoryOpener {
     private static final String OS_FILE_SYSTEM_PROPERTIES_PATH = "properties/os_file_system_command.properties";
-    private static CommandExecutor runner = new CommandExecutor();
     private static String sFileManagerCommand = null;
 
     static {
@@ -40,7 +39,7 @@ public class DirectoryOpener {
         }
     }
 
-    public static void openDirectory(String path)
+    public static void openDirectory(CommandExecutor runner, String path)
             throws FileManagerNotFoundException {
         if (sFileManagerCommand == null) {
             throw new FileManagerNotFoundException();
