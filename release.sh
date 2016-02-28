@@ -6,8 +6,6 @@ VERSION_PROPERTIES=${dirname}/version.properties
 
 apply_version() {
   local VERSION=$1
-  sed 's/<version>\([0-9.].*\)<\/version>/<version>'$VERSION'<\/version>/' < ${PLUGIN_XML} > ${PLUGIN_XML}.new
-  mv -f ${PLUGIN_XML}.new ${PLUGIN_XML}
   echo "version='${VERSION}'" > $VERSION_PROPERTIES
 }
 
@@ -19,18 +17,16 @@ usage() {
 commit() {
   local VERSION=$1
   local FORCE=$2
-
   local LINE=$(grep -n -h \<change-notes\> ${PLUGIN_XML} | cut -f1 -d:)
 
-
-  vim +$((${LINE}+1)) ${PLUGIN_XML}
+  vim +$((${LINE}+2)) ${PLUGIN_XML}
 
   git diff ${PLUGIN_XML} ${VERSION_PROPERTIES}
 
   if [ $FORCE -eq 0 ]; then
     echo -n Do you want to commit? [Y/n]
     read R
-    if [ $R != 'Y' ];then
+    if [ x$R != x'Y' ];then
 	echo "aborted!" >&2
 	return
     fi

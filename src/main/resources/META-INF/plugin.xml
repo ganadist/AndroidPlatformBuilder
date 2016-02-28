@@ -1,7 +1,7 @@
 <idea-plugin version="2">
   <id>android.platform.builder</id>
   <name>Android Builder</name>
-  <version>1.4.0</version>
+  <version>9999</version> <!-- version code will be replaced by gradle -->
   <vendor email="ganadist@gmail.com" url="https://github.com/ganadist/AndroidPlatformBuilder">Young Ho Cha</vendor>
 
   <description><![CDATA[
