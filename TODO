@@ -1,6 +1,7 @@
-* use gradle for build
+* support CyanogenMod
 * clean up codes
 * UI tweaks
  * Better user interaction
 * add testcases
+ * following https://github.com/intellij-rust/intellij-rust/tree/master/src/test/kotlin/org/rust
 * blahblah
