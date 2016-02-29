@@ -88,8 +88,8 @@ class Builder : CommandExecutor() {
         }
     }
 
-    fun buildMakeCommand(jobs: Int, verbose: Boolean, extras: String?): ArrayList<String> {
-        val command = ArrayList<String>()
+    fun buildMakeCommand(jobs: Int, verbose: Boolean, extras: String?): List<String> {
+        val command: MutableList<String> = mutableListOf()
         command.add("make")
         if (jobs > 1) {
             command.add("-j$jobs")
