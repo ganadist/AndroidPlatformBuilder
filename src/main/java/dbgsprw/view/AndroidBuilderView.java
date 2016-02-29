@@ -95,6 +95,8 @@ public class AndroidBuilderView implements Builder.OutPathListener, DeviceStateL
     private Project mProject;
     private File mProductOut;
 
+    private AndroidBuilderSettingStore mState;
+
     private static final ArgumentProperties sAdbSyncProperties;
     private static final ArgumentProperties sFastbootProperties;
     private static final ArgumentProperties sTargetProperties;
@@ -116,20 +118,12 @@ public class AndroidBuilderView implements Builder.OutPathListener, DeviceStateL
         mProject = project;
         mProjectPath = mProject.getBasePath();
 
+        mState = AndroidBuilderSettingStore.getSettings(project);
         mBuilder = new Builder();
         mBuilder.directory(mProjectPath);
         final HistoryComboModel history = new HistoryComboModel();
         mProductComboBox.setPrototypeDisplayValue("XXXXXXXXX");
         mProductComboBox.setModel(history);
-        mProductComboBox.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent actionEvent) {
-                final String product = (String) mProductComboBox.getSelectedItem();
-                if (product != null) {
-                    mBuilder.setTargetProduct(product);
-                }
-            }
-        });
 
         mBuilder.runCombo(new Builder.ComboMenuListener() {
             @Override
@@ -139,7 +133,23 @@ public class AndroidBuilderView implements Builder.OutPathListener, DeviceStateL
 
             @Override
             public void onCompleted() {
-                mProductComboBox.setSelectedIndex(0); // set explicitly for fire action
+                mProductComboBox.addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent actionEvent) {
+                        final String product = (String) mProductComboBox.getSelectedItem();
+                        if (product != null) {
+                            mBuilder.setTargetProduct(product);
+                            mState.mProduct = product;
+                        }
+                    }
+                });
+
+                int index = 0;
+                if (mState.mProduct != null) {
+                    index = history.getIndexOf(mState.mProduct);
+                    if (index < 0) index = 0;
+                }
+                mProductComboBox.setSelectedIndex(index); // set explicitly for fire action
             }
         });
 
@@ -325,25 +335,36 @@ public class AndroidBuilderView implements Builder.OutPathListener, DeviceStateL
         mTargetComboBox.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
-                mBuilder.setTarget(String.valueOf(mTargetComboBox.getSelectedItem()));
+                final String target = (String)mTargetComboBox.getSelectedItem();
+                mBuilder.setTarget(target);
+                mState.mTarget = target;
             }
         });
-        mTargetComboBox.setSelectedItem("droid");
+        mTargetComboBox.setSelectedItem(mState.mTarget);
 
         mTargetDirComboBox.setModel(new TargetDirHistoryComboModel(CURRENT_PATH));
         mTargetDirComboBox.setPrototypeDisplayValue("XXXXXXXXX");
 
+        addPropertiesToComboBox(sVariantProperties, mVariantComboBox);
         mVariantComboBox.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
-                mBuilder.setBuildVariant(String.valueOf(mVariantComboBox.getSelectedItem()));
+                final String buildVariant = (String)mVariantComboBox.getSelectedItem();
+                mBuilder.setBuildVariant(buildVariant);
+                mState.mBuildVariant = buildVariant;
             }
         });
-
-        addPropertiesToComboBox(sVariantProperties, mVariantComboBox);
+        mVariantComboBox.setSelectedItem(mState.mBuildVariant);
 
         history = new HistoryComboModel();
+        history.addElement(mState.mExtras);
         mExtraArgumentsComboBox.setModel(history);
+        mExtraArgumentsComboBox.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                mState.mExtras = (String)mExtraArgumentsComboBox.getSelectedItem();
+            }
+        });
 
         final int numberOfCpus = Runtime.getRuntime().availableProcessors();
         final int initialJobNumber = (numberOfCpus > 4) ? numberOfCpus - 1 : numberOfCpus;

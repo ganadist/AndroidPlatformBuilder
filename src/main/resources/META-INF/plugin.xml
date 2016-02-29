@@ -50,6 +50,7 @@
     <!-- Did not add icon -->
     <toolWindow id="Android Builder" secondary="true" anchor="right"
                 factoryClass="dbgsprw.view.AndroidBuilderFactory"/>
+    <projectService serviceImplementation="dbgsprw.view.AndroidBuilderSettingStore"/>
   </extensions>
 
   <actions>
