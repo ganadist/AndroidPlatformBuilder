@@ -33,6 +33,10 @@ class Builder : CommandExecutor() {
     private var mOneShotMakefile: String? = null
     private val CM_PRODUCT_PREFIX = "cm_"
 
+    init {
+        setenv("USE_CCACHE", "1")
+    }
+
     fun setAndroidJavaHome(home: String) {
         setenv("ANDROID_JAVA_HOME", home)
         val path = getenv("PATH")
