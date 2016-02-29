@@ -31,6 +31,7 @@ class Builder : CommandExecutor() {
     private var mTarget = ""
     private var mTargetSdk = false
     private var mOneShotMakefile: String? = null
+    private val CM_PRODUCT_PREFIX = "cm_"
 
     fun setAndroidJavaHome(home: String) {
         setenv("ANDROID_JAVA_HOME", home)
@@ -83,12 +84,17 @@ class Builder : CommandExecutor() {
         val command = ArrayList<String>()
         command.add("make")
         if (jobs > 1) {
-            command.add("-j" + jobs)
+            command.add("-j$jobs")
         }
-        command.add("TARGET_PRODUCT=" + mTargetProduct)
-        command.add("TARGET_BUILD_VARIANT=" + mBuildVariant);
+        command.add("TARGET_PRODUCT=$mTargetProduct")
+        if (mTargetProduct.startsWith(CM_PRODUCT_PREFIX)) {
+            val cmBuild = mTargetProduct.substring(CM_PRODUCT_PREFIX.length)
+            command.add("CM_BUILD=$cmBuild")
+            command.add("BUILD_WITH_COLORS=0") // turn off color
+        }
+        command.add("TARGET_BUILD_VARIANT=$mBuildVariant");
         if (!mOneShotMakefile.isNullOrEmpty()) {
-            command.add("ONE_SHOT_MAKEFILE=" + mOneShotMakefile)
+            command.add("ONE_SHOT_MAKEFILE=$mOneShotMakefile")
         }
         command.add(mTarget)
         if (verbose) {
