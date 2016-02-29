@@ -33,7 +33,7 @@ public class MmAction extends AnAction {
             AndroidBuilderFactory.showNotification("Please Enable Tool Window First.\nSelect View -> Tool Windows -> Android Builder",
                     NotificationType.ERROR);
         } else if (view.canBuild()) {
-            view.doMake();
+            view.doMm();
         } else {
             AndroidBuilderFactory.showNotification("Other build is processing.",
                     NotificationType.ERROR);
