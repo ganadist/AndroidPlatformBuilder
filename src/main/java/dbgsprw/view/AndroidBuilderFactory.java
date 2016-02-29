@@ -356,6 +356,10 @@ public class AndroidBuilderFactory implements ToolWindowFactory, ProjectManagerL
         }
     }
 
+    public static void showNotification(String message, NotificationType type) {
+        Notifications.Bus.notify(new Notification("Android Builder", "Android Builder", message, type));
+    }
+
     @Override
     public void projectOpened(Project project) {
 

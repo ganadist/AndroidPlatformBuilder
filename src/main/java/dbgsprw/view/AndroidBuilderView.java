@@ -169,12 +169,12 @@ public class AndroidBuilderView implements Builder.OutPathListener, DeviceStateL
                 currentPath = FileDocumentManager.getInstance().getFile(currentDoc);
                 path = Utils.findAndroidMkOnParent(mProjectPath, currentPath.getPath());
             } catch (NullPointerException e) {
-                showNotification("There is no opened file on editor.", NotificationType.ERROR);
+                AndroidBuilderFactory.showNotification("There is no opened file on editor.", NotificationType.ERROR);
                 return false;
             }
 
             if (path == null) {
-                showNotification("cannot find Android.mk", NotificationType.ERROR);
+                AndroidBuilderFactory.showNotification("cannot find Android.mk", NotificationType.ERROR);
                 return false;
             }
             ((TargetDirHistoryComboModel) mTargetDirComboBox.getModel()).addElement(path);
@@ -228,20 +228,16 @@ public class AndroidBuilderView implements Builder.OutPathListener, DeviceStateL
         }
     }
 
-    private void showNotification(String message, NotificationType type) {
-        Notifications.Bus.notify(new Notification("Android Builder", "Android Builder", message, type));
-    }
-
     private void doOpenOutDirectory() {
         if (!mProductOut.exists()) {
             if (!mProductOut.mkdirs()) {
-                showNotification("cannot open ANDROID_PRODUCT_OUT directory.", NotificationType.ERROR);
+                AndroidBuilderFactory.showNotification("cannot open ANDROID_PRODUCT_OUT directory.", NotificationType.ERROR);
             }
         }
         try {
             DirectoryOpener.openDirectory(mBuilder, mProductOut.getPath());
         } catch (FileManagerNotFoundException e) {
-            showNotification("can't find file manager command.", NotificationType.ERROR);
+            AndroidBuilderFactory.showNotification("can't find file manager command.", NotificationType.ERROR);
         }
     }
 
