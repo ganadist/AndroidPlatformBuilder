@@ -1,5 +1,6 @@
 package dbgsprw.action;
 
+import com.intellij.notification.NotificationType;
 import com.intellij.openapi.actionSystem.AnAction;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.ShortcutSet;
@@ -28,11 +29,14 @@ public class MmAction extends AnAction {
     @Override
     public void actionPerformed(AnActionEvent e) {
         AndroidBuilderView view = AndroidBuilderFactory.getInstance(e.getProject());
-        if (view.canBuild()) {
-            view.doMm();
+        if (view == null) {
+            AndroidBuilderFactory.showNotification("Please Enable Tool Window First.\nSelect View -> Tool Windows -> Android Builder",
+                    NotificationType.ERROR);
+        } else if (view.canBuild()) {
+            view.doMake();
         } else {
-            Messages.showMessageDialog(e.getProject(), "Please Enable Tool Window First", "Android Builder",
-                    Messages.getInformationIcon());
+            AndroidBuilderFactory.showNotification("Other build is processing.",
+                    NotificationType.ERROR);
         }
     }
 
