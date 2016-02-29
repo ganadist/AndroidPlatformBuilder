@@ -11,6 +11,12 @@
 
   <change-notes><![CDATA[
       <html><dl>
+		<dt>1.4.4</dt>
+		<dd>fix broken mm function</dd>
+		<dd>strip clang color code in build output when cyanogenmod build</dd>
+		<dd>enable ccache as default</dd>
+		<dd>fix to handle build menu action</dd>
+		<dd>fix to handle mProductOut directory</dd>
 		<dt>1.4.3</dt>
 		<dd>fix build output process</dd>
 		<dd>initial cyanogenmod build support</dd>
