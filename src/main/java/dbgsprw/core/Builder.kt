@@ -32,6 +32,7 @@ class Builder : CommandExecutor() {
     private var mTargetSdk = false
     private var mOneShotMakefile: String? = null
     private val CM_PRODUCT_PREFIX = "cm_"
+    private var mLunchProcess: Process? = null
 
     init {
         setenv("USE_CCACHE", "1")
@@ -80,7 +81,10 @@ class Builder : CommandExecutor() {
             mOutPathListener.onOutDirChanged(outDir)
             mOutDir = outDir
             setenv("OUT_DIR", outDir)
-            findProductOutPath()
+            if (mLunchProcess != null) {
+                mLunchProcess!!.destroy()
+            }
+            mLunchProcess = findProductOutPath()
         }
     }
 
@@ -138,9 +142,13 @@ class Builder : CommandExecutor() {
 
         return run(command, object : CommandHandler {
             override fun onOut(line: String) {
-                Utils.log("builder", "ANDROID_PRODUCT_OUT set " + line)
-                setenv("ANDROID_PRODUCT_OUT", line);
-                mOutPathListener.onAndroidProductOutChanged(line)
+                var path = line
+                Utils.log("builder", "ANDROID_PRODUCT_OUT set " + path)
+                setenv("ANDROID_PRODUCT_OUT", path);
+                if (!path.startsWith(File.separator)) {
+                    path = directory() + File.separator + path
+                }
+                mOutPathListener.onAndroidProductOutChanged(path)
             }
         }, true)
     }

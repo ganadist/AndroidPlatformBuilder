@@ -611,7 +611,7 @@ public class AndroidBuilderView implements Builder.OutPathListener, DeviceStateL
 
     @Override
     public void onAndroidProductOutChanged(String path) {
-        mProductOut = new File(mProjectPath, path);
+        mProductOut = new File(path);
         mOpenDirectoryButton.setEnabled(true);
         mFlashButton.setEnabled(true);
         mSyncButton.setEnabled(true);

@@ -68,6 +68,10 @@ open class CommandExecutor {
         mProcessBuilder.directory(File(dir))
     }
 
+    fun directory(): String {
+        return mProcessBuilder.directory().path
+    }
+
     fun run(commands: List<String>, handler: CommandHandler = NullCommandHandler(), shell: Boolean = false): Process {
         var command = commands
         if (shell) {
