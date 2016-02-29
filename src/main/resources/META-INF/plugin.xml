@@ -11,6 +11,9 @@
 
   <change-notes><![CDATA[
       <html><dl>
+		<dt>1.5.0</dt>
+		<dd>restore latest selected item when project is opened</dd>
+		<dd>fix mm build action in menu</dd>
 		<dt>1.4.4</dt>
 		<dd>fix broken mm function</dd>
 		<dd>strip clang color code in build output when cyanogenmod build</dd>
