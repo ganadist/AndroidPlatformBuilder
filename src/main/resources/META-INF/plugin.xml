@@ -72,4 +72,11 @@
 
   </actions>
 
+  <project-components>
+    <component>
+      <implementation-class>dbgsprw.app.ProjectManagerService</implementation-class>
+      <loadForDefaultProject/>
+    </component>
+  </project-components>
+
 </idea-plugin>

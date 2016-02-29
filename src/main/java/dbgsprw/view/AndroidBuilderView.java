@@ -20,6 +20,7 @@ package dbgsprw.view;
 import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
+import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileEditor.FileEditorManager;
@@ -32,6 +33,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
+import dbgsprw.app.ProjectManagerService;
 import dbgsprw.core.Builder;
 import dbgsprw.core.Device;
 import dbgsprw.core.DeviceStateListener;
@@ -627,7 +629,7 @@ public class AndroidBuilderView implements Builder.OutPathListener, DeviceStateL
         mFlashButton.setEnabled(false);
         mSyncButton.setEnabled(false);
         mResultPathValueLabel.setText(path);
-        AndroidBuilderFactory.updateOutDir(mProject, path);
+        ServiceManager.getService(mProject, ProjectManagerService.class).onOutDirChanged(path);
     }
 
     @Override
