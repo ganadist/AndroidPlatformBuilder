@@ -11,6 +11,9 @@
 
   <change-notes><![CDATA[
       <html><dl>
+		<dt>1.4.3</dt>
+		<dd>fix build output process</dd>
+		<dd>initial cyanogenmod build support</dd>
 		<dt>1.4.2</dt>
 		<dd>fix to handle mProductOut directory</dd>
 		<dt>1.4.1</dt>
