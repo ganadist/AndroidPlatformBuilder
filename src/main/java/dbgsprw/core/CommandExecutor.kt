@@ -50,14 +50,9 @@ open class CommandExecutor {
         val br = BufferedReader(InputStreamReader(stream))
         Thread({
             try {
-                for (line in br.readLines()) {
-                    Utils.runOnUi { reader.onRead(line) }
-                }
-            } catch (e: IOException) {
-
-            } finally {
-                Utils.runOnUi { reader.onExit() }
-            }
+                br.forEachLine { Utils.runOnUi { reader.onRead(it) } }
+            } catch (ex: IOException) {}
+            Utils.runOnUi { reader.onExit() }
         }).start()
     }
 

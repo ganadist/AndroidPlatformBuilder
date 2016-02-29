@@ -39,14 +39,8 @@ class FastbootMonitor(val mFastbootPath: String) {
                         val process = builder.start()
                         val br = BufferedReader(InputStreamReader(process.inputStream))
                         try {
-                            for (line in br.readLines()) {
-                                newDevices.add(line.split("\t")[0])
-                            }
-                        } catch (e: IOException) {
-                            Thread.sleep(1000)
-                            continue;
-                        }
-
+                            br.forEachLine { newDevices.add(it.split("\t")[0]) }
+                        } catch (ex: IOException) {}
                         val removed = mDevices.toSet().subtract(newDevices)
                         val added = newDevices.toSet().subtract(mDevices)
                         for (dev in removed) {
