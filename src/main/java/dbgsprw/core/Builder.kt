@@ -18,7 +18,10 @@
 
 package dbgsprw.core
 
+import com.intellij.util.io.SafeFileOutputStream
+import java.io.BufferedOutputStream
 import java.io.File
+import java.io.FileOutputStream
 import java.util.*
 
 /**
@@ -81,10 +84,43 @@ class Builder : CommandExecutor() {
             mOutPathListener.onOutDirChanged(outDir)
             mOutDir = outDir
             setenv("OUT_DIR", outDir)
+            generateBuildSpec()
             if (mLunchProcess != null) {
                 mLunchProcess!!.destroy()
             }
             mLunchProcess = findProductOutPath()
+        }
+    }
+
+    private fun generateBuildSpec() {
+        val FIRST_LINE = "# generated from AndroidBuilder\n"
+        val sb = StringBuilder(FIRST_LINE)
+        sb.append("TARGET_PRODUCT?=$mTargetProduct\n")
+        sb.append("TARGET_BUILD_VARIANT?=$mBuildVariant\n")
+        sb.append("OUT_DIR?=$mOutDir\n")
+        if (mTargetProduct.startsWith(CM_PRODUCT_PREFIX)) {
+            val cmBuild = mTargetProduct.substring(CM_PRODUCT_PREFIX.length)
+            sb.append("CM_BUILD?=$cmBuild\n")
+        }
+
+        val specFileName = "buildspec.mk.AndroidBuilder"
+        val buildSpec = File(directory(), "buildspec.mk")
+        if (!buildSpec.exists() && buildSpec.createNewFile()) {
+            val bos = BufferedOutputStream(SafeFileOutputStream(buildSpec)).bufferedWriter()
+            bos.write(FIRST_LINE)
+            bos.newLine()
+            bos.write("# If you don't want to associate AndroidBuilder anymore,\n")
+            bos.write("# delete following line.\n")
+            bos.write("-include $specFileName\n")
+            bos.close()
+        }
+
+        val buildSpecForBuilder = File(directory(), specFileName)
+        buildSpecForBuilder.delete()
+        if (buildSpecForBuilder.createNewFile()) {
+            val bos = BufferedOutputStream(SafeFileOutputStream(buildSpecForBuilder)).bufferedWriter()
+            bos.write(sb.toString())
+            bos.close()
         }
     }
 
