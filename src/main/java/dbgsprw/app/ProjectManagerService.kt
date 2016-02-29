@@ -193,7 +193,6 @@ class ProjectManagerService(val mProject: Project) : ProjectComponent {
         updateModuleLibrary(classesRoots, sourcesRoots)
     }
 
-
     override fun getComponentName(): String {
         return "Android Builder Project Manager"
     }
@@ -210,14 +209,26 @@ class ProjectManagerService(val mProject: Project) : ProjectComponent {
         Utils.log(TAG, "project is closed")
     }
 
+    private fun isAndroidModule(): Boolean {
+        val module = getAndroidModule()
+        if (module == null) {
+            return false
+        }
+        val root = module.getModuleFile()!!.parent
+        val files = arrayOf("Makefile", "build/envsetup.sh")
+        return files.all { f -> File(root.path, f).exists() }
+    }
+
     override fun projectOpened() {
         Utils.log(TAG, "project is opened")
 
-        val module = getAndroidModule()
-        if (module == null) {
+        if (!isAndroidModule()) {
             Utils.log(TAG, "This is not android platform project.")
+            // TODO
+            // add module monitor
             return
         }
+        val module = getAndroidModule()!!
         val root = module.getModuleFile()!!.parent
         mRootUrl = root.url
         mRootUrlForJar = "jar" + mRootUrl.substring(4)
@@ -226,7 +237,9 @@ class ProjectManagerService(val mProject: Project) : ProjectComponent {
     }
 
     fun onOutDirChanged(outDir: String) {
-        updateOutDir(outDir)
+        if (isAndroidModule()) {
+            updateOutDir(outDir)
+        }
     }
 
     private fun getAndroidModule(): Module? {
