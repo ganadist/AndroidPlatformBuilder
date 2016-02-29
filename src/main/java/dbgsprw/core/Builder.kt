@@ -91,6 +91,8 @@ class Builder : CommandExecutor() {
             val cmBuild = mTargetProduct.substring(CM_PRODUCT_PREFIX.length)
             command.add("CM_BUILD=$cmBuild")
             command.add("BUILD_WITH_COLORS=0") // turn off color
+            command.add("CLANG_CONFIG_EXTRA_CFLAGS=-fno-color-diagnostics")
+            command.add("CLANG_CONFIG_EXTRA_CPPFLAGS=-fno-color-diagnostics")
         }
         command.add("TARGET_BUILD_VARIANT=$mBuildVariant");
         if (!mOneShotMakefile.isNullOrEmpty()) {
