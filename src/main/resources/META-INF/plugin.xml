@@ -11,6 +11,8 @@
 
   <change-notes><![CDATA[
       <html><dl>
+		<dt>1.5.1</dt>
+		<dd>generate buildspec.mk to apply persistent build settings</dd>
 		<dt>1.5.0</dt>
 		<dd>restore latest selected item when project is opened</dd>
 		<dd>fix mm build action in menu</dd>
