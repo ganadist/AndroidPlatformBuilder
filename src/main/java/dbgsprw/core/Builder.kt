@@ -59,9 +59,9 @@ class Builder : CommandExecutor() {
         updateOutDir()
     }
 
-    fun setOneShot(makefile: String) {
+    fun setOneShotDirectory(directory: String) {
         mTarget = "all_modules"
-        mOneShotMakefile = makefile
+        mOneShotMakefile = directory + File.separator + Utils.ANDROID_MK
     }
 
     private fun updateOutDir() {

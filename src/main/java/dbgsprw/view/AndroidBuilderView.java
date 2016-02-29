@@ -179,7 +179,7 @@ public class AndroidBuilderView implements Builder.OutPathListener, DeviceStateL
             }
             ((TargetDirHistoryComboModel) mTargetDirComboBox.getModel()).addElement(path);
         }
-        mBuilder.setOneShot(path);
+        mBuilder.setOneShotDirectory(path);
         return true;
     }
 
