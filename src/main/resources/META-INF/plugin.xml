@@ -55,6 +55,8 @@
     <projectService serviceImplementation="dbgsprw.app.StateStore"/>
     <projectService serviceInterface="dbgsprw.app.BuildToolbar"
                     serviceImplementation="dbgsprw.view.AndroidBuilderView"/>
+    <projectService serviceInterface="dbgsprw.app.BuildService"
+                    serviceImplementation="dbgsprw.core.BuildServiceImpl"/>
     <projectService serviceInterface="dbgsprw.app.BuildConsole"
                     serviceImplementation="dbgsprw.view.BuildConsoleImpl"/>
     <applicationService serviceInterface="dbgsprw.device.DeviceManager"

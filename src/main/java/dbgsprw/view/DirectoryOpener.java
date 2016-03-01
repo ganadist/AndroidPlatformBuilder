@@ -39,14 +39,25 @@ public class DirectoryOpener {
         }
     }
 
-    public static void openDirectory(CommandExecutor runner, String path)
+    public static void openDirectory(String path)
             throws FileManagerNotFoundException {
         if (sFileManagerCommand == null) {
             throw new FileManagerNotFoundException();
         }
-        ArrayList<String> command = new ArrayList<String>();
+        final ArrayList<String> command = new ArrayList<String>();
         command.add(sFileManagerCommand);
         command.add(path);
-        runner.run(command, new CommandExecutor.NullCommandHandler(), false);
+
+        // FIXME
+        new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+                try {
+                    Process process = new ProcessBuilder().command(command).start();
+                    process.waitFor();
+                } catch (Exception ex) {}
+            }
+        }).start();
     }
 }

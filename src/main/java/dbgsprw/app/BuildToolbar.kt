@@ -25,5 +25,4 @@ import dbgsprw.device.DeviceManager
 interface BuildToolbar : DeviceManager.DeviceStateListener {
     fun doMake()
     fun doMm()
-    fun canBuild(): Boolean
 }

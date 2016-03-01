@@ -37,12 +37,8 @@ public abstract class MenuAction extends AnAction {
         if (toolbar == null) {
             Notify.show("Please Enable Tool Window First.\nSelect View -> Tool Windows -> Android Builder",
                     NotificationType.ERROR);
-        } else if (toolbar.canBuild()) {
-            doAction(toolbar);
-        } else {
-            Notify.show("Other build is processing.",
-                    NotificationType.ERROR);
         }
+        doAction(toolbar);
     }
 
     abstract void doAction(BuildToolbar toolbar);

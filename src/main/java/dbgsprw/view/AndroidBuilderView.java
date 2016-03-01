@@ -23,10 +23,7 @@ import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileEditor.FileEditorManager;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.projectRoots.Sdk;
-import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.ToolWindow;
@@ -34,11 +31,7 @@ import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.openapi.wm.ex.ToolWindowManagerEx;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
-import dbgsprw.app.StateStore;
-import dbgsprw.app.BuildConsole;
-import dbgsprw.app.BuildToolbar;
-import dbgsprw.app.ProjectManagerService;
-import dbgsprw.core.Builder;
+import dbgsprw.app.*;
 import dbgsprw.core.Utils;
 import dbgsprw.device.Device;
 import dbgsprw.exception.FileManagerNotFoundException;
@@ -57,7 +50,7 @@ import java.util.Map;
  */
 public class AndroidBuilderView implements BuildToolbar,
         Disposable,
-        Builder.OutPathListener {
+        BuildService.OutPathListener {
     private JPanel mAndroidBuilderContent;
     private JPanel mMakeOptionPanel;
     private JLabel mTargetLabel;
@@ -98,7 +91,6 @@ public class AndroidBuilderView implements BuildToolbar,
     private ButtonGroup mFlashButtonGroup;
 
     private String mProjectPath;
-    private Builder mBuilder;
     private Project mProject;
     private File mProductOut;
 
@@ -108,9 +100,6 @@ public class AndroidBuilderView implements BuildToolbar,
     private static final ArgumentProperties sFastbootProperties;
     private static final ArgumentProperties sTargetProperties;
     private static final ArgumentProperties sVariantProperties;
-
-    private Process mBuildProcess;
-    private Process mSyncProcess;
 
     static {
         ArgumentPropertiesManager argumentPropertiesManager = new ArgumentPropertiesManager();
@@ -131,13 +120,12 @@ public class AndroidBuilderView implements BuildToolbar,
         mProjectPath = mProject.getBasePath();
 
         mState = StateStore.getState(project);
-        mBuilder = new Builder();
-        mBuilder.directory(mProjectPath);
+
         final HistoryComboModel history = new HistoryComboModel();
         mProductComboBox.setPrototypeDisplayValue("XXXXXXXXX");
         mProductComboBox.setModel(history);
 
-        mBuilder.runCombo(new Builder.ComboMenuListener() {
+        getBuilder().runCombo(new BuildService.ComboMenuListener() {
             @Override
             public void onTargetAdded(@NotNull String target) {
                 history.addElement(target);
@@ -150,7 +138,7 @@ public class AndroidBuilderView implements BuildToolbar,
                     public void actionPerformed(ActionEvent actionEvent) {
                         final String product = (String) mProductComboBox.getSelectedItem();
                         if (product != null) {
-                            mBuilder.setTargetProduct(product);
+                            getBuilder().setTargetProduct(product);
                             mState.mProduct = product;
                         }
                     }
@@ -165,7 +153,7 @@ public class AndroidBuilderView implements BuildToolbar,
             }
         });
 
-        mBuilder.setOutPathListener(this);
+        getBuilder().setOutPathListener(this);
 
         ContentFactory contentFactory = ContentFactory.SERVICE.getInstance();
         Content content = contentFactory.createContent(mAndroidBuilderContent, "", false);
@@ -199,37 +187,31 @@ public class AndroidBuilderView implements BuildToolbar,
             }
             ((TargetDirHistoryComboModel) mTargetDirComboBox.getModel()).addElement(path);
         }
-        mBuilder.setOneShotDirectory(path);
+        getBuilder().setOneShotDirectory(path);
         return true;
     }
 
     private void doBuild() {
         saveCurrentProject();
+        final BuildService builder = getBuilder();
 
-        Module module = getProjectManagerService().getAndroidModule();
-        Sdk moduleSdk = ModuleRootManager.getInstance(module).getSdk();
-
-        if (moduleSdk != null) {
-            mBuilder.setAndroidJavaHome(moduleSdk.getHomePath());
+        if (!builder.canBuild()) {
+            Notify.show("Other job is processing.", NotificationType.ERROR);
+            return;
         }
 
         int jobs = (Integer) mJobSpinner.getValue();
         boolean verbose = mVerboseCheckBox.isSelected();
         String extras = (String) mExtraArgumentsComboBox.getSelectedItem();
 
-        assert (mBuildProcess == null);
-
-        mBuildProcess = mBuilder.run(mBuilder.buildMakeCommand(jobs, verbose, extras),
-                getConsole().run(new BuildConsole.ExitListener() {
-                                     @Override
-                                     public void onExit() {
-                                         mMakeButton.setVisible(true);
-                                         mMakeStopButton.setVisible(false);
-                                         mBuildProcess = null;
-                                     }
-                                 }
-                ),
-                false);
+        builder.build(jobs, verbose, extras, new BuildConsole.ExitListener() {
+                    @Override
+                    public void onExit() {
+                        mMakeButton.setVisible(true);
+                        mMakeStopButton.setVisible(false);
+                    }
+                }
+        );
 
         mMakeButton.setVisible(false);
         mMakeStopButton.setVisible(true);
@@ -238,7 +220,7 @@ public class AndroidBuilderView implements BuildToolbar,
     @Override
     public void doMake() {
         mMakeRadioButton.doClick();
-        mBuilder.setTarget((String) mTargetComboBox.getSelectedItem());
+        getBuilder().setTarget((String) mTargetComboBox.getSelectedItem());
         doBuild();
     }
 
@@ -257,7 +239,7 @@ public class AndroidBuilderView implements BuildToolbar,
             }
         }
         try {
-            DirectoryOpener.openDirectory(mBuilder, mProductOut.getPath());
+            DirectoryOpener.openDirectory(mProductOut.getPath());
         } catch (FileManagerNotFoundException e) {
             Notify.show("can't find file manager command.", NotificationType.ERROR);
         }
@@ -280,7 +262,7 @@ public class AndroidBuilderView implements BuildToolbar,
                         return;
                     }
                 } else {
-                    mBuilder.setTarget((String) mTargetComboBox.getSelectedItem());
+                    getBuilder().setTarget((String) mTargetComboBox.getSelectedItem());
                 }
 
                 doBuild();
@@ -289,10 +271,7 @@ public class AndroidBuilderView implements BuildToolbar,
         mMakeStopButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
-                if (mBuildProcess != null) {
-                    mBuildProcess.destroy();
-                    mBuildProcess = null;
-                }
+                getBuilder().stopBuild();
                 mMakeButton.setVisible(true);
                 mMakeStopButton.setVisible(false);
             }
@@ -348,7 +327,7 @@ public class AndroidBuilderView implements BuildToolbar,
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
                 final String target = (String) mTargetComboBox.getSelectedItem();
-                mBuilder.setTarget(target);
+                getBuilder().setTarget(target);
                 mState.mTarget = target;
             }
         });
@@ -362,7 +341,7 @@ public class AndroidBuilderView implements BuildToolbar,
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
                 final String buildVariant = (String) mVariantComboBox.getSelectedItem();
-                mBuilder.setBuildVariant(buildVariant);
+                getBuilder().setBuildVariant(buildVariant);
                 mState.mBuildVariant = buildVariant;
             }
         });
@@ -438,21 +417,16 @@ public class AndroidBuilderView implements BuildToolbar,
             filename = fastBootArgumentComboBoxInterpreter(partition)[2];
         }
 
-        assert (mSyncProcess == null);
-
-        mSyncProcess = mBuilder.run(device.write(partition, filename, wipe),
-                getConsole().run(new BuildConsole.ExitListener() {
-                                     @Override
-                                     public void onExit() {
-                                         boolean isFastBootRadioButtonClicked = mFastbootRadioButton.isSelected();
-                                         mFlashButton.setVisible(isFastBootRadioButtonClicked);
-                                         mSyncButton.setVisible(!isFastBootRadioButtonClicked);
-                                         mFlashStopButton.setVisible(false);
-                                         mSyncProcess = null;
-                                     }
-                                 }
-                ),
-                true);
+        getBuilder().sync(device, partition, filename, wipe, new BuildConsole.ExitListener() {
+                    @Override
+                    public void onExit() {
+                        boolean isFastBootRadioButtonClicked = mFastbootRadioButton.isSelected();
+                        mFlashButton.setVisible(isFastBootRadioButtonClicked);
+                        mSyncButton.setVisible(!isFastBootRadioButtonClicked);
+                        mFlashStopButton.setVisible(false);
+                    }
+                }
+        );
 
         mFlashButton.setVisible(false);
         mSyncButton.setVisible(false);
@@ -467,21 +441,16 @@ public class AndroidBuilderView implements BuildToolbar,
 
         Device device = getSelectedDevice();
 
-        assert (mSyncProcess == null);
-
-        mSyncProcess = mBuilder.run(device.write(argument, "", false),
-                getConsole().run(new BuildConsole.ExitListener() {
-                                     @Override
-                                     public void onExit() {
-                                         boolean isFastBootRadioButtonClicked = mFastbootRadioButton.isSelected();
-                                         mFlashButton.setVisible(isFastBootRadioButtonClicked);
-                                         mSyncButton.setVisible(!isFastBootRadioButtonClicked);
-                                         mFlashStopButton.setVisible(false);
-                                         mSyncProcess = null;
-                                     }
-                                 }
-                ),
-                true);
+        getBuilder().sync(device, argument, "", false, new BuildConsole.ExitListener() {
+                    @Override
+                    public void onExit() {
+                        boolean isFastBootRadioButtonClicked = mFastbootRadioButton.isSelected();
+                        mFlashButton.setVisible(isFastBootRadioButtonClicked);
+                        mSyncButton.setVisible(!isFastBootRadioButtonClicked);
+                        mFlashStopButton.setVisible(false);
+                    }
+                }
+        );
 
         mFlashButton.setVisible(false);
         mSyncButton.setVisible(false);
@@ -490,13 +459,13 @@ public class AndroidBuilderView implements BuildToolbar,
 
     private boolean prepareWrite() {
         if (getSelectedDevice() == null) {
-            Messages.showMessageDialog(mProject, "Can't find device", "Android Builder",
-                    Messages.getInformationIcon());
+            Notify.show("Device is not selected", NotificationType.ERROR);
             return false;
         } else if (!mProductOut.exists()) {
-            Messages.showMessageDialog(mProject, mProductOut + " is not exist path.\n Please make first",
-                    "Android Builder",
-                    Messages.getInformationIcon());
+            Notify.show("There is no output directory.\nPlease build first.", NotificationType.ERROR);
+            return false;
+        } else if (!getBuilder().canSync()) {
+            Notify.show("Other job is processing.", NotificationType.ERROR);
             return false;
         }
         return true;
@@ -538,10 +507,7 @@ public class AndroidBuilderView implements BuildToolbar,
         mFlashStopButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
-                if (mSyncProcess != null) {
-                    mSyncProcess.destroy();
-                    mSyncProcess = null;
-                }
+                getBuilder().stopSync();
                 boolean isFastBootRadioButtonClicked = mFastbootRadioButton.isSelected();
                 mFlashButton.setVisible(isFastBootRadioButtonClicked);
                 mSyncButton.setVisible(!isFastBootRadioButtonClicked);
@@ -629,10 +595,6 @@ public class AndroidBuilderView implements BuildToolbar,
         }
     }
 
-    private BuildConsole getConsole() {
-        return ServiceManager.getService(mProject, BuildConsole.class);
-    }
-
     @Override
     public void onOutDirChanged(String path) {
         mOpenDirectoryButton.setEnabled(false);
@@ -675,29 +637,12 @@ public class AndroidBuilderView implements BuildToolbar,
         return (deviceName == null) ? null : mDevices.get(deviceName);
     }
 
-    public boolean canBuild() {
-        return mBuildProcess == null;
-    }
-
-    private void prepareClose() {
-        if (mBuildProcess != null) {
-            mBuildProcess.destroy();
-            mBuildProcess = null;
-        }
-        // FIXME
-        if (mSyncProcess != null) {
-            mSyncProcess.destroy();
-            mSyncProcess = null;
-        }
-    }
-
-    private ProjectManagerService getProjectManagerService() {
-        return ServiceManager.getService(mProject, ProjectManagerService.class);
+    private BuildService getBuilder() {
+        return ServiceManager.getService(mProject, BuildService.class);
     }
 
     @Override
     public void dispose() {
         Utils.log(TAG, "dispose");
-        prepareClose();
     }
 }
