@@ -56,8 +56,10 @@
     <toolWindow id="Android Builder" secondary="true" anchor="right"
                 factoryClass="dbgsprw.view.AndroidBuilderFactory"/>
     <projectService serviceImplementation="dbgsprw.view.AndroidBuilderSettingStore"/>
+    <projectService serviceInterface="dbgsprw.app.BuildConsole"
+                    serviceImplementation="dbgsprw.view.BuildConsoleImpl"/>
     <applicationService serviceInterface="dbgsprw.device.DeviceManager"
-                serviceImplementation="dbgsprw.device.DeviceManagerImpl"/>
+                    serviceImplementation="dbgsprw.device.DeviceManagerImpl"/>
   </extensions>
 
   <actions>

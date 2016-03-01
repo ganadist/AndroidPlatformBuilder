@@ -31,6 +31,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
+import dbgsprw.app.BuildConsole;
 import dbgsprw.app.ProjectManagerService;
 import dbgsprw.core.Builder;
 import dbgsprw.device.Device;
@@ -100,7 +101,6 @@ public class AndroidBuilderView implements Builder.OutPathListener, DeviceManage
     private static final ArgumentProperties sFastbootProperties;
     private static final ArgumentProperties sTargetProperties;
     private static final ArgumentProperties sVariantProperties;
-    private AndroidBuilderConsole mConsole;
 
     private Process mBuildProcess;
     private Process mSyncProcess;
@@ -153,8 +153,6 @@ public class AndroidBuilderView implements Builder.OutPathListener, DeviceManage
         });
 
         mBuilder.setOutPathListener(this);
-
-        setupConsole(project);
 
         ContentFactory contentFactory = ContentFactory.SERVICE.getInstance();
         Content content = contentFactory.createContent(mAndroidBuilderContent, "", false);
@@ -209,7 +207,7 @@ public class AndroidBuilderView implements Builder.OutPathListener, DeviceManage
         assert (mBuildProcess == null);
 
         mBuildProcess = mBuilder.run(mBuilder.buildMakeCommand(jobs, verbose, extras),
-                mConsole.run(new AndroidBuilderConsole.ExitListener() {
+                getConsole().run(new BuildConsole.ExitListener() {
                                  @Override
                                  public void onExit() {
                                      mMakeButton.setVisible(true);
@@ -428,7 +426,7 @@ public class AndroidBuilderView implements Builder.OutPathListener, DeviceManage
         assert (mSyncProcess == null);
 
         mSyncProcess = mBuilder.run(device.write(partition, filename, wipe),
-                mConsole.run(new AndroidBuilderConsole.ExitListener() {
+                getConsole().run(new BuildConsole.ExitListener() {
                                  @Override
                                  public void onExit() {
                                      boolean isFastBootRadioButtonClicked = mFastbootRadioButton.isSelected();
@@ -457,7 +455,7 @@ public class AndroidBuilderView implements Builder.OutPathListener, DeviceManage
         assert (mSyncProcess == null);
 
         mSyncProcess = mBuilder.run(device.write(argument, "", false),
-                mConsole.run(new AndroidBuilderConsole.ExitListener() {
+                getConsole().run(new BuildConsole.ExitListener() {
                                  @Override
                                  public void onExit() {
                                      boolean isFastBootRadioButtonClicked = mFastbootRadioButton.isSelected();
@@ -616,8 +614,8 @@ public class AndroidBuilderView implements Builder.OutPathListener, DeviceManage
         }
     }
 
-    private void setupConsole(Project project) {
-        mConsole = new AndroidBuilderConsole(project);
+    private BuildConsole getConsole() {
+        return ServiceManager.getService(mProject, BuildConsole.class);
     }
 
     @Override
