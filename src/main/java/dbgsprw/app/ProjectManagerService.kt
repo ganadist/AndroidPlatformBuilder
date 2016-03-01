@@ -19,6 +19,7 @@ package dbgsprw.app
 
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.ProjectComponent
+import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
@@ -27,6 +28,7 @@ import com.intellij.openapi.roots.impl.libraries.LibraryEx
 import com.intellij.openapi.util.Computable
 import com.intellij.util.Consumer
 import dbgsprw.core.Utils
+import dbgsprw.device.DeviceManager
 import java.io.File
 
 
@@ -38,6 +40,7 @@ class ProjectManagerService(val mProject: Project) : ProjectComponent {
     var mRootUrl = ""
     var mRootUrlForJar = ""
     val EMPTY_LIST: List<String> = listOf()
+    var mToolbar: BuildToolbar? = null
 
     private val EXCLUDE_FOLDER_INITIAL = arrayOf(
             "abi",
@@ -207,6 +210,10 @@ class ProjectManagerService(val mProject: Project) : ProjectComponent {
 
     override fun projectClosed() {
         Utils.log(TAG, "project is closed")
+        if (mToolbar != null) {
+            getDeviceManager().removeDeviceStateListener(mToolbar!!)
+            mToolbar = null
+        }
     }
 
     private fun isAndroidModule(): Boolean {
@@ -234,6 +241,9 @@ class ProjectManagerService(val mProject: Project) : ProjectComponent {
         mRootUrlForJar = "jar" + mRootUrl.substring(4)
         updateExcludeFoldersFirst()
         updateOutDir()
+
+        mToolbar = ServiceManager.getService(mProject, BuildToolbar::class.java)
+        getDeviceManager().addDeviceStateListener(mToolbar!!)
     }
 
     fun onOutDirChanged(outDir: String) {
@@ -242,7 +252,11 @@ class ProjectManagerService(val mProject: Project) : ProjectComponent {
         }
     }
 
-    private fun getAndroidModule(): Module? {
+    fun getAndroidModule(): Module? {
         return ModuleManager.getInstance(mProject).findModuleByName("android")
+    }
+
+    private fun getDeviceManager(): DeviceManager {
+        return ServiceManager.getService(DeviceManager::class.java)!!
     }
 }

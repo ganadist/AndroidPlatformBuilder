@@ -52,10 +52,9 @@
   <!-- -->
 
   <extensions defaultExtensionNs="com.intellij" >
-    <!-- Did not add icon -->
-    <toolWindow id="Android Builder" secondary="true" anchor="right"
-                factoryClass="dbgsprw.view.AndroidBuilderFactory"/>
     <projectService serviceImplementation="dbgsprw.view.AndroidBuilderSettingStore"/>
+    <projectService serviceInterface="dbgsprw.app.BuildToolbar"
+                    serviceImplementation="dbgsprw.view.AndroidBuilderView"/>
     <projectService serviceInterface="dbgsprw.app.BuildConsole"
                     serviceImplementation="dbgsprw.view.BuildConsoleImpl"/>
     <applicationService serviceInterface="dbgsprw.device.DeviceManager"

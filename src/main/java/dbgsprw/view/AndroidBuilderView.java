@@ -18,6 +18,7 @@
 package dbgsprw.view;
 
 import com.intellij.notification.NotificationType;
+import com.intellij.openapi.Disposable;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
@@ -29,14 +30,16 @@ import com.intellij.openapi.roots.ModuleRootManager;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.ToolWindow;
+import com.intellij.openapi.wm.ToolWindowAnchor;
+import com.intellij.openapi.wm.ex.ToolWindowManagerEx;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
 import dbgsprw.app.BuildConsole;
+import dbgsprw.app.BuildToolbar;
 import dbgsprw.app.ProjectManagerService;
 import dbgsprw.core.Builder;
-import dbgsprw.device.Device;
-import dbgsprw.device.DeviceManager;
 import dbgsprw.core.Utils;
+import dbgsprw.device.Device;
 import dbgsprw.exception.FileManagerNotFoundException;
 import org.jetbrains.annotations.NotNull;
 
@@ -51,7 +54,9 @@ import java.util.Map;
 /**
  * Created by ganadist on 16. 2. 23.
  */
-public class AndroidBuilderView implements Builder.OutPathListener, DeviceManager.DeviceStateListener {
+public class AndroidBuilderView implements BuildToolbar,
+        Disposable,
+        Builder.OutPathListener {
     private JPanel mAndroidBuilderContent;
     private JPanel mMakeOptionPanel;
     private JLabel mTargetLabel;
@@ -81,6 +86,7 @@ public class AndroidBuilderView implements Builder.OutPathListener, DeviceManage
     private JLabel mResultPathValueLabel;
     private JButton mOpenDirectoryButton;
 
+    private final static String TAG = "BuilderView";
     private final static String CURRENT_PATH = "Current Path";
     private final static String ADB_PROPERTIES_PATH = "properties/adb_sync_argument.properties";
     private final static String FASTBOOT_PROPERTIES_PATH = "properties/fastboot_argument.properties";
@@ -113,7 +119,13 @@ public class AndroidBuilderView implements Builder.OutPathListener, DeviceManage
         sVariantProperties = argumentPropertiesManager.loadProperties(VARIANT_PROPERTIES_PATH);
     }
 
-    AndroidBuilderView(Project project, ToolWindow toolWindow) {
+    AndroidBuilderView(Project project) {
+        Utils.log(TAG, "init");
+
+        ToolWindowManagerEx toolWindowManagerEx = ToolWindowManagerEx.getInstanceEx(project);
+        ToolWindow toolWindow = toolWindowManagerEx.registerToolWindow("Android Builder", false, ToolWindowAnchor.RIGHT,
+                project, true);
+
         mProject = project;
         mProjectPath = mProject.getBasePath();
 
@@ -176,12 +188,12 @@ public class AndroidBuilderView implements Builder.OutPathListener, DeviceManage
                 currentPath = FileDocumentManager.getInstance().getFile(currentDoc);
                 path = Utils.findAndroidMkOnParent(mProjectPath, currentPath.getPath());
             } catch (NullPointerException e) {
-                AndroidBuilderFactory.showNotification("There is no opened file on editor.", NotificationType.ERROR);
+                Notify.show("There is no opened file on editor.", NotificationType.ERROR);
                 return false;
             }
 
             if (path == null) {
-                AndroidBuilderFactory.showNotification("cannot find Android.mk", NotificationType.ERROR);
+                Notify.show("cannot find Android.mk", NotificationType.ERROR);
                 return false;
             }
             ((TargetDirHistoryComboModel) mTargetDirComboBox.getModel()).addElement(path);
@@ -193,7 +205,7 @@ public class AndroidBuilderView implements Builder.OutPathListener, DeviceManage
     private void doBuild() {
         saveCurrentProject();
 
-        Module module = AndroidBuilderFactory.getAndroidModule(mProject);
+        Module module = getProjectManagerService().getAndroidModule();
         Sdk moduleSdk = ModuleRootManager.getInstance(module).getSdk();
 
         if (moduleSdk != null) {
@@ -208,13 +220,13 @@ public class AndroidBuilderView implements Builder.OutPathListener, DeviceManage
 
         mBuildProcess = mBuilder.run(mBuilder.buildMakeCommand(jobs, verbose, extras),
                 getConsole().run(new BuildConsole.ExitListener() {
-                                 @Override
-                                 public void onExit() {
-                                     mMakeButton.setVisible(true);
-                                     mMakeStopButton.setVisible(false);
-                                     mBuildProcess = null;
+                                     @Override
+                                     public void onExit() {
+                                         mMakeButton.setVisible(true);
+                                         mMakeStopButton.setVisible(false);
+                                         mBuildProcess = null;
+                                     }
                                  }
-                             }
                 ),
                 false);
 
@@ -222,12 +234,14 @@ public class AndroidBuilderView implements Builder.OutPathListener, DeviceManage
         mMakeStopButton.setVisible(true);
     }
 
+    @Override
     public void doMake() {
         mMakeRadioButton.doClick();
         mBuilder.setTarget((String) mTargetComboBox.getSelectedItem());
         doBuild();
     }
 
+    @Override
     public void doMm() {
         mMmRadioButton.doClick();
         if (setPartialBuild(CURRENT_PATH)) {
@@ -238,13 +252,13 @@ public class AndroidBuilderView implements Builder.OutPathListener, DeviceManage
     private void doOpenOutDirectory() {
         if (!mProductOut.exists()) {
             if (!mProductOut.mkdirs()) {
-                AndroidBuilderFactory.showNotification("cannot open ANDROID_PRODUCT_OUT directory.", NotificationType.ERROR);
+                Notify.show("cannot open ANDROID_PRODUCT_OUT directory.", NotificationType.ERROR);
             }
         }
         try {
             DirectoryOpener.openDirectory(mBuilder, mProductOut.getPath());
         } catch (FileManagerNotFoundException e) {
-            AndroidBuilderFactory.showNotification("can't find file manager command.", NotificationType.ERROR);
+            Notify.show("can't find file manager command.", NotificationType.ERROR);
         }
     }
 
@@ -332,7 +346,7 @@ public class AndroidBuilderView implements Builder.OutPathListener, DeviceManage
         mTargetComboBox.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
-                final String target = (String)mTargetComboBox.getSelectedItem();
+                final String target = (String) mTargetComboBox.getSelectedItem();
                 mBuilder.setTarget(target);
                 mState.mTarget = target;
             }
@@ -346,7 +360,7 @@ public class AndroidBuilderView implements Builder.OutPathListener, DeviceManage
         mVariantComboBox.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent actionEvent) {
-                final String buildVariant = (String)mVariantComboBox.getSelectedItem();
+                final String buildVariant = (String) mVariantComboBox.getSelectedItem();
                 mBuilder.setBuildVariant(buildVariant);
                 mState.mBuildVariant = buildVariant;
             }
@@ -359,7 +373,7 @@ public class AndroidBuilderView implements Builder.OutPathListener, DeviceManage
         mExtraArgumentsComboBox.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                mState.mExtras = (String)mExtraArgumentsComboBox.getSelectedItem();
+                mState.mExtras = (String) mExtraArgumentsComboBox.getSelectedItem();
             }
         });
 
@@ -427,15 +441,15 @@ public class AndroidBuilderView implements Builder.OutPathListener, DeviceManage
 
         mSyncProcess = mBuilder.run(device.write(partition, filename, wipe),
                 getConsole().run(new BuildConsole.ExitListener() {
-                                 @Override
-                                 public void onExit() {
-                                     boolean isFastBootRadioButtonClicked = mFastbootRadioButton.isSelected();
-                                     mFlashButton.setVisible(isFastBootRadioButtonClicked);
-                                     mSyncButton.setVisible(!isFastBootRadioButtonClicked);
-                                     mFlashStopButton.setVisible(false);
-                                     mSyncProcess = null;
+                                     @Override
+                                     public void onExit() {
+                                         boolean isFastBootRadioButtonClicked = mFastbootRadioButton.isSelected();
+                                         mFlashButton.setVisible(isFastBootRadioButtonClicked);
+                                         mSyncButton.setVisible(!isFastBootRadioButtonClicked);
+                                         mFlashStopButton.setVisible(false);
+                                         mSyncProcess = null;
+                                     }
                                  }
-                             }
                 ),
                 true);
 
@@ -446,7 +460,7 @@ public class AndroidBuilderView implements Builder.OutPathListener, DeviceManage
 
     private void doSync() {
         String argument = mWriteArgumentComboBox.getSelectedItem().toString();
-        if ("All" .equals(argument)) {
+        if ("All".equals(argument)) {
             argument = "";
         }
 
@@ -456,15 +470,15 @@ public class AndroidBuilderView implements Builder.OutPathListener, DeviceManage
 
         mSyncProcess = mBuilder.run(device.write(argument, "", false),
                 getConsole().run(new BuildConsole.ExitListener() {
-                                 @Override
-                                 public void onExit() {
-                                     boolean isFastBootRadioButtonClicked = mFastbootRadioButton.isSelected();
-                                     mFlashButton.setVisible(isFastBootRadioButtonClicked);
-                                     mSyncButton.setVisible(!isFastBootRadioButtonClicked);
-                                     mFlashStopButton.setVisible(false);
-                                     mSyncProcess = null;
+                                     @Override
+                                     public void onExit() {
+                                         boolean isFastBootRadioButtonClicked = mFastbootRadioButton.isSelected();
+                                         mFlashButton.setVisible(isFastBootRadioButtonClicked);
+                                         mSyncButton.setVisible(!isFastBootRadioButtonClicked);
+                                         mFlashStopButton.setVisible(false);
+                                         mSyncProcess = null;
+                                     }
                                  }
-                             }
                 ),
                 true);
 
@@ -542,7 +556,7 @@ public class AndroidBuilderView implements Builder.OutPathListener, DeviceManage
         @Override
         public void actionPerformed(ActionEvent actionEvent) {
             String argument = (String) mWriteArgumentComboBox.getSelectedItem();
-            if ("update" .equals(argument) || "bootloader" .equals(argument)) {
+            if ("update".equals(argument) || "bootloader".equals(argument)) {
                 JFileChooser jFileChooser = new JFileChooser();
                 if (mProductOut.exists()) {
                     jFileChooser.setCurrentDirectory(mProductOut);
@@ -550,7 +564,7 @@ public class AndroidBuilderView implements Builder.OutPathListener, DeviceManage
                     jFileChooser.setCurrentDirectory(new File(mProjectPath));
                 }
 
-                final boolean update = "update" .equals(argument);
+                final boolean update = "update".equals(argument);
 
                 final String msg = update ?
                         "Choose Update Package File" : "Choose Bootloader Package File";
@@ -664,7 +678,7 @@ public class AndroidBuilderView implements Builder.OutPathListener, DeviceManage
         return mBuildProcess == null;
     }
 
-    void prepareClose() {
+    private void prepareClose() {
         if (mBuildProcess != null) {
             mBuildProcess.destroy();
             mBuildProcess = null;
@@ -674,5 +688,15 @@ public class AndroidBuilderView implements Builder.OutPathListener, DeviceManage
             mSyncProcess.destroy();
             mSyncProcess = null;
         }
+    }
+
+    private ProjectManagerService getProjectManagerService() {
+        return ServiceManager.getService(mProject, ProjectManagerService.class);
+    }
+
+    @Override
+    public void dispose() {
+        Utils.log(TAG, "dispose");
+        prepareClose();
     }
 }
