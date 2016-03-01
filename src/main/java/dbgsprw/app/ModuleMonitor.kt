@@ -17,6 +17,8 @@
 
 package dbgsprw.app
 
+import com.intellij.facet.FacetManager
+import com.intellij.facet.FacetTypeRegistry
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.module.Module
@@ -204,6 +206,23 @@ class ModuleMonitor(val mModule: Module) : ModuleComponent {
         mToolbar = null
     }
 
+    private val ANDROID_FACET_NAME = "Android"
+    private val ANDROID_FACET_TYPE_NAME = "android"
+    private fun updateFacet() {
+        val facetManager = FacetManager.getInstance(mModule)
+        val hasAndroidFacet = facetManager.allFacets.any { f -> f.name == ANDROID_FACET_NAME }
+        if (!hasAndroidFacet) {
+            Utils.log(TAG, "add dummy Android Facet")
+            val model = facetManager.createModifiableModel()
+            val facetType = FacetTypeRegistry.getInstance().findFacetType(ANDROID_FACET_TYPE_NAME)
+            val facet = facetManager.createFacet(facetType!!, ANDROID_FACET_NAME, null)
+            model.addFacet(facet)
+            model.commit()
+        } else {
+            Utils.log(TAG, "Android Facet is configured already")
+        }
+    }
+
     override fun moduleAdded() {
         Utils.log(TAG, "module is added")
 
@@ -217,6 +236,7 @@ class ModuleMonitor(val mModule: Module) : ModuleComponent {
         mRootUrlForJar = "jar" + mRootUrl.substring(4)
         updateExcludeFoldersFirst()
         updateOutDir()
+        updateFacet()
 
         mToolbar = ServiceManager.getService(mModule.project, BuildToolbar::class.java)
     }
