@@ -18,31 +18,12 @@
 
 package dbgsprw.action;
 
-import com.intellij.notification.NotificationType;
-import com.intellij.openapi.actionSystem.AnAction;
-import com.intellij.openapi.actionSystem.AnActionEvent;
-import com.intellij.openapi.actionSystem.ShortcutSet;
-import com.intellij.openapi.components.ServiceManager;
 import dbgsprw.app.BuildToolbar;
-import dbgsprw.view.Notify;
 
-public class MmAction extends AnAction {
+public class MmAction extends MenuAction {
 
     @Override
-    public void actionPerformed(AnActionEvent e) {
-        BuildToolbar toolbar = ServiceManager.getService(e.getProject(), BuildToolbar.class);
-        if (toolbar == null) {
-            Notify.show("Please Enable Tool Window First.\nSelect View -> Tool Windows -> Android Builder",
-                    NotificationType.ERROR);
-        } else if (toolbar.canBuild()) {
-            toolbar.doMm();
-        } else {
-            Notify.show("Other build is processing.",
-                    NotificationType.ERROR);
-        }
-    }
-
-    public void setShortcutSet(ShortcutSet shortcutSet) {
-        super.setShortcutSet(shortcutSet);
+    void doAction(BuildToolbar toolbar) {
+        toolbar.doMm();
     }
 }
