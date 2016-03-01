@@ -11,6 +11,8 @@
 
   <change-notes><![CDATA[
       <html><dl>
+		<dt>1.90.1</dt>
+		<dd>add android facet to module forcibly</dd>
 		<dt>1.90.0</dt>
 		<dd>toolbar can be working when project is indexing</dd>
 		<dd>all features are ported to idea components</dd>
