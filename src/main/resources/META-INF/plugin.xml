@@ -77,11 +77,11 @@
 
   </actions>
 
-  <project-components>
+  <module-components>
     <component>
-      <implementation-class>dbgsprw.app.ProjectManagerService</implementation-class>
-      <loadForDefaultProject/>
+      <implementation-class>dbgsprw.app.ModuleMonitor</implementation-class>
+      <option name="type" value="JAVA_MODULE"/>
     </component>
-  </project-components>
+  </module-components>
 
 </idea-plugin>

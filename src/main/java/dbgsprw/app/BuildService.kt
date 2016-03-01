@@ -17,17 +17,18 @@
 
 package dbgsprw.app
 
+import com.intellij.openapi.Disposable
 import dbgsprw.device.Device
 
 /**
  * Created by ganadist on 16. 3. 1.
  */
-interface BuildService {
+interface BuildService: Disposable {
     fun setTargetProduct(product: String)
     fun setBuildVariant(variant: String)
     fun setTarget(target: String)
     fun setOneShotDirectory(directory: String)
-    fun setOutPathListener(listener: OutPathListener)
+    fun setOutPathListener(listener: OutPathListener?)
     fun runCombo(listener: ComboMenuListener)
     fun build(jobs: Int, verbose: Boolean, extras: String?, listener: BuildConsole.ExitListener)
     fun sync(device: Device, partition: String, filename: String, wipe: Boolean, listener: BuildConsole.ExitListener)

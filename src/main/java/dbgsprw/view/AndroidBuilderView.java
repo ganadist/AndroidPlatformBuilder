@@ -18,13 +18,13 @@
 package dbgsprw.view;
 
 import com.intellij.notification.NotificationType;
-import com.intellij.openapi.Disposable;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileEditor.FileEditorManager;
+import com.intellij.openapi.module.Module;
+import com.intellij.openapi.module.ModuleServiceManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.wm.ToolWindow;
 import com.intellij.openapi.wm.ToolWindowAnchor;
@@ -34,6 +34,7 @@ import com.intellij.ui.content.ContentFactory;
 import dbgsprw.app.*;
 import dbgsprw.core.Utils;
 import dbgsprw.device.Device;
+import dbgsprw.device.DeviceManager;
 import dbgsprw.exception.FileManagerNotFoundException;
 import org.jetbrains.annotations.NotNull;
 
@@ -49,7 +50,6 @@ import java.util.Map;
  * Created by ganadist on 16. 2. 23.
  */
 public class AndroidBuilderView implements BuildToolbar,
-        Disposable,
         BuildService.OutPathListener {
     private JPanel mAndroidBuilderContent;
     private JPanel mMakeOptionPanel;
@@ -95,6 +95,7 @@ public class AndroidBuilderView implements BuildToolbar,
     private File mProductOut;
 
     private StateStore mState;
+    private static final String TOOLBAR_WINDOW_ID = "Android Builder";
 
     private static final ArgumentProperties sAdbSyncProperties;
     private static final ArgumentProperties sFastbootProperties;
@@ -112,8 +113,8 @@ public class AndroidBuilderView implements BuildToolbar,
     AndroidBuilderView(Project project) {
         Utils.log(TAG, "init");
 
-        ToolWindowManagerEx toolWindowManagerEx = ToolWindowManagerEx.getInstanceEx(project);
-        ToolWindow toolWindow = toolWindowManagerEx.registerToolWindow("Android Builder", false, ToolWindowAnchor.RIGHT,
+        ToolWindowManagerEx wm = ToolWindowManagerEx.getInstanceEx(project);
+        ToolWindow window = wm.registerToolWindow(TOOLBAR_WINDOW_ID, false, ToolWindowAnchor.RIGHT,
                 project, true);
 
         mProject = project;
@@ -157,7 +158,7 @@ public class AndroidBuilderView implements BuildToolbar,
 
         ContentFactory contentFactory = ContentFactory.SERVICE.getInstance();
         Content content = contentFactory.createContent(mAndroidBuilderContent, "", false);
-        toolWindow.getContentManager().addContent(content);
+        window.getContentManager().addContent(content);
 
         initMakePanelComboBoxes();
         initMakePanelButtons();
@@ -165,6 +166,8 @@ public class AndroidBuilderView implements BuildToolbar,
 
         initFlashPanelRadioButtons();
         initFlashButtons();
+
+        ServiceManager.getService(DeviceManager.class).addDeviceStateListener(this);
     }
 
     private boolean setPartialBuild(String path) {
@@ -601,7 +604,8 @@ public class AndroidBuilderView implements BuildToolbar,
         mFlashButton.setEnabled(false);
         mSyncButton.setEnabled(false);
         mResultPathValueLabel.setText(path);
-        ServiceManager.getService(mProject, ProjectManagerService.class).onOutDirChanged(path);
+        ModuleServiceManager.getService(ModuleMonitorKt.getAndroidModule(mProject),
+                ModuleMonitor.class).onOutDirChanged(path);
     }
 
     @Override
@@ -644,5 +648,8 @@ public class AndroidBuilderView implements BuildToolbar,
     @Override
     public void dispose() {
         Utils.log(TAG, "dispose");
+        ServiceManager.getService(DeviceManager.class).removeDeviceStateListener(this);
+        getBuilder().setOutPathListener(null);
+        ToolWindowManagerEx.getInstanceEx(mProject).unregisterToolWindow(TOOLBAR_WINDOW_ID);
     }
 }

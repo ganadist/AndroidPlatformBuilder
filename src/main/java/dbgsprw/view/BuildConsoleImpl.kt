@@ -22,14 +22,11 @@ import com.intellij.execution.filters.TextConsoleBuilderFactory
 import com.intellij.execution.ui.ConsoleViewContentType
 import com.intellij.execution.ui.RunnerLayoutUi
 import com.intellij.execution.ui.layout.PlaceInGrid
-import com.intellij.notification.Notification
 import com.intellij.notification.NotificationType
-import com.intellij.notification.Notifications
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.wm.ToolWindowAnchor
-import com.intellij.openapi.wm.ToolWindowManager
+import com.intellij.openapi.wm.ex.ToolWindowManagerEx
 import com.intellij.ui.content.ContentFactory
 import dbgsprw.app.BuildConsole
 import dbgsprw.core.CommandExecutor
@@ -41,15 +38,15 @@ import javax.swing.JPanel
 /**
  * Created by ganadist on 16. 3. 1.
  */
-class BuildConsoleImpl(val mProject: Project) : Disposable, BuildConsole {
+class BuildConsoleImpl(val mProject: Project) : BuildConsole {
     private val TAG = "BuildConsoleImpl"
     private val CONSOLE_ID = "Android Builder Console"
-    private val TOOL_WINDOW_ID = "Android Build"
+    private val TOOL_WINDOW_ID = "Android Build Console"
 
     private val mPanel = JPanel(BorderLayout())
     private val mConsoleView = TextConsoleBuilderFactory.getInstance().createBuilder(mProject).console
-    private val mWindow = ToolWindowManager.getInstance(mProject).registerToolWindow(TOOL_WINDOW_ID, false,
-            ToolWindowAnchor.BOTTOM, this, true)
+    private val mWindow = ToolWindowManagerEx.getInstanceEx(mProject).registerToolWindow(TOOL_WINDOW_ID, false,
+            ToolWindowAnchor.BOTTOM, mProject, true)
 
     init {
         Utils.log(TAG, "init")
@@ -58,6 +55,7 @@ class BuildConsoleImpl(val mProject: Project) : Disposable, BuildConsole {
 
     override fun dispose() {
         Utils.log(TAG, "dispose")
+        ToolWindowManagerEx.getInstanceEx(mProject).unregisterToolWindow(TOOL_WINDOW_ID)
     }
 
     private fun setupToolWindow() {
@@ -132,10 +130,6 @@ class BuildConsoleImpl(val mProject: Project) : Disposable, BuildConsole {
         mConsoleView.print("\n", ConsoleViewContentType.ERROR_OUTPUT)
     }
 
-    private fun showNotification(message: String, type: NotificationType) {
-        Notifications.Bus.notify(Notification("Android Builder", "Android Builder", message, type))
-    }
-
     override fun onExit(code: Int) {
         Utils.log(TAG, "exit with $code")
         if (mExitListener != null) {
@@ -145,8 +139,8 @@ class BuildConsoleImpl(val mProject: Project) : Disposable, BuildConsole {
         if (code == 0) {
             mWindow.hide(null)
         } else if (code < 128) {
-            val message = "execution is failed with exit code: " + code
-            showNotification(message, NotificationType.ERROR)
+            val message = "execution is failed with exit code: $code"
+            Notify.show(message, NotificationType.ERROR)
             mConsoleView.print(message, ConsoleViewContentType.SYSTEM_OUTPUT)
             mConsoleView.print("\n", ConsoleViewContentType.SYSTEM_OUTPUT)
         }

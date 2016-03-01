@@ -18,9 +18,9 @@
 package dbgsprw.app
 
 import com.intellij.openapi.application.ApplicationManager
-import com.intellij.openapi.components.ProjectComponent
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.module.Module
+import com.intellij.openapi.module.ModuleComponent
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.*
@@ -28,15 +28,14 @@ import com.intellij.openapi.roots.impl.libraries.LibraryEx
 import com.intellij.openapi.util.Computable
 import com.intellij.util.Consumer
 import dbgsprw.core.Utils
-import dbgsprw.device.DeviceManager
 import java.io.File
 
 
 /**
  * Created by ganadist on 16. 2. 29.
  */
-class ProjectManagerService(val mProject: Project) : ProjectComponent {
-    val TAG = "ProjectManager"
+class ModuleMonitor(val mModule: Module) : ModuleComponent {
+    val TAG = "ModuleMonitor"
     var mRootUrl = ""
     var mRootUrlForJar = ""
     val EMPTY_LIST: List<String> = listOf()
@@ -117,13 +116,12 @@ class ProjectManagerService(val mProject: Project) : ProjectComponent {
 
     private fun updateExcludeFoldersFirst() {
         Utils.log(TAG, "exclude dirs first")
-        val module = getAndroidModule()
-        val root = module!!.getModuleFile()!!.parent
+        val root = mModule.getModuleFile()!!.parent
 
         val excludedDirs = EXCLUDE_FOLDER_INITIAL.map { it -> "$mRootUrl/$it" }
         val unExcludedDirs = EMPTY_LIST
 
-        ModuleRootModificationUtil.updateExcludedFolders(module, root, unExcludedDirs, excludedDirs)
+        ModuleRootModificationUtil.updateExcludedFolders(mModule, root, unExcludedDirs, excludedDirs)
     }
 
     private fun getFrameworkJar(outDir: String, libName: String): String {
@@ -155,9 +153,7 @@ class ProjectManagerService(val mProject: Project) : ProjectComponent {
 
     private fun updateModuleLibrary(classesRoots: List<String>,
                                     sourcesRoots: List<String>) {
-
-        val module = getAndroidModule()
-        updateModel(module!!, Consumer<com.intellij.openapi.roots.ModifiableRootModel> { model ->
+        updateModel(mModule, Consumer<com.intellij.openapi.roots.ModifiableRootModel> { model ->
             val table = model.moduleLibraryTable
             table.libraries.forEach { table.removeLibrary(it) }
 
@@ -176,12 +172,11 @@ class ProjectManagerService(val mProject: Project) : ProjectComponent {
 
     fun updateOutDir(outDir: String = "") {
         Utils.log(TAG, "exclude dirs for \"$outDir\"")
-        val module = getAndroidModule()
-        val root = module!!.getModuleFile()!!.parent
+        val root = mModule.getModuleFile()!!.parent
         val excludedDirs = File(root.path).list { f, s -> (s != outDir && s.startsWith("out")) }.map { it -> "$mRootUrl/$it" }
         val unExcludedDirs = if (outDir == "") EMPTY_LIST else listOf("$mRootUrl/$outDir")
 
-        ModuleRootModificationUtil.updateExcludedFolders(module, root, unExcludedDirs, excludedDirs)
+        ModuleRootModificationUtil.updateExcludedFolders(mModule, root, unExcludedDirs, excludedDirs)
 
         val classesRoots = if (outDir == "") EMPTY_LIST else FRAMEWORK_LIBRARY_NAMES.map { it -> getFrameworkJar(outDir, it) }
         var sourcesRoots: List<String> = EMPTY_LIST
@@ -197,66 +192,66 @@ class ProjectManagerService(val mProject: Project) : ProjectComponent {
     }
 
     override fun getComponentName(): String {
-        return "Android Builder Project Manager"
-    }
-
-    override fun disposeComponent() {
-        Utils.log(TAG, "dispose")
+        return "Android Builder Module Monitor"
     }
 
     override fun initComponent() {
         Utils.log(TAG, "init")
     }
 
-    override fun projectClosed() {
-        Utils.log(TAG, "project is closed")
-        if (mToolbar != null) {
-            getDeviceManager().removeDeviceStateListener(mToolbar!!)
-            mToolbar = null
-        }
+    override fun disposeComponent() {
+        Utils.log(TAG, "dispose")
+        mToolbar = null
     }
 
-    private fun isAndroidModule(): Boolean {
-        val module = getAndroidModule()
-        if (module == null) {
-            return false
-        }
-        val root = module.getModuleFile()!!.parent
-        val files = arrayOf("Makefile", "build/envsetup.sh")
-        return files.all { f -> File(root.path, f).exists() }
-    }
+    override fun moduleAdded() {
+        Utils.log(TAG, "module is added")
 
-    override fun projectOpened() {
-        Utils.log(TAG, "project is opened")
-
-        if (!isAndroidModule()) {
+        if (!isAndroidModule(mModule)) {
             Utils.log(TAG, "This is not android platform project.")
-            // TODO
-            // add module monitor
             return
         }
-        val module = getAndroidModule()!!
-        val root = module.getModuleFile()!!.parent
+
+        val root = mModule.getModuleFile()!!.parent
         mRootUrl = root.url
         mRootUrlForJar = "jar" + mRootUrl.substring(4)
         updateExcludeFoldersFirst()
         updateOutDir()
 
-        mToolbar = ServiceManager.getService(mProject, BuildToolbar::class.java)
-        getDeviceManager().addDeviceStateListener(mToolbar!!)
+        mToolbar = ServiceManager.getService(mModule.project, BuildToolbar::class.java)
+    }
+
+
+    override fun projectClosed() {
+        Utils.log(TAG, "project is closed")
+    }
+
+    override fun projectOpened() {
+        Utils.log(TAG, "project is opened")
     }
 
     fun onOutDirChanged(outDir: String) {
-        if (isAndroidModule()) {
+        if (isAndroidModule(mModule)) {
             updateOutDir(outDir)
         }
     }
+}
 
-    fun getAndroidModule(): Module? {
-        return ModuleManager.getInstance(mProject).findModuleByName("android")
-    }
+private val ANDROID_MODULE_NAME = "android"
 
-    private fun getDeviceManager(): DeviceManager {
-        return ServiceManager.getService(DeviceManager::class.java)!!
+private fun isAndroidModule(module: Module?): Boolean {
+    if (module == null) {
+        return false
     }
+    if (module.name != ANDROID_MODULE_NAME) {
+        return false
+    }
+    val root = module.getModuleFile()!!.parent
+    val files = arrayOf("Makefile", "build/envsetup.sh")
+    return files.all { f -> File(root.path, f).exists() }
+}
+
+fun getAndroidModule(project: Project): Module? {
+    val module = ModuleManager.getInstance(project).findModuleByName(ANDROID_MODULE_NAME)
+    return if (isAndroidModule(module)) module else null
 }

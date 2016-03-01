@@ -18,14 +18,13 @@
 
 package dbgsprw.core
 
-import com.intellij.openapi.Disposable
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.util.io.SafeFileOutputStream
 import dbgsprw.app.BuildConsole
 import dbgsprw.app.BuildService
-import dbgsprw.app.ProjectManagerService
+import dbgsprw.app.getAndroidModule
 import dbgsprw.device.Device
 import java.io.BufferedOutputStream
 import java.io.File
@@ -33,8 +32,7 @@ import java.io.File
 /**
  * Created by ganadist on 16. 3. 1.
  */
-class BuildServiceImpl(val mProject: Project) : CommandExecutor(), BuildService, Disposable {
-
+class BuildServiceImpl(val mProject: Project) : CommandExecutor(), BuildService {
     private val TAG = "BuildServiceImpl"
     private var mTargetProduct = ""
     private var mBuildVariant = ""
@@ -81,8 +79,12 @@ class BuildServiceImpl(val mProject: Project) : CommandExecutor(), BuildService,
         mOneShotMakefile = directory + File.separator + Utils.ANDROID_MK
     }
 
-    override fun setOutPathListener(listener: BuildService.OutPathListener) {
-        mOutPathListener = listener
+    override fun setOutPathListener(listener: BuildService.OutPathListener?) {
+        if (listener == null) {
+            mOutPathListener = mDummyOutPathListener
+        } else {
+            mOutPathListener = listener
+        }
     }
 
     override fun runCombo(listener: BuildService.ComboMenuListener) {
@@ -102,6 +104,8 @@ class BuildServiceImpl(val mProject: Project) : CommandExecutor(), BuildService,
     }
 
     override fun build(jobs: Int, verbose: Boolean, extras: String?, listener: BuildConsole.ExitListener) {
+        updateAndroidJavaHome()
+
         val command: MutableList<String> = mutableListOf()
         command.add("make")
         if (jobs > 1) {
@@ -170,16 +174,12 @@ class BuildServiceImpl(val mProject: Project) : CommandExecutor(), BuildService,
         }
     }
 
-    private fun getProjectManagerService(): ProjectManagerService {
-        return ServiceManager.getService(mProject, ProjectManagerService::class.java)
-    }
-
     private fun getConsole(): BuildConsole {
-        return ServiceManager.getService(mProject, BuildConsole::class.java)
+        return ServiceManager.getService(mProject, BuildConsole::class.java)!!
     }
 
     private fun updateAndroidJavaHome() {
-        val module = getProjectManagerService().getAndroidModule()!!
+        val module = getAndroidModule(mProject)!!
         val moduleSdk = ModuleRootManager.getInstance(module).sdk
 
         if (moduleSdk == null) {
@@ -237,7 +237,8 @@ class BuildServiceImpl(val mProject: Project) : CommandExecutor(), BuildService,
         }, true)
     }
 
-    private var mOutPathListener: BuildService.OutPathListener = object : BuildService.OutPathListener {}
+    private val mDummyOutPathListener = object : BuildService.OutPathListener {}
+    private var mOutPathListener: BuildService.OutPathListener = mDummyOutPathListener
 
     private fun generateBuildSpec() {
         val FIRST_LINE = "# generated from AndroidBuilder\n"

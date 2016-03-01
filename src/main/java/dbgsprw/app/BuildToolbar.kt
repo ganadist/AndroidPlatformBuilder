@@ -17,12 +17,13 @@
 
 package dbgsprw.app
 
+import com.intellij.openapi.Disposable
 import dbgsprw.device.DeviceManager
 
 /**
  * Created by ganadist on 16. 3. 1.
  */
-interface BuildToolbar : DeviceManager.DeviceStateListener {
+interface BuildToolbar : DeviceManager.DeviceStateListener, Disposable {
     fun doMake()
     fun doMm()
 }
