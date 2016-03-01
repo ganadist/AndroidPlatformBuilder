@@ -8,4 +8,5 @@
 **/*.ipr
 **/*.iws
 testproject/out*
+testproject/buildspec.mk*
 gradle.properties
