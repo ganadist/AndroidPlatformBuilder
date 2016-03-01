@@ -16,63 +16,58 @@
  *
  */
 
-package dbgsprw.core
+package dbgsprw.device
 
 import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStreamReader
 
 /**
- * Created by ganadist on 16. 2. 27.
+ * Created by ganadist on 16. 2. 29.
  */
+class FastBootMonitorImpl(val mFastbootPath: String) : FastbootMonitor {
+    private var mRunning = false
+    private var mDevices: List<String> = listOf()
+    private var mThread: Thread? = null;
 
-class FastbootMonitor(val mFastbootPath: String) {
-    var mDevices: List<String> = listOf()
+    override fun start(listener: FastbootMonitor.FastbootDeviceStateListener) {
+        mRunning = true
 
-    init {
         val builder = ProcessBuilder()
-        Thread(
+        mThread = Thread(
                 {
-                    while (true) {
+                    while (mRunning) {
                         val newDevices: MutableList<String> = mutableListOf()
-                        builder.command(mFastbootPath, "devices")
-                        val process = builder.start()
+                        val process = builder.command(mFastbootPath, "devices").start()
+
                         val br = BufferedReader(InputStreamReader(process.inputStream))
                         try {
                             br.forEachLine { newDevices.add(it.split("\t")[0]) }
-                        } catch (ex: IOException) {}
+                        } catch (ex: IOException) {
+                        }
+
                         val removed = mDevices.toSet().subtract(newDevices)
                         val added = newDevices.toSet().subtract(mDevices)
                         for (dev in removed) {
-                            mListener.onFastbootDeviceRemoved(dev)
+                            listener.onFastbootDeviceRemoved(dev)
                         }
                         for (dev in added) {
-                            mListener.onFastbootDeviceAdded(dev)
+                            listener.onFastbootDeviceAdded(dev)
                         }
                         mDevices = newDevices
 
                         Thread.sleep(1000)
                     }
-                }).start()
+                })
+        mThread!!.start()
     }
 
-    fun setDeviceStateListener(listener: FastbootDeviceStateListener) {
-        mListener = listener
-        for (dev in mDevices) {
-            mListener.onFastbootDeviceAdded(dev)
-        }
-    }
+    override fun stop() {
+        assert(mRunning == true)
+        assert(mThread != null)
 
-    var mListener = object : FastbootDeviceStateListener {
-        override fun onFastbootDeviceRemoved(serial: String) {
-        }
-
-        override fun onFastbootDeviceAdded(serial: String) {
-        }
-    }
-
-    interface FastbootDeviceStateListener {
-        fun onFastbootDeviceRemoved(serial: String)
-        fun onFastbootDeviceAdded(serial: String)
+        mRunning = false;
+        mThread!!.join()
+        mThread = null
     }
 }

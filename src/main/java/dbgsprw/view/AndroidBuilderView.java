@@ -17,9 +17,7 @@
 
 package dbgsprw.view;
 
-import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
-import com.intellij.notification.Notifications;
 import com.intellij.openapi.components.ServiceManager;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
@@ -35,8 +33,8 @@ import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
 import dbgsprw.app.ProjectManagerService;
 import dbgsprw.core.Builder;
-import dbgsprw.core.Device;
-import dbgsprw.core.DeviceStateListener;
+import dbgsprw.device.Device;
+import dbgsprw.device.DeviceManager;
 import dbgsprw.core.Utils;
 import dbgsprw.exception.FileManagerNotFoundException;
 import org.jetbrains.annotations.NotNull;
@@ -52,7 +50,7 @@ import java.util.Map;
 /**
  * Created by ganadist on 16. 2. 23.
  */
-public class AndroidBuilderView implements Builder.OutPathListener, DeviceStateListener {
+public class AndroidBuilderView implements Builder.OutPathListener, DeviceManager.DeviceStateListener {
     private JPanel mAndroidBuilderContent;
     private JPanel mMakeOptionPanel;
     private JLabel mTargetLabel;
@@ -87,7 +85,6 @@ public class AndroidBuilderView implements Builder.OutPathListener, DeviceStateL
     private final static String FASTBOOT_PROPERTIES_PATH = "properties/fastboot_argument.properties";
     private final static String TARGET_PROPERTIES_PATH = "properties/target_argument.properties";
     private final static String VARIANT_PROPERTIES_PATH = "properties/variant_argument.properties";
-
 
     private ButtonGroup mMakeButtonGroup;
     private ButtonGroup mFlashButtonGroup;
