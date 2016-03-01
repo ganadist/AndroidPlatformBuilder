@@ -52,7 +52,7 @@
   <!-- -->
 
   <extensions defaultExtensionNs="com.intellij" >
-    <projectService serviceImplementation="dbgsprw.view.AndroidBuilderSettingStore"/>
+    <projectService serviceImplementation="dbgsprw.app.StateStore"/>
     <projectService serviceInterface="dbgsprw.app.BuildToolbar"
                     serviceImplementation="dbgsprw.view.AndroidBuilderView"/>
     <projectService serviceInterface="dbgsprw.app.BuildConsole"

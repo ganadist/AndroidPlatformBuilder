@@ -34,6 +34,7 @@ import com.intellij.openapi.wm.ToolWindowAnchor;
 import com.intellij.openapi.wm.ex.ToolWindowManagerEx;
 import com.intellij.ui.content.Content;
 import com.intellij.ui.content.ContentFactory;
+import dbgsprw.app.StateStore;
 import dbgsprw.app.BuildConsole;
 import dbgsprw.app.BuildToolbar;
 import dbgsprw.app.ProjectManagerService;
@@ -101,7 +102,7 @@ public class AndroidBuilderView implements BuildToolbar,
     private Project mProject;
     private File mProductOut;
 
-    private AndroidBuilderSettingStore mState;
+    private StateStore mState;
 
     private static final ArgumentProperties sAdbSyncProperties;
     private static final ArgumentProperties sFastbootProperties;
@@ -129,7 +130,7 @@ public class AndroidBuilderView implements BuildToolbar,
         mProject = project;
         mProjectPath = mProject.getBasePath();
 
-        mState = AndroidBuilderSettingStore.getSettings(project);
+        mState = StateStore.getState(project);
         mBuilder = new Builder();
         mBuilder.directory(mProjectPath);
         final HistoryComboModel history = new HistoryComboModel();
