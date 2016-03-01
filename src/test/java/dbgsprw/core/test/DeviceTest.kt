@@ -19,8 +19,8 @@ package dbgsprw.core.test
 
 import com.android.ddmlib.*
 import com.android.ddmlib.log.LogReceiver
-import dbgsprw.core.DeviceAdbImpl
-import dbgsprw.core.DeviceFastbootImpl
+import dbgsprw.device.DeviceAdbImpl
+import dbgsprw.device.DeviceFastbootImpl
 import junit.framework.TestCase
 
 /**
