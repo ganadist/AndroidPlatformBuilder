@@ -19,6 +19,7 @@
 package dbgsprw.core
 
 import com.intellij.openapi.components.ServiceManager
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ModuleRootManager
 import com.intellij.util.io.SafeFileOutputStream
@@ -33,7 +34,7 @@ import java.io.File
  * Created by ganadist on 16. 3. 1.
  */
 class BuildServiceImpl(val mProject: Project) : CommandExecutor(), BuildService {
-    private val TAG = "BuildServiceImpl"
+    private val LOG = Logger.getInstance(BuildServiceImpl::class.java)
     private var mTargetProduct = ""
     private var mBuildVariant = ""
     private var mOutDir = ""
@@ -219,7 +220,7 @@ class BuildServiceImpl(val mProject: Project) : CommandExecutor(), BuildService 
 
     private fun findProductOutPath(): Process {
         val selectedTarget = mTargetProduct + '-' + mBuildVariant
-        Utils.log(TAG, "target = $selectedTarget out_dir = $mOutDir")
+        LOG.info("target = $selectedTarget out_dir = $mOutDir")
         val command = listOf("source build/envsetup.sh > /dev/null",
                 "lunch $selectedTarget > /dev/null",
                 "echo \$ANDROID_PRODUCT_OUT")
@@ -227,7 +228,7 @@ class BuildServiceImpl(val mProject: Project) : CommandExecutor(), BuildService 
         return run(command, object : CommandHandler {
             override fun onOut(line: String) {
                 var path = line
-                Utils.log(TAG, "ANDROID_PRODUCT_OUT set " + path)
+                LOG.info("ANDROID_PRODUCT_OUT set " + path)
                 setenv("ANDROID_PRODUCT_OUT", path);
                 if (!path.startsWith(File.separator)) {
                     path = directory() + File.separator + path

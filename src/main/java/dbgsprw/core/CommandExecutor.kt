@@ -18,6 +18,7 @@
 
 package dbgsprw.core
 
+import com.intellij.openapi.diagnostic.Logger
 import java.io.*
 
 /**
@@ -25,6 +26,7 @@ import java.io.*
  */
 open class CommandExecutor {
     private val mProcessBuilder: ProcessBuilder = ProcessBuilder()
+    private val LOG = Logger.getInstance(CommandExecutor::class.java)
 
     interface CommandHandler {
         fun onOut(line: String)
@@ -51,7 +53,8 @@ open class CommandExecutor {
         Thread({
             try {
                 br.forEachLine { Utils.runOnUi { reader.onRead(it) } }
-            } catch (ex: IOException) {}
+            } catch (ex: IOException) {
+            }
             Utils.runOnUi { reader.onExit() }
         }).start()
     }
@@ -78,7 +81,7 @@ open class CommandExecutor {
             command = arrayOf("bash", "-c", commands.joinToString("&&")).asList()
         }
 
-        Utils.log("Command", "run = " + command.joinToString(" "))
+        LOG.info("run = " + command.joinToString(" "))
         val process = mProcessBuilder.command(command).start()
         readInputStream(process.errorStream, object : OutputReader {
             override fun onRead(line: String) {
@@ -92,7 +95,7 @@ open class CommandExecutor {
 
             override fun onExit() {
                 val exitCode = process.waitFor();
-                Utils.log("Command", command.joinToString(" ") + " is exited with $exitCode")
+                LOG.info(command.joinToString(" ") + " is exited with $exitCode")
                 handler.onExit(process.waitFor())
             }
         })

@@ -21,6 +21,7 @@ package dbgsprw.device
 import com.android.ddmlib.AndroidDebugBridge
 import com.android.ddmlib.IDevice
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.projectRoots.ProjectJdkTable
 import dbgsprw.core.Utils
 import java.io.File
@@ -32,7 +33,7 @@ class DeviceManagerImpl() : DeviceManager,
         AndroidDebugBridge.IDeviceChangeListener,
         FastbootMonitor.FastbootDeviceStateListener,
         Disposable {
-    private val TAG = "DeviceManagerImpl"
+    private val LOG = Logger.getInstance(DeviceManagerImpl::class.java)
     private val mListeners: MutableList<DeviceManager.DeviceStateListener> = mutableListOf()
     private val mDeviceMap: MutableMap<String, Device> = mutableMapOf()
     private var mFastbootMonitor: FastbootMonitor? = null
@@ -46,18 +47,18 @@ class DeviceManagerImpl() : DeviceManager,
 
     private val mSdkLocationListener = object : AndroidSdkLocation {
         override fun onSdkFound(path: String) {
-            Utils.log(TAG, "Android Sdk is found on $path")
+            LOG.info("Android Sdk is found on $path")
             start(path)
         }
     }
 
     init {
-        Utils.log(TAG, "init")
+        LOG.info("init")
         findAndroidSdkHome(mSdkLocationListener)
     }
 
     override fun dispose() {
-        Utils.log(TAG, "dispose")
+        LOG.info("dispose")
         if (mSdkLocationMonitorRunning) {
             mSdkLocationMonitorRunning = false
             //mSdkLocationMonitorThread!!.join()
@@ -68,26 +69,26 @@ class DeviceManagerImpl() : DeviceManager,
     }
 
     private fun deviceAdded(serial: String, device: Device) {
-        Utils.log(TAG, "device is added: $serial")
+        LOG.info("device is added: $serial")
         if (!mDeviceMap.containsKey(serial)) {
             mDeviceMap.put(serial, device)
             for (listener in mListeners) {
                 listener.onDeviceAdded(device)
             }
         } else {
-            Utils.log(TAG, "device name is duplicated. ignore.")
+            LOG.error("device name is duplicated. ignore.")
         }
     }
 
     private fun deviceRemoved(serial: String) {
-        Utils.log(TAG, "device is removed: $serial")
+        LOG.info("device is removed: $serial")
         var device = mDeviceMap.remove(serial)
         if (device != null) {
             for (listener in mListeners) {
                 listener.onDeviceRemoved(device)
             }
         } else {
-            Utils.log(TAG, "no such device name. ignore.")
+            LOG.error("no such device name. ignore.")
         }
     }
 
@@ -184,7 +185,7 @@ class DeviceManagerImpl() : DeviceManager,
         fastbootMonitor.start(this)
         mFastbootMonitor = fastbootMonitor
         mRunning = true
-        Utils.log(TAG, "device manager is started")
+        LOG.info("device manager is started")
     }
 
     fun stop() {
@@ -194,6 +195,6 @@ class DeviceManagerImpl() : DeviceManager,
         fastbootMonitor.stop()
         AndroidDebugBridge.removeDeviceChangeListener(this)
 
-        Utils.log(TAG, "device manager is stopped")
+        LOG.info("device manager is stopped")
     }
 }

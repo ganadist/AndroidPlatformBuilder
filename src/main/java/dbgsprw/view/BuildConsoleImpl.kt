@@ -23,6 +23,7 @@ import com.intellij.execution.ui.ConsoleViewContentType
 import com.intellij.execution.ui.RunnerLayoutUi
 import com.intellij.execution.ui.layout.PlaceInGrid
 import com.intellij.notification.NotificationType
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VfsUtil
 import com.intellij.openapi.wm.ToolWindowAnchor
@@ -30,7 +31,6 @@ import com.intellij.openapi.wm.ex.ToolWindowManagerEx
 import com.intellij.ui.content.ContentFactory
 import dbgsprw.app.BuildConsole
 import dbgsprw.core.CommandExecutor
-import dbgsprw.core.Utils
 import java.awt.BorderLayout
 import java.util.regex.Pattern
 import javax.swing.JPanel
@@ -39,7 +39,7 @@ import javax.swing.JPanel
  * Created by ganadist on 16. 3. 1.
  */
 class BuildConsoleImpl(val mProject: Project) : BuildConsole {
-    private val TAG = "BuildConsoleImpl"
+    private val LOG = Logger.getInstance(BuildConsoleImpl::class.java)
     private val CONSOLE_ID = "Android Builder Console"
     private val TOOL_WINDOW_ID = "Android Build Console"
 
@@ -49,12 +49,12 @@ class BuildConsoleImpl(val mProject: Project) : BuildConsole {
             ToolWindowAnchor.BOTTOM, mProject, true)
 
     init {
-        Utils.log(TAG, "init")
+        LOG.info("init")
         setupToolWindow()
     }
 
     override fun dispose() {
-        Utils.log(TAG, "dispose")
+        LOG.info("dispose")
         ToolWindowManagerEx.getInstanceEx(mProject).unregisterToolWindow(TOOL_WINDOW_ID)
     }
 
@@ -78,7 +78,7 @@ class BuildConsoleImpl(val mProject: Project) : BuildConsole {
     }
 
     override fun run(listener: BuildConsole.ExitListener): CommandExecutor.CommandHandler {
-        Utils.log(TAG, "run")
+        LOG.info("run")
         assert(mExitListener == null)
         mExitListener = listener
         mConsoleView.clear()
@@ -131,7 +131,7 @@ class BuildConsoleImpl(val mProject: Project) : BuildConsole {
     }
 
     override fun onExit(code: Int) {
-        Utils.log(TAG, "exit with $code")
+        LOG.info("exit with $code")
         if (mExitListener != null) {
             mExitListener!!.onExit()
             mExitListener = null

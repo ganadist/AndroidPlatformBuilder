@@ -21,6 +21,7 @@ import com.intellij.facet.FacetManager
 import com.intellij.facet.FacetTypeRegistry
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.ServiceManager
+import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
 import com.intellij.openapi.module.ModuleComponent
 import com.intellij.openapi.module.ModuleManager
@@ -29,7 +30,6 @@ import com.intellij.openapi.roots.*
 import com.intellij.openapi.roots.impl.libraries.LibraryEx
 import com.intellij.openapi.util.Computable
 import com.intellij.util.Consumer
-import dbgsprw.core.Utils
 import java.io.File
 
 
@@ -37,7 +37,7 @@ import java.io.File
  * Created by ganadist on 16. 2. 29.
  */
 class ModuleMonitor(val mModule: Module) : ModuleComponent {
-    val TAG = "ModuleMonitor"
+    private val LOG = Logger.getInstance(ModuleMonitor::class.java)
     var mRootUrl = ""
     var mRootUrlForJar = ""
     val EMPTY_LIST: List<String> = listOf()
@@ -117,7 +117,7 @@ class ModuleMonitor(val mModule: Module) : ModuleComponent {
     private val TARGET_COMMON_LIBPATH = "/target/common/obj/JAVA_LIBRARIES/"
 
     private fun updateExcludeFoldersFirst() {
-        Utils.log(TAG, "exclude dirs first")
+        LOG.info("exclude dirs first")
         val root = mModule.getModuleFile()!!.parent
 
         val excludedDirs = EXCLUDE_FOLDER_INITIAL.map { it -> "$mRootUrl/$it" }
@@ -173,7 +173,7 @@ class ModuleMonitor(val mModule: Module) : ModuleComponent {
     }
 
     fun updateOutDir(outDir: String = "") {
-        Utils.log(TAG, "exclude dirs for \"$outDir\"")
+        LOG.info("exclude dirs for \"$outDir\"")
         val root = mModule.getModuleFile()!!.parent
         val excludedDirs = File(root.path).list { f, s -> (s != outDir && s.startsWith("out")) }.map { it -> "$mRootUrl/$it" }
         val unExcludedDirs = if (outDir == "") EMPTY_LIST else listOf("$mRootUrl/$outDir")
@@ -198,11 +198,11 @@ class ModuleMonitor(val mModule: Module) : ModuleComponent {
     }
 
     override fun initComponent() {
-        Utils.log(TAG, "init")
+        LOG.info("init")
     }
 
     override fun disposeComponent() {
-        Utils.log(TAG, "dispose")
+        LOG.info("dispose")
         mToolbar = null
     }
 
@@ -212,22 +212,22 @@ class ModuleMonitor(val mModule: Module) : ModuleComponent {
         val facetManager = FacetManager.getInstance(mModule)
         val hasAndroidFacet = facetManager.allFacets.any { f -> f.name == ANDROID_FACET_NAME }
         if (!hasAndroidFacet) {
-            Utils.log(TAG, "add dummy Android Facet")
+            LOG.info("add dummy Android Facet")
             val model = facetManager.createModifiableModel()
             val facetType = FacetTypeRegistry.getInstance().findFacetType(ANDROID_FACET_TYPE_NAME)
             val facet = facetManager.createFacet(facetType!!, ANDROID_FACET_NAME, null)
             model.addFacet(facet)
             model.commit()
         } else {
-            Utils.log(TAG, "Android Facet is configured already")
+            LOG.info("Android Facet is configured already")
         }
     }
 
     override fun moduleAdded() {
-        Utils.log(TAG, "module is added")
+        LOG.info("module is added")
 
         if (!isAndroidModule(mModule)) {
-            Utils.log(TAG, "This is not android platform project.")
+            LOG.warn("This is not android platform project.")
             return
         }
 
@@ -243,11 +243,11 @@ class ModuleMonitor(val mModule: Module) : ModuleComponent {
 
 
     override fun projectClosed() {
-        Utils.log(TAG, "project is closed")
+        LOG.info("project is closed")
     }
 
     override fun projectOpened() {
-        Utils.log(TAG, "project is opened")
+        LOG.info("project is opened")
     }
 
     fun onOutDirChanged(outDir: String) {

@@ -19,10 +19,10 @@ package dbgsprw.view;
 
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.components.ServiceManager;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.fileEditor.FileEditorManager;
-import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleServiceManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
@@ -80,7 +80,7 @@ public class AndroidBuilderView implements BuildToolbar,
     private JLabel mResultPathValueLabel;
     private JButton mOpenDirectoryButton;
 
-    private final static String TAG = "BuilderView";
+    private final static Logger LOG = Logger.getInstance(AndroidBuilderView.class);
     private final static String CURRENT_PATH = "Current Path";
     private final static String ADB_PROPERTIES_PATH = "properties/adb_sync_argument.properties";
     private final static String FASTBOOT_PROPERTIES_PATH = "properties/fastboot_argument.properties";
@@ -111,7 +111,7 @@ public class AndroidBuilderView implements BuildToolbar,
     }
 
     AndroidBuilderView(Project project) {
-        Utils.log(TAG, "init");
+        LOG.info("init");
 
         ToolWindowManagerEx wm = ToolWindowManagerEx.getInstanceEx(project);
         ToolWindow window = wm.registerToolWindow(TOOLBAR_WINDOW_ID, false, ToolWindowAnchor.RIGHT,
@@ -621,7 +621,7 @@ public class AndroidBuilderView implements BuildToolbar,
     @Override
     public void onDeviceAdded(@NotNull Device device) {
         String name = device.getDeviceName();
-        Utils.log("BuilderView", "device is added: " + name);
+        LOG.info("device is added: " + name);
         mDevices.put(name, device);
         mDeviceListComboBox.addItem(name);
         changeFlashButton();
@@ -630,7 +630,7 @@ public class AndroidBuilderView implements BuildToolbar,
     @Override
     public void onDeviceRemoved(@NotNull Device device) {
         String name = device.getDeviceName();
-        Utils.log("BuilderView", "device is removed: " + name);
+        LOG.info("device is removed: " + name);
         mDeviceListComboBox.removeItem(name);
         mDevices.remove(name);
         changeFlashButton();
@@ -647,7 +647,7 @@ public class AndroidBuilderView implements BuildToolbar,
 
     @Override
     public void dispose() {
-        Utils.log(TAG, "dispose");
+        LOG.info("dispose");
         ServiceManager.getService(DeviceManager.class).removeDeviceStateListener(this);
         getBuilder().setOutPathListener(null);
         ToolWindowManagerEx.getInstanceEx(mProject).unregisterToolWindow(TOOLBAR_WINDOW_ID);
