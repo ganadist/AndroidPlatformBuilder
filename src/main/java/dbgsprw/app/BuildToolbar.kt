@@ -23,7 +23,7 @@ import dbgsprw.device.DeviceManager
 /**
  * Created by ganadist on 16. 3. 1.
  */
-interface BuildToolbar : DeviceManager.DeviceStateListener, Disposable {
+interface BuildToolbar : Disposable {
     fun doMake()
     fun doMm()
 }

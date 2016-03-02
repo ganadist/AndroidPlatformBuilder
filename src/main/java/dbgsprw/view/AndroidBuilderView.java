@@ -50,6 +50,7 @@ import java.util.Map;
  * Created by ganadist on 16. 2. 23.
  */
 public class AndroidBuilderView implements BuildToolbar,
+        DeviceManager.DeviceStateListener,
         BuildService.OutPathListener {
     private JPanel mAndroidBuilderContent;
     private JPanel mMakeOptionPanel;

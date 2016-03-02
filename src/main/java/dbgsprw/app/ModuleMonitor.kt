@@ -38,10 +38,10 @@ import java.io.File
  */
 class ModuleMonitor(val mModule: Module) : ModuleComponent {
     private val LOG = Logger.getInstance(ModuleMonitor::class.java)
-    var mRootUrl = ""
-    var mRootUrlForJar = ""
-    val EMPTY_LIST: List<String> = listOf()
-    var mToolbar: BuildToolbar? = null
+    private var mRootUrl = ""
+    private var mRootUrlForJar = ""
+    private val EMPTY_LIST: List<String> = listOf()
+    private var mToolbar: BuildToolbar? = null
 
     private val EXCLUDE_FOLDER_INITIAL = arrayOf(
             "abi",
