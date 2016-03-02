@@ -30,6 +30,7 @@ import com.intellij.openapi.roots.*
 import com.intellij.openapi.roots.impl.libraries.LibraryEx
 import com.intellij.openapi.util.Computable
 import com.intellij.util.Consumer
+import dbgsprw.core.Utils
 import java.io.File
 
 
@@ -267,7 +268,10 @@ private fun isAndroidModule(module: Module?): Boolean {
         return false
     }
     val root = module.getModuleFile()!!.parent
-    val files = arrayOf("Makefile", "build/envsetup.sh")
+    val files = arrayOf(Utils.MAKEFILE,
+            Utils.ENVSETUP_SH,
+            Utils.VERSION_DEFAULT_MK
+    )
     return files.all { f -> File(root.path, f).exists() }
 }
 

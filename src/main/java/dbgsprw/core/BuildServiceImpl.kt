@@ -89,7 +89,7 @@ class BuildServiceImpl(val mProject: Project) : CommandExecutor(), BuildService 
     }
 
     override fun runCombo(listener: BuildService.ComboMenuListener) {
-        val command = listOf("source build/envsetup.sh > /dev/null",
+        val command = listOf("source ${Utils.ENVSETUP_SH} > /dev/null",
                 "printf '%s\n' \${LUNCH_MENU_CHOICES[@]} | cut -f 1 -d - | sort -u")
 
         mComboProcess = run(command, object : CommandHandler {
@@ -228,7 +228,7 @@ class BuildServiceImpl(val mProject: Project) : CommandExecutor(), BuildService 
     private fun findProductOutPath(): Process {
         val selectedTarget = mTargetProduct + '-' + mBuildVariant
         LOG.info("target = $selectedTarget out_dir = $mOutDir")
-        val command = listOf("source build/envsetup.sh > /dev/null",
+        val command = listOf("source ${Utils.ENVSETUP_SH} > /dev/null",
                 "lunch $selectedTarget > /dev/null",
                 "echo \$ANDROID_PRODUCT_OUT")
 
@@ -259,8 +259,8 @@ class BuildServiceImpl(val mProject: Project) : CommandExecutor(), BuildService 
             sb.append("CM_BUILD?=$cmBuild\n")
         }
 
-        val specFileName = "buildspec.mk.AndroidBuilder"
-        val buildSpec = File(directory(), "buildspec.mk")
+        val specFileName = Utils.BUILDSPEC_MK + ".AndroidBuilder"
+        val buildSpec = File(directory(), Utils.BUILDSPEC_MK)
         if (!buildSpec.exists() && buildSpec.createNewFile()) {
             val bos = BufferedOutputStream(SafeFileOutputStream(buildSpec)).bufferedWriter()
             bos.write(FIRST_LINE)

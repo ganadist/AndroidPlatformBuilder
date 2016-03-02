@@ -24,6 +24,10 @@ import java.io.File;
 
 public class Utils {
     public static final String ANDROID_MK = "Android.mk";
+    public static final String MAKEFILE = "Makefile";
+    public static final String ENVSETUP_SH = pathJoin("build", "envsetup.sh");
+    public static final String VERSION_DEFAULT_MK = pathJoin("build", "core", "version_defaults.mk");
+    public static final String BUILDSPEC_MK = "buildspec.mk";
     private static final String EMPTY = "";
 
     public static String join(final char separator, final Object[] array) {
