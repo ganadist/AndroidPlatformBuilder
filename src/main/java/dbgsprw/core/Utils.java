@@ -16,6 +16,9 @@
 
 package dbgsprw.core;
 
+import com.intellij.openapi.application.Application;
+import com.intellij.openapi.application.ApplicationManager;
+
 import javax.swing.*;
 import java.io.File;
 
@@ -72,10 +75,11 @@ public class Utils {
     }
 
     public static void runOnUi(Runnable runnable) {
-        if (SwingUtilities.isEventDispatchThread()) {
+        final Application app = ApplicationManager.getApplication();
+        if (app.isDispatchThread()) {
             runnable.run();
         } else {
-            SwingUtilities.invokeLater(runnable);
+            app.invokeLater(runnable);
         }
     }
 }
