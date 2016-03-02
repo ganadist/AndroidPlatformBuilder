@@ -48,12 +48,9 @@ class FastBootMonitorImpl(val mFastbootPath: String) : FastbootMonitor {
 
                         val removed = mDevices.toSet().subtract(newDevices)
                         val added = newDevices.toSet().subtract(mDevices)
-                        for (dev in removed) {
-                            listener.onFastbootDeviceRemoved(dev)
-                        }
-                        for (dev in added) {
-                            listener.onFastbootDeviceAdded(dev)
-                        }
+                        removed.forEach { listener.onFastbootDeviceRemoved(it) }
+                        added.forEach { listener.onFastbootDeviceAdded(it) }
+
                         mDevices = newDevices
 
                         Thread.sleep(1000)

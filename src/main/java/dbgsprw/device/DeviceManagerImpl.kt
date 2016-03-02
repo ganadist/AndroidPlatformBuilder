@@ -72,9 +72,7 @@ class DeviceManagerImpl() : DeviceManager,
         LOG.info("device is added: $serial")
         if (!mDeviceMap.containsKey(serial)) {
             mDeviceMap.put(serial, device)
-            for (listener in mListeners) {
-                listener.onDeviceAdded(device)
-            }
+            mListeners.forEach { it.onDeviceAdded(device) }
         } else {
             LOG.error("device name is duplicated. ignore.")
         }
@@ -84,18 +82,14 @@ class DeviceManagerImpl() : DeviceManager,
         LOG.info("device is removed: $serial")
         var device = mDeviceMap.remove(serial)
         if (device != null) {
-            for (listener in mListeners) {
-                listener.onDeviceRemoved(device)
-            }
+            mListeners.forEach { it.onDeviceRemoved(device) }
         } else {
             LOG.error("no such device name. ignore.")
         }
     }
 
     override fun addDeviceStateListener(listener: DeviceManager.DeviceStateListener) {
-        for (device in mDeviceMap.values) {
-            listener.onDeviceAdded(device)
-        }
+        mDeviceMap.values.forEach { listener.onDeviceAdded(it) }
         mListeners.add(listener)
     }
 
