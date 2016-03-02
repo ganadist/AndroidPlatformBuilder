@@ -84,11 +84,10 @@
 
   </actions>
 
-  <module-components>
+  <project-components>
     <component>
-      <implementation-class>dbgsprw.app.ModuleMonitor</implementation-class>
-      <option name="type" value="JAVA_MODULE"/>
+      <implementation-class>dbgsprw.app.ProjectMonitor</implementation-class>
     </component>
-  </module-components>
+  </project-components>
 
 </idea-plugin>

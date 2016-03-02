@@ -17,24 +17,27 @@
 
 package dbgsprw.app
 
+import com.intellij.ProjectTopics
 import com.intellij.facet.FacetManager
 import com.intellij.facet.FacetTypeRegistry
 import com.intellij.notification.Notification
 import com.intellij.notification.NotificationType
 import com.intellij.notification.Notifications
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.components.ProjectComponent
 import com.intellij.openapi.components.ServiceManager
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.module.Module
-import com.intellij.openapi.module.ModuleComponent
 import com.intellij.openapi.module.ModuleManager
 import com.intellij.openapi.options.ShowSettingsUtil
+import com.intellij.openapi.project.ModuleListener
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.*
 import com.intellij.openapi.roots.impl.libraries.LibraryEx
 import com.intellij.openapi.roots.ui.configuration.ProjectStructureConfigurable
 import com.intellij.openapi.util.Computable
 import com.intellij.util.Consumer
+import com.intellij.util.Function
 import dbgsprw.core.Utils
 import java.io.File
 
@@ -42,15 +45,16 @@ import java.io.File
 /**
  * Created by ganadist on 16. 2. 29.
  */
-class ModuleMonitor(val mModule: Module) : ModuleComponent {
-    private val LOG = Logger.getInstance(ModuleMonitor::class.java)
-    private val mRootFile = mModule.getModuleFile()!!.parent
-    private val mRootPath = mRootFile.path
-    private val mRootUrl = mRootFile.url
-    private val mRootUrlForJar = "jar" + mRootUrl.substring(4)
+class ProjectMonitor(val mProject: Project) : ProjectComponent, ModuleListener {
+    private val LOG = Logger.getInstance(ProjectMonitor::class.java)
     private val EMPTY_LIST: List<String> = listOf()
     private var mPlatformVersion = -1
+    private val mConnection = mProject.messageBus.connect()
     private var mToolbar: BuildToolbar? = null
+
+    init {
+        mConnection.subscribe(ProjectTopics.MODULES, this)
+    }
 
     private val EXCLUDE_FOLDER_INITIAL = arrayOf(
             "abi",
@@ -125,20 +129,27 @@ class ModuleMonitor(val mModule: Module) : ModuleComponent {
 
     private val TARGET_COMMON_LIBPATH = "/target/common/obj/JAVA_LIBRARIES/"
 
-    private fun updateExcludeFoldersFirst() {
+    private class ModuleInfo(val mModule: Module) {
+        val mRootFile = mModule.getModuleFile()!!.parent
+        val mRootPath = mRootFile.path
+        val mRootUrl = mRootFile.url
+        val mRootUrlForJar = "jar" + mRootUrl.substring(4)
+    }
+
+    private fun updateExcludeFoldersFirst(info: ModuleInfo) {
         LOG.info("exclude dirs first")
-        val excludedDirs = EXCLUDE_FOLDER_INITIAL.map { it -> "$mRootUrl/$it" }
+        val excludedDirs = EXCLUDE_FOLDER_INITIAL.map { it -> "${info.mRootUrl}/$it" }
         val unExcludedDirs = EMPTY_LIST
 
-        ModuleRootModificationUtil.updateExcludedFolders(mModule, mRootFile, unExcludedDirs, excludedDirs)
+        ModuleRootModificationUtil.updateExcludedFolders(info.mModule, info.mRootFile, unExcludedDirs, excludedDirs)
     }
 
-    private fun getFrameworkJar(outDir: String, libName: String): String {
-        return "$mRootUrlForJar/$outDir/$TARGET_COMMON_LIBPATH/${libName}_intermediates/classes-full-debug.jar!/"
+    private fun getFrameworkJar(info: ModuleInfo, outDir: String, libName: String): String {
+        return "${info.mRootUrlForJar}/$outDir/$TARGET_COMMON_LIBPATH/${libName}_intermediates/classes-full-debug.jar!/"
     }
 
-    private fun getFrameworkSource(outDir: String, libName: String): String {
-        return "$mRootUrl/$outDir/$TARGET_COMMON_LIBPATH/${libName}_intermediates/src/"
+    private fun getFrameworkSource(info: ModuleInfo, outDir: String, libName: String): String {
+        return "${info.mRootUrl}/$outDir/$TARGET_COMMON_LIBPATH/${libName}_intermediates/src/"
     }
 
     private fun updateModel(module: Module, task: Consumer<ModifiableRootModel>) {
@@ -160,9 +171,9 @@ class ModuleMonitor(val mModule: Module) : ModuleComponent {
         app.invokeAndWait({ app.runWriteAction(action) }, app.defaultModalityState)
     }
 
-    private fun updateModuleLibrary(classesRoots: List<String>,
+    private fun updateModuleLibrary(module: Module, classesRoots: List<String>,
                                     sourcesRoots: List<String>) {
-        updateModel(mModule, Consumer<com.intellij.openapi.roots.ModifiableRootModel> { model ->
+        updateModel(module, Consumer<com.intellij.openapi.roots.ModifiableRootModel> { model ->
             val table = model.moduleLibraryTable
             table.libraries.forEach { table.removeLibrary(it) }
 
@@ -179,24 +190,26 @@ class ModuleMonitor(val mModule: Module) : ModuleComponent {
         })
     }
 
-    fun updateOutDir(outDir: String = "") {
+    fun updateOutDir(module: Module, outDir: String = "") {
         LOG.info("exclude dirs for \"$outDir\"")
-        val excludedDirs = File(mRootPath).list { f, s -> (s != outDir && s.startsWith("out")) }.map { it -> "$mRootUrl/$it" }
-        val unExcludedDirs = if (outDir == "") EMPTY_LIST else listOf("$mRootUrl/$outDir")
 
-        ModuleRootModificationUtil.updateExcludedFolders(mModule, mRootFile, unExcludedDirs, excludedDirs)
+        val info: ModuleInfo = ModuleInfo(module)
+        val excludedDirs = File(info.mRootPath).list { f, s -> (s != outDir && s.startsWith("out")) }.map { it -> "${info.mRootUrl}/$it" }
+        val unExcludedDirs = if (outDir == "") EMPTY_LIST else listOf("${info.mRootUrl}/$outDir")
 
-        val classesRoots = if (outDir == "") EMPTY_LIST else FRAMEWORK_LIBRARY_NAMES.map { it -> getFrameworkJar(outDir, it) }
+        ModuleRootModificationUtil.updateExcludedFolders(info.mModule, info.mRootFile, unExcludedDirs, excludedDirs)
+
+        val classesRoots = if (outDir == "") EMPTY_LIST else FRAMEWORK_LIBRARY_NAMES.map { it -> getFrameworkJar(info, outDir, it) }
         var sourcesRoots: List<String> = EMPTY_LIST
 
         if (outDir != "") {
             val roots: MutableList<String> = mutableListOf()
-            roots.addAll(FRAMEWORK_LIBRARY_SOURCES.map { it -> "$mRootUrl/$it" })
-            roots.addAll(FRAMEWORK_LIBRARY_NAMES.map { it -> getFrameworkSource(outDir, it) })
+            roots.addAll(FRAMEWORK_LIBRARY_SOURCES.map { it -> "${info.mRootUrl}/$it" })
+            roots.addAll(FRAMEWORK_LIBRARY_NAMES.map { it -> getFrameworkSource(info, outDir, it) })
             sourcesRoots = roots
         }
 
-        updateModuleLibrary(classesRoots, sourcesRoots)
+        updateModuleLibrary(module, classesRoots, sourcesRoots)
     }
 
     override fun getComponentName(): String {
@@ -214,8 +227,8 @@ class ModuleMonitor(val mModule: Module) : ModuleComponent {
 
     private val ANDROID_FACET_NAME = "Android"
     private val ANDROID_FACET_TYPE_NAME = "android"
-    private fun updateFacet() {
-        val facetManager = FacetManager.getInstance(mModule)
+    private fun updateFacet(module: Module) {
+        val facetManager = FacetManager.getInstance(module)
         val hasAndroidFacet = facetManager.allFacets.any { f -> f.name == ANDROID_FACET_NAME }
         if (!hasAndroidFacet) {
             LOG.info("add dummy Android Facet")
@@ -223,97 +236,143 @@ class ModuleMonitor(val mModule: Module) : ModuleComponent {
             val facetType = FacetTypeRegistry.getInstance().findFacetType(ANDROID_FACET_TYPE_NAME)
             val facet = facetManager.createFacet(facetType!!, ANDROID_FACET_NAME, null)
             model.addFacet(facet)
-            model.commit()
+            doWriteAction(Runnable { model.commit() })
         } else {
             LOG.info("Android Facet is configured already")
         }
     }
 
-    private fun findPlatformVersion() {
-        for (line in File(mRootPath, Utils.VERSION_DEFAULT_MK).readLines()) {
+    private fun findPlatformVersion(info: ModuleInfo) {
+        for (line in File(info.mRootPath, Utils.VERSION_DEFAULT_MK).readLines()) {
             if (!line.contains("PLATFORM_SDK_VERSION := ")) {
                 continue
             }
             val versionStr = line.split(" := ")[1]
             try {
                 mPlatformVersion = versionStr.toInt()
-            } catch (ex: NumberFormatException){ }
+            } catch (ex: NumberFormatException) {
+            }
             break
         }
     }
 
-    private fun showSdkSettingNotify(javaVersion: String) {
-        val sdk = ModuleRootManager.getInstance(mModule).sdk
+    private fun showSdkSettingNotify(module: Module, javaVersion: String) {
         Notifications.Bus.notify(Notification("Android Builder", "Android Builder",
                 "Module SDK is invalid.<br/><a href=''>Please set module SDK to ${javaVersion}</a>",
                 NotificationType.ERROR,
                 com.intellij.notification.NotificationListener({ notification, event ->
-                    val config = ProjectStructureConfigurable.getInstance(mModule.project)
-                    ShowSettingsUtil.getInstance().editConfigurable(mModule.project, config, Runnable {
-                        config.select(ANDROID_MODULE_NAME, "Dependencies", true)
+                    notification.hideBalloon()
+                    val config = ProjectStructureConfigurable.getInstance(module.project)
+                    ShowSettingsUtil.getInstance().editConfigurable(module.project, config, Runnable {
+                        config.selectOrderEntry(module, null)
                     })
                 })))
     }
 
-    private fun checkModuleSdk() {
-        val sdk = ModuleRootManager.getInstance(mModule).sdk
+    private val BELOW_K = 20
+    private val ABOVE_L = 21
+
+    private fun checkModuleSdk(module: Module) {
+        val sdk = ModuleRootManager.getInstance(module).sdk
         var requiredVersion = ""
-        if (mPlatformVersion <= 20) {
+        if (mPlatformVersion <= BELOW_K) {
             requiredVersion = "Sun JDK SE 1.6"
         } else {
             requiredVersion = "OpenJDK 1.7"
         }
 
         if (sdk == null) {
-            showSdkSettingNotify(requiredVersion)
+            showSdkSettingNotify(module, requiredVersion)
             return
         }
 
         val name = sdk.name
-        val version = sdk.versionString!!
+        val version = if (sdk.versionString != null) sdk.versionString!! else ""
+
         LOG.info("detected module sdk = \"${name}\" \"${version}\"")
-        if (mPlatformVersion <= 20 && version.contains("1.6")) {
+        if (mPlatformVersion <= BELOW_K && version.contains("1.6")) {
             // below kitkat,
-        } else if (mPlatformVersion >= 21 && version.contains("1.7")) {
+        } else if (mPlatformVersion >= ABOVE_L && version.contains("1.7")) {
             // above lollipop
         } else {
-            showSdkSettingNotify(requiredVersion)
+            showSdkSettingNotify(module, requiredVersion)
         }
     }
 
-    override fun moduleAdded() {
-        LOG.info("module is added")
+    private fun androidModuleAdded(module: Module) {
+        LOG.info("android module is added")
 
-        if (!isAndroidModule(mModule)) {
-            LOG.warn("This is not android platform project.")
+        if (mToolbar != null) {
+            LOG.error("duplicated android module")
             return
         }
-        findPlatformVersion()
+
+        val info = ModuleInfo(module)
+        findPlatformVersion(info)
         if (mPlatformVersion < 0) {
             LOG.warn("Cannot find platform version. This is not android platform project.")
             return
         }
 
-        updateExcludeFoldersFirst()
-        updateOutDir()
-        updateFacet()
-        checkModuleSdk()
+        updateExcludeFoldersFirst(info)
+        updateOutDir(module)
+        updateFacet(module)
+        checkModuleSdk(module)
 
-        mToolbar = ServiceManager.getService(mModule.project, BuildToolbar::class.java)
+        mToolbar = ServiceManager.getService(module.project, BuildToolbar::class.java)
     }
 
+    private fun androidModuleRemoved() {
+        LOG.info("android module is removed")
+        assert (mToolbar != null)
+
+    }
 
     override fun projectClosed() {
         LOG.info("project is closed")
+        mConnection.disconnect()
     }
 
     override fun projectOpened() {
         LOG.info("project is opened")
     }
 
+    override fun moduleAdded(project: Project, module: Module) {
+        LOG.info("module is added")
+        if (isAndroidModule(module)) {
+            androidModuleAdded(module)
+            return
+        }
+        LOG.warn("This is not android platform project.")
+    }
+
+    override fun moduleRemoved(project: Project, module: Module) {
+        LOG.info("module is removed")
+    }
+
+    override fun beforeModuleRemoved(project: Project, module: Module) {
+        LOG.info("module before removed")
+        if (isAndroidModule(module)) {
+            if (mToolbar != null) {
+                androidModuleRemoved()
+            }
+        }
+    }
+
+    override fun modulesRenamed(project: Project, modules: MutableList<Module>, func: Function<Module, String>) {
+        LOG.info("module is renamed")
+        val module = getAndroidModule(project)
+        if (module != null) {
+            androidModuleAdded(module)
+        } else if (mToolbar != null) {
+            androidModuleRemoved()
+        }
+    }
+
     fun onOutDirChanged(outDir: String) {
-        if (isAndroidModule(mModule)) {
-            updateOutDir(outDir)
+        val module = getAndroidModule(mProject)
+        if (module != null) {
+            updateOutDir(module, outDir)
         }
     }
 }

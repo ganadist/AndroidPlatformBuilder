@@ -609,8 +609,8 @@ public class AndroidBuilderView implements BuildToolbar,
         mFlashButton.setEnabled(false);
         mSyncButton.setEnabled(false);
         mResultPathValueLabel.setText(path);
-        ModuleServiceManager.getService(ModuleMonitorKt.getAndroidModule(mProject),
-                ModuleMonitor.class).onOutDirChanged(path);
+        ModuleServiceManager.getService(ProjectMonitorKt.getAndroidModule(mProject),
+                ProjectMonitor.class).onOutDirChanged(path);
     }
 
     @Override
