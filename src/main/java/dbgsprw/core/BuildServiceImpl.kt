@@ -158,12 +158,19 @@ class BuildServiceImpl(val mProject: Project) : CommandExecutor(), BuildService 
         }
     }
 
+    private fun isReady(): Boolean {
+        return !(mTargetProduct.isNullOrBlank() ||
+                mBuildVariant.isNullOrBlank() ||
+                mTarget.isNullOrBlank() ||
+                mOutDir.isNullOrBlank())
+    }
+
     override fun canBuild(): Boolean {
-        return (mBuildProcess == null) && (mSyncProcess == null)
+        return (mBuildProcess == null) && (mSyncProcess == null) && isReady()
     }
 
     override fun canSync(): Boolean {
-        return (mBuildProcess == null) && (mSyncProcess == null)
+        return (mBuildProcess == null) && (mSyncProcess == null) && isReady()
     }
 
     private class ExitListenerWrapper(val mListener: BuildConsole.ExitListener,

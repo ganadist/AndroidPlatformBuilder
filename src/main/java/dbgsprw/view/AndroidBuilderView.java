@@ -144,6 +144,10 @@ public class AndroidBuilderView implements BuildToolbar,
                         }
                     }
                 });
+                if (history.getSize() == 0) {
+                    LOG.error("There is no product targets.");
+                    return;
+                }
 
                 int index = 0;
                 if (mState.mProduct != null) {
@@ -199,7 +203,7 @@ public class AndroidBuilderView implements BuildToolbar,
         final BuildService builder = getBuilder();
 
         if (!builder.canBuild()) {
-            Notify.show("Other job is processing.", NotificationType.ERROR);
+            Notify.show("Project is not ready or other job is processing.", NotificationType.ERROR);
             return;
         }
 
@@ -468,7 +472,7 @@ public class AndroidBuilderView implements BuildToolbar,
             Notify.show("There is no output directory.\nPlease build first.", NotificationType.ERROR);
             return false;
         } else if (!getBuilder().canSync()) {
-            Notify.show("Other job is processing.", NotificationType.ERROR);
+            Notify.show("Project is not ready or other job is processing.", NotificationType.ERROR);
             return false;
         }
         return true;
