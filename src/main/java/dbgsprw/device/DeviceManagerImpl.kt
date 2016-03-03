@@ -42,6 +42,7 @@ class DeviceManagerImpl() : DeviceManager,
 
     private var mSdkLocationMonitorRunning = false
     private var mSdkLocationMonitorThread: Thread? = null
+    private val mSdkLocationMonitorLock = Object()
 
     private var mRunning = false
 
@@ -61,7 +62,8 @@ class DeviceManagerImpl() : DeviceManager,
         LOG.info("dispose")
         if (mSdkLocationMonitorRunning) {
             mSdkLocationMonitorRunning = false
-            //mSdkLocationMonitorThread!!.join()
+            synchronized(mSdkLocationMonitorLock, { mSdkLocationMonitorLock.notify() })
+            mSdkLocationMonitorThread!!.join()
         }
         if (mRunning) {
             stop()
@@ -146,9 +148,9 @@ class DeviceManagerImpl() : DeviceManager,
         }
 
         mSdkLocationMonitorRunning = true
-        // FIXME
+
         mSdkLocationMonitorThread = Thread({
-            while (true) {
+            while (mSdkLocationMonitorRunning) {
                 val sdk = ProjectJdkTable.getInstance().allJdks.filter {
                     it.sdkType.name == "Android SDK" && isPlatformToolsInstalled(it.homePath)
                 }
@@ -157,7 +159,7 @@ class DeviceManagerImpl() : DeviceManager,
                     mSdkLocationMonitorRunning = false
                     break
                 }
-                Thread.sleep(1000)
+                synchronized(mSdkLocationMonitorLock, { mSdkLocationMonitorLock.wait(1000) })
             }
         })
         mSdkLocationMonitorThread!!.start()

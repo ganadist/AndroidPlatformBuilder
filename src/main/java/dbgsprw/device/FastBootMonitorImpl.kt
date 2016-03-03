@@ -29,6 +29,7 @@ class FastBootMonitorImpl(val mFastbootPath: String) : FastbootMonitor {
     private var mRunning = false
     private var mDevices: List<String> = listOf()
     private var mThread: Thread? = null;
+    private val mLock = Object()
 
     override fun start(listener: FastbootMonitor.FastbootDeviceStateListener) {
         mRunning = true
@@ -37,6 +38,8 @@ class FastBootMonitorImpl(val mFastbootPath: String) : FastbootMonitor {
         mThread = Thread(
                 {
                     while (mRunning) {
+                        synchronized(mLock, { mLock.wait(1000) })
+
                         val newDevices: MutableList<String> = mutableListOf()
                         val process = builder.command(mFastbootPath, "devices").start()
 
@@ -52,8 +55,6 @@ class FastBootMonitorImpl(val mFastbootPath: String) : FastbootMonitor {
                         added.forEach { listener.onFastbootDeviceAdded(it) }
 
                         mDevices = newDevices
-
-                        Thread.sleep(1000)
                     }
                 })
         mThread!!.start()
@@ -62,8 +63,8 @@ class FastBootMonitorImpl(val mFastbootPath: String) : FastbootMonitor {
     override fun stop() {
         assert(mRunning == true)
         assert(mThread != null)
-
         mRunning = false;
+        synchronized(mLock, { mLock.notify() })
         mThread!!.join()
         mThread = null
     }
