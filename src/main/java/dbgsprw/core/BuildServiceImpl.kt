@@ -262,7 +262,7 @@ class BuildServiceImpl(val mProject: Project) : CommandExecutor(), BuildService 
         val sb = StringBuilder(FIRST_LINE)
         sb.append("TARGET_PRODUCT?=$mTargetProduct\n")
         sb.append("TARGET_BUILD_VARIANT?=$mBuildVariant\n")
-        sb.append("OUT_DIR?=$mOutDir\n")
+        sb.append("OUT_DIR?=out-$(TARGET_PRODUCT)-$(TARGET_BUILD_VARIANT)\n")
         val cmBuild = getCmBuild()
         if (cmBuild.isNotEmpty()) {
             sb.append("CM_BUILD?=$cmBuild\n")
