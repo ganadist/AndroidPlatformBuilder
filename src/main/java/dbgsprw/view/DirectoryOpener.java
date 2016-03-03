@@ -17,26 +17,20 @@
 
 package dbgsprw.view;
 
-import dbgsprw.core.CommandExecutor;
 import dbgsprw.exception.FileManagerNotFoundException;
 
 import java.util.ArrayList;
+import java.util.Properties;
 
 public class DirectoryOpener {
     private static final String OS_FILE_SYSTEM_PROPERTIES_PATH = "properties/os_file_system_command.properties";
-    private static String sFileManagerCommand = null;
+    private static final String sFileManagerCommand;
 
     static {
-        ArgumentPropertiesManager argumentPropertiesManager = new ArgumentPropertiesManager();
-        ArgumentProperties osFileSystemProperties =
-                argumentPropertiesManager.loadProperties(OS_FILE_SYSTEM_PROPERTIES_PATH);
-        String osName = System.getProperty("os.name");
-        for (String propertyName : osFileSystemProperties.getPropertyNames()) {
-            if (osName.contains(propertyName)) {
-                sFileManagerCommand = osFileSystemProperties.getProperty(propertyName);
-                break;
-            }
-        }
+        PropertiesLoader pl = new PropertiesLoader();
+        Properties properties = pl.getProperties(OS_FILE_SYSTEM_PROPERTIES_PATH);
+        final String osName = System.getProperty("os.name");
+        sFileManagerCommand = properties.getProperty(osName);
     }
 
     public static void openDirectory(String path)
@@ -56,7 +50,8 @@ public class DirectoryOpener {
                 try {
                     Process process = new ProcessBuilder().command(command).start();
                     process.waitFor();
-                } catch (Exception ex) {}
+                } catch (Exception ex) {
+                }
             }
         }).start();
     }

@@ -43,8 +43,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created by ganadist on 16. 2. 23.
@@ -83,10 +82,7 @@ public class AndroidBuilderView implements BuildToolbar,
 
     private final static Logger LOG = Logger.getInstance(AndroidBuilderView.class);
     private final static String CURRENT_PATH = "Current Path";
-    private final static String ADB_PROPERTIES_PATH = "properties/adb_sync_argument.properties";
     private final static String FASTBOOT_PROPERTIES_PATH = "properties/fastboot_argument.properties";
-    private final static String TARGET_PROPERTIES_PATH = "properties/target_argument.properties";
-    private final static String VARIANT_PROPERTIES_PATH = "properties/variant_argument.properties";
 
     private ButtonGroup mMakeButtonGroup;
     private ButtonGroup mFlashButtonGroup;
@@ -94,21 +90,29 @@ public class AndroidBuilderView implements BuildToolbar,
     private String mProjectPath;
     private Project mProject;
     private File mProductOut;
+    private String mSelectedFilename = "";
 
     private StateStore mState;
     private static final String TOOLBAR_WINDOW_ID = "Android Builder";
 
-    private static final ArgumentProperties sAdbSyncProperties;
-    private static final ArgumentProperties sFastbootProperties;
-    private static final ArgumentProperties sTargetProperties;
-    private static final ArgumentProperties sVariantProperties;
+    private static final Properties sBuilderProperties;
+    private static final Properties sFastbootProperties;
+    private static final String[] sTargets;
+    private static final String[] sVariants;
+    private static final String[] sAdbSyncArguments;
+    private static final String[] sFastbootArguments;
 
     static {
-        ArgumentPropertiesManager argumentPropertiesManager = new ArgumentPropertiesManager();
-        sAdbSyncProperties = argumentPropertiesManager.loadProperties(ADB_PROPERTIES_PATH);
-        sFastbootProperties = argumentPropertiesManager.loadProperties(FASTBOOT_PROPERTIES_PATH);
-        sTargetProperties = argumentPropertiesManager.loadProperties(TARGET_PROPERTIES_PATH);
-        sVariantProperties = argumentPropertiesManager.loadProperties(VARIANT_PROPERTIES_PATH);
+        final PropertiesLoader pl = new PropertiesLoader();
+        sBuilderProperties = pl.getProperties("properties/builder.properties");
+        sTargets = sBuilderProperties.getProperty("targets", "").split(",");
+        sVariants = sBuilderProperties.getProperty("variants", "").split(",");
+        sAdbSyncArguments = sBuilderProperties.getProperty("adbsync_args", "").split(",");
+        sFastbootProperties = pl.getProperties(FASTBOOT_PROPERTIES_PATH);
+        final ArrayList<String> argsList = new ArrayList<String>(sFastbootProperties.stringPropertyNames());
+        Collections.sort(argsList);
+        String[] fastbootArgs = new String[argsList.size()];
+        sFastbootArguments = argsList.toArray(fastbootArgs);
     }
 
     AndroidBuilderView(Project project) {
@@ -319,21 +323,24 @@ public class AndroidBuilderView implements BuildToolbar,
         mMakeRadioButton.doClick();
     }
 
-    public void addPropertiesToComboBox(ArgumentProperties properties, JComboBox jComboBox) {
-        jComboBox.removeAllItems();
-        for (String name : properties.getPropertyNames()) {
-            jComboBox.addItem(name);
+    private void registerCombobox(JComboBox<String> combobox, String[] values, final Runnable action) {
+        combobox.setModel(new HistoryComboModel(values));
+        if (action != null) {
+            combobox.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    action.run();
+                }
+            });
         }
     }
 
     private void initMakePanelComboBoxes() {
         HistoryComboModel history;
 
-        addPropertiesToComboBox(sTargetProperties, mTargetComboBox);
-
-        mTargetComboBox.addActionListener(new ActionListener() {
+        registerCombobox(mTargetComboBox, sTargets, new Runnable() {
             @Override
-            public void actionPerformed(ActionEvent actionEvent) {
+            public void run() {
                 final String target = (String) mTargetComboBox.getSelectedItem();
                 getBuilder().setTarget(target);
                 mState.mTarget = target;
@@ -344,10 +351,9 @@ public class AndroidBuilderView implements BuildToolbar,
         mTargetDirComboBox.setModel(new TargetDirHistoryComboModel(CURRENT_PATH));
         mTargetDirComboBox.setPrototypeDisplayValue("XXXXXXXXX");
 
-        addPropertiesToComboBox(sVariantProperties, mVariantComboBox);
-        mVariantComboBox.addActionListener(new ActionListener() {
+        registerCombobox(mVariantComboBox, sVariants, new Runnable() {
             @Override
-            public void actionPerformed(ActionEvent actionEvent) {
+            public void run() {
                 final String buildVariant = (String) mVariantComboBox.getSelectedItem();
                 getBuilder().setBuildVariant(buildVariant);
                 mState.mBuildVariant = buildVariant;
@@ -383,7 +389,7 @@ public class AndroidBuilderView implements BuildToolbar,
             public void actionPerformed(ActionEvent actionEvent) {
                 mWipeCheckBox.setEnabled(true);
                 mWriteArgumentComboBox.addActionListener(mFastbootArgumentListener);
-                addPropertiesToComboBox(sFastbootProperties, mWriteArgumentComboBox);
+                registerCombobox(mWriteArgumentComboBox, sFastbootArguments, null);
                 changeFlashButton();
             }
         });
@@ -393,7 +399,7 @@ public class AndroidBuilderView implements BuildToolbar,
             public void actionPerformed(ActionEvent actionEvent) {
                 mWipeCheckBox.setEnabled(false);
                 mWriteArgumentComboBox.removeActionListener(mFastbootArgumentListener);
-                addPropertiesToComboBox(sAdbSyncProperties, mWriteArgumentComboBox);
+                registerCombobox(mWriteArgumentComboBox, sAdbSyncArguments, null);
                 changeFlashButton();
             }
         });
@@ -420,9 +426,9 @@ public class AndroidBuilderView implements BuildToolbar,
         // needs clean up
         if (partition.equals("update")) {
             partition = "";
-            filename = fastBootArgumentComboBoxInterpreter("update")[1];
+            filename = mSelectedFilename;
         } else if (partition.equals("bootloader")) {
-            filename = fastBootArgumentComboBoxInterpreter(partition)[2];
+            filename = mSelectedFilename;
         }
 
         getBuilder().sync(device, partition, filename, wipe, new BuildConsole.ExitListener() {
@@ -544,28 +550,21 @@ public class AndroidBuilderView implements BuildToolbar,
                 final String msg = update ?
                         "Choose Update Package File" : "Choose Bootloader Package File";
 
+                mSelectedFilename = "";
                 if (jFileChooser.showDialog(mAndroidBuilderContent, msg) ==
                         JFileChooser.APPROVE_OPTION) {
                     File selectedFile = jFileChooser.getSelectedFile();
                     if (selectedFile.exists()) {
                         try {
-                            final String filePath = selectedFile.getCanonicalPath();
-                            final String value = update ?
-                                    ("update\t" + filePath) :
-                                    ("flash\tbootloader\t" + filePath);
-                            sFastbootProperties.setProperty(argument, value);
+                            mSelectedFilename = selectedFile.getCanonicalPath();
                         } catch (IOException e) {
-                            e.printStackTrace();
+                            LOG.error("selected file is not available", e);
                         }
                     }
                 }
             }
         }
     };
-
-    private String[] fastBootArgumentComboBoxInterpreter(String argument) {
-        return sFastbootProperties.getArguments(argument, "\t");
-    }
 
     private void changeFlashButton() {
         Device device = getSelectedDevice();

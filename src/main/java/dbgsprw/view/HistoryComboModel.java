@@ -17,7 +17,6 @@
 package dbgsprw.view;
 
 import javax.swing.*;
-import java.util.ArrayList;
 
 /**
  * Created by ganadist on 16. 2. 19.
@@ -27,7 +26,7 @@ public class HistoryComboModel extends DefaultComboBoxModel<String> {
         super();
     }
 
-    public HistoryComboModel(ArrayList<String> items) {
+    public HistoryComboModel(String[] items) {
         super();
         for (String item : items) {
             addElement(item);
@@ -41,6 +40,9 @@ public class HistoryComboModel extends DefaultComboBoxModel<String> {
 
     @Override
     public void setSelectedItem(Object obj) {
+        if ("".equals(obj)) {
+            return;
+        }
         addHistory((String) obj);
         super.setSelectedItem(obj);
     }

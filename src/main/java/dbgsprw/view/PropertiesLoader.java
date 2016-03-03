@@ -1,5 +1,6 @@
 /*
  * Copyright 2016 dbgsprw / dbgsprw@gmail.com
+ * Copyright 2016 Young Ho Cha / ganadist@gmail.com
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,27 +18,37 @@
 
 package dbgsprw.view;
 
-import java.io.IOException;
+import com.intellij.openapi.diagnostic.Logger;
 
-public class ArgumentPropertiesManager {
+import java.io.IOException;
+import java.util.Properties;
+
+/**
+ * Created by ganadist on 16. 3. 3.
+ */
+public class PropertiesLoader {
+    private static final Logger LOG = Logger.getInstance(PropertiesLoader.class);
     private ClassLoader mClassLoader;
 
-    public ArgumentPropertiesManager() {
+    public PropertiesLoader() {
         init(this.getClass().getClassLoader());
     }
 
-    private void init(ClassLoader loader) {
-        mClassLoader = loader;
+    public PropertiesLoader(ClassLoader cl) {
+        init(cl);
     }
 
-    public ArgumentProperties loadProperties(String path) {
-        ArgumentProperties properties = new ArgumentProperties();
+    private void init(ClassLoader cl) {
+        mClassLoader = cl;
+    }
+
+    public Properties getProperties(String path) {
+        Properties properties = new Properties();
         try {
             properties.load(mClassLoader.getResourceAsStream(path));
         } catch (IOException e) {
-            e.printStackTrace();
+            LOG.warn("load failed properties file: " + path, e);
         }
-
         return properties;
     }
 }
