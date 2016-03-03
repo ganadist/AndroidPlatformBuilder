@@ -18,6 +18,7 @@
 package dbgsprw.view;
 
 import com.intellij.notification.Notification;
+import com.intellij.notification.NotificationListener;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
 
@@ -26,6 +27,10 @@ import com.intellij.notification.Notifications;
  */
 public class Notify {
     public static void show(String message, NotificationType type) {
-        Notifications.Bus.notify(new Notification("Android Builder", "Android Builder", message, type));
+        show(message, type, null);
+    }
+
+    public static void show(String message, NotificationType type, NotificationListener listener) {
+        Notifications.Bus.notify(new Notification("Android Builder", "Android Builder", message, type, listener));
     }
 }

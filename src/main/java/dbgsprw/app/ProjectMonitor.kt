@@ -39,6 +39,7 @@ import com.intellij.openapi.util.Computable
 import com.intellij.util.Consumer
 import com.intellij.util.Function
 import dbgsprw.core.Utils
+import dbgsprw.view.Notify
 import java.io.File
 
 
@@ -258,8 +259,7 @@ class ProjectMonitor(val mProject: Project) : ProjectComponent, ModuleListener {
     }
 
     private fun showSdkSettingNotify(module: Module, javaVersion: String) {
-        Notifications.Bus.notify(Notification("Android Builder", "Android Builder",
-                "Module SDK is invalid.<br/>Please <a href=''>Set Module SDK</a> to ${javaVersion}",
+        Notify.show("Module SDK is invalid.<br/>Please <a href=''>Set Module SDK</a> to ${javaVersion}",
                 NotificationType.ERROR,
                 com.intellij.notification.NotificationListener({ notification, event ->
                     notification.hideBalloon()
@@ -267,7 +267,7 @@ class ProjectMonitor(val mProject: Project) : ProjectComponent, ModuleListener {
                     ShowSettingsUtil.getInstance().editConfigurable(module.project, config, Runnable {
                         config.selectOrderEntry(module, null)
                     })
-                })))
+                }));
     }
 
     private val BELOW_K = 20
