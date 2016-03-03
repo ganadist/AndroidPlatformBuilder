@@ -104,6 +104,13 @@ class BuildServiceImpl(val mProject: Project) : CommandExecutor(), BuildService 
         }, true)
     }
 
+    private fun getCmBuild(): String {
+        if (mTargetProduct.startsWith(CM_PRODUCT_PREFIX)) {
+            return mTargetProduct.substring(CM_PRODUCT_PREFIX.length)
+        }
+        return ""
+    }
+
     override fun build(jobs: Int, verbose: Boolean, extras: String?, listener: BuildConsole.ExitListener) {
         updateAndroidJavaHome()
 
@@ -113,13 +120,15 @@ class BuildServiceImpl(val mProject: Project) : CommandExecutor(), BuildService 
             command.add("-j$jobs")
         }
         command.add("TARGET_PRODUCT=$mTargetProduct")
-        if (mTargetProduct.startsWith(CM_PRODUCT_PREFIX)) {
-            val cmBuild = mTargetProduct.substring(CM_PRODUCT_PREFIX.length)
+
+        val cmBuild = getCmBuild()
+        if (cmBuild.isNotEmpty()) {
             command.add("CM_BUILD=$cmBuild")
             command.add("BUILD_WITH_COLORS=0") // turn off color
             command.add("CLANG_CONFIG_EXTRA_CFLAGS=-fno-color-diagnostics")
             command.add("CLANG_CONFIG_EXTRA_CPPFLAGS=-fno-color-diagnostics")
         }
+
         command.add("TARGET_BUILD_VARIANT=$mBuildVariant");
         if (!mOneShotMakefile.isNullOrEmpty()) {
             command.add("ONE_SHOT_MAKEFILE=$mOneShotMakefile")
@@ -254,8 +263,8 @@ class BuildServiceImpl(val mProject: Project) : CommandExecutor(), BuildService 
         sb.append("TARGET_PRODUCT?=$mTargetProduct\n")
         sb.append("TARGET_BUILD_VARIANT?=$mBuildVariant\n")
         sb.append("OUT_DIR?=$mOutDir\n")
-        if (mTargetProduct.startsWith(CM_PRODUCT_PREFIX)) {
-            val cmBuild = mTargetProduct.substring(CM_PRODUCT_PREFIX.length)
+        val cmBuild = getCmBuild()
+        if (cmBuild.isNotEmpty()) {
             sb.append("CM_BUILD?=$cmBuild\n")
         }
 
