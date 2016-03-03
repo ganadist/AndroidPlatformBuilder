@@ -1,4 +1,4 @@
-### 1.90.2 ###
+### 1.90.2 (2016-03-03) ###
  * fix IndexErrorException when cannot find LUNCH_COMBO_MENU value
  * find platform api level, and show notification when module sdk is set invalid
  * use intellij logger instead of print stdout

@@ -1,7 +1,6 @@
 #!/bin/bash
 dirname=$(dirname $0)
-META_INF=${dirname}/src/main/resources/META-INF/
-PLUGIN_XML=${META_INF}/plugin.xml
+CHANGELOG_MD=${dirname}/CHANGELOG.md
 VERSION_PROPERTIES=${dirname}/version.properties
 
 apply_version() {
@@ -17,11 +16,18 @@ usage() {
 commit() {
   local VERSION=$1
   local FORCE=$2
-  local LINE=$(grep -n -h \<change-notes\> ${PLUGIN_XML} | cut -f1 -d:)
 
-  vim +$((${LINE}+2)) ${PLUGIN_XML}
+  local CHANGELOG_MD_NEW=${CHANGELOG_MD}.template
 
-  git diff ${PLUGIN_XML} ${VERSION_PROPERTIES}
+  echo "### ${VERSION} ($(env LC_ALL=C date +%F)) ###" > ${CHANGELOG_MD_NEW}
+  echo " *" >> ${CHANGELOG_MD_NEW}
+  echo  >> ${CHANGELOG_MD_NEW}
+  cat ${CHANGELOG_MD} >> ${CHANGELOG_MD_NEW}
+  mv -f ${CHANGELOG_MD_NEW} ${CHANGELOG_MD}
+
+  vim +2 ${CHANGELOG_MD}
+
+  git diff ${CHANGELOG_MD} ${VERSION_PROPERTIES}
 
   if [ $FORCE -eq 0 ]; then
     echo -n Do you want to commit? [Y/n]
@@ -32,7 +38,7 @@ commit() {
     fi
   fi
 
-  git add ${PLUGIN_XML} ${VERSION_PROPERTIES}
+  git add ${CHANGELOG_MD} ${VERSION_PROPERTIES}
   git commit -s -m "version $VERSION release"
   git tag -f v${VERSION}
 }
