@@ -19,8 +19,10 @@ package dbgsprw.core;
 import com.intellij.openapi.application.Application;
 import com.intellij.openapi.application.ApplicationManager;
 
-import javax.swing.*;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Properties;
 
 public class Utils {
     public static final String ANDROID_MK = "Android.mk";
@@ -29,6 +31,28 @@ public class Utils {
     public static final String VERSION_DEFAULT_MK = pathJoin("build", "core", "version_defaults.mk");
     public static final String BUILDSPEC_MK = "buildspec.mk";
     private static final String EMPTY = "";
+
+    private static final String BUILDER_PROPERTIES_PATH = "properties/builder.properties";
+    private static final String FASTBOOT_PROPERTIES_PATH = "properties/fastboot_argument.properties";
+    private static final Properties sBuilderProperties;
+    public static final Properties sFastbootProperties;
+    public static final String[] sTargets;
+    public static final String[] sVariants;
+    public static final String[] sAdbSyncArguments;
+    public static final String[] sFastbootArguments;
+
+    static {
+        final PropertiesLoader pl = new PropertiesLoader();
+        sBuilderProperties = pl.getProperties(BUILDER_PROPERTIES_PATH);
+        sTargets = sBuilderProperties.getProperty("targets", "").split(",");
+        sVariants = sBuilderProperties.getProperty("variants", "").split(",");
+        sAdbSyncArguments = sBuilderProperties.getProperty("adbsync_args", "").split(",");
+        sFastbootProperties = pl.getProperties(FASTBOOT_PROPERTIES_PATH);
+        final ArrayList<String> argsList = new ArrayList<String>(sFastbootProperties.stringPropertyNames());
+        Collections.sort(argsList);
+        String[] fastbootArgs = new String[argsList.size()];
+        sFastbootArguments = argsList.toArray(fastbootArgs);
+    }
 
     public static String join(final char separator, final Object[] array) {
         if (array == null) {

@@ -17,6 +17,7 @@
 
 package dbgsprw.view;
 
+import dbgsprw.core.PropertiesLoader;
 import dbgsprw.exception.FileManagerNotFoundException;
 
 import java.util.ArrayList;

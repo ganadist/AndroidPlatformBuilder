@@ -23,7 +23,7 @@ import dbgsprw.core.CommandExecutor
 /**
  * Created by ganadist on 16. 3. 1.
  */
-interface BuildConsole: CommandExecutor.CommandHandler, Disposable {
+interface BuildConsole : CommandExecutor.CommandHandler, Disposable {
     fun run(listener: ExitListener): CommandExecutor.CommandHandler
     fun print(line: String)
     interface ExitListener {

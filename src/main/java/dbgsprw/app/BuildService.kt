@@ -23,23 +23,25 @@ import dbgsprw.device.Device
 /**
  * Created by ganadist on 16. 3. 1.
  */
-interface BuildService: Disposable {
-    fun setTargetProduct(product: String)
-    fun setBuildVariant(variant: String)
+interface BuildService : Disposable {
+    fun setProduct(product: String, variant: String)
     fun setTarget(target: String)
     fun setOneShotDirectory(directory: String)
     fun setOutPathListener(listener: OutPathListener?)
     fun runCombo(listener: ComboMenuListener)
-    fun build(jobs: Int, verbose: Boolean, extras: String?, listener: BuildConsole.ExitListener)
-    fun sync(device: Device, partition: String, filename: String, wipe: Boolean, listener: BuildConsole.ExitListener)
+    fun build(jobs: Int, verbose: Boolean, extras: String, listener: BuildConsole.ExitListener)
+    fun sync(device: Device, partition: String, filename: String = "", wipe: Boolean = false, listener: BuildConsole.ExitListener)
     fun stopBuild()
     fun stopSync()
     fun canBuild(): Boolean
     fun canSync(): Boolean
 
     interface OutPathListener {
-        fun onOutDirChanged(path: String) {}
-        fun onAndroidProductOutChanged(path: String) {}
+        fun onOutDirChanged(path: String) {
+        }
+
+        fun onAndroidProductOutChanged(path: String) {
+        }
     }
 
     interface ComboMenuListener {

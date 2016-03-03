@@ -34,9 +34,12 @@ public class StateStore implements PersistentStateComponent<StateStore> {
     public String mProduct;
     public String mBuildVariant = "eng";
     public String mTarget = "droid";
+    public String mTargetDirectory = "";
     public String mExtras = "";
     public String mFastbootTarget;
     public String mAdbSyncTarget;
+    public String mLastSelectedBootloaderFilename = "";
+    public String mLastSelectedUpdatePackage = "";
 
     @Override
     public StateStore getState() {

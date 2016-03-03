@@ -29,6 +29,7 @@ import dbgsprw.app.getAndroidModule
 import dbgsprw.device.Device
 import java.io.BufferedOutputStream
 import java.io.File
+import java.util.regex.Pattern
 
 /**
  * Created by ganadist on 16. 3. 1.
@@ -47,6 +48,7 @@ class BuildServiceImpl(val mProject: Project) : CommandExecutor(), BuildService 
     private var mLunchProcess: Process? = null
     private var mBuildProcess: Process? = null
     private var mSyncProcess: Process? = null
+    private val WHITESPACE = Pattern.compile("\\s+")
 
     init {
         setenv("USE_CCACHE", "1")
@@ -58,12 +60,8 @@ class BuildServiceImpl(val mProject: Project) : CommandExecutor(), BuildService 
         processes.forEach { p -> if (p != null) p.destroy() }
     }
 
-    override fun setTargetProduct(product: String) {
+    override fun setProduct(product: String, variant: String) {
         mTargetProduct = product
-        updateOutDir()
-    }
-
-    override fun setBuildVariant(variant: String) {
         mBuildVariant = variant
         updateOutDir()
     }
@@ -111,7 +109,7 @@ class BuildServiceImpl(val mProject: Project) : CommandExecutor(), BuildService 
         return ""
     }
 
-    override fun build(jobs: Int, verbose: Boolean, extras: String?, listener: BuildConsole.ExitListener) {
+    override fun build(jobs: Int, verbose: Boolean, extras: String, listener: BuildConsole.ExitListener) {
         updateAndroidJavaHome()
 
         val command: MutableList<String> = mutableListOf()
@@ -138,7 +136,7 @@ class BuildServiceImpl(val mProject: Project) : CommandExecutor(), BuildService 
             command.add("showcommands")
         }
         if (!extras.isNullOrBlank()) {
-            command.addAll(extras!!.split("\\s+"))
+            command.addAll(extras.split(WHITESPACE))
         }
 
         mBuildProcess = run(command, getConsole().run(
@@ -167,27 +165,20 @@ class BuildServiceImpl(val mProject: Project) : CommandExecutor(), BuildService 
         }
     }
 
-    private fun isReady(): Boolean {
-        return !(mTargetProduct.isNullOrBlank() ||
-                mBuildVariant.isNullOrBlank() ||
-                mTarget.isNullOrBlank() ||
-                mOutDir.isNullOrBlank())
-    }
-
     override fun canBuild(): Boolean {
-        return (mBuildProcess == null) && (mSyncProcess == null) && isReady()
+        return (mBuildProcess == null) && (mSyncProcess == null) && !mOutDir.isNullOrBlank()
     }
 
     override fun canSync(): Boolean {
-        return (mBuildProcess == null) && (mSyncProcess == null) && isReady()
+        return (mBuildProcess == null) && (mSyncProcess == null)
     }
 
     private class ExitListenerWrapper(val mListener: BuildConsole.ExitListener,
                                       val action: Runnable) :
             BuildConsole.ExitListener by mListener {
         override fun onExit() {
-            mListener.onExit()
             action.run()
+            mListener.onExit()
         }
     }
 

@@ -20,9 +20,7 @@ package dbgsprw.app
 import com.intellij.ProjectTopics
 import com.intellij.facet.FacetManager
 import com.intellij.facet.FacetTypeRegistry
-import com.intellij.notification.Notification
 import com.intellij.notification.NotificationType
-import com.intellij.notification.Notifications
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.ProjectComponent
 import com.intellij.openapi.components.ServiceManager

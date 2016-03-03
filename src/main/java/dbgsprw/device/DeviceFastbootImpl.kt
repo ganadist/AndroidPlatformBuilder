@@ -36,8 +36,9 @@ class DeviceFastbootImpl(val mSerial: String) : Device {
     override fun write(partition: String, filename: String, wipe: Boolean): List<String> {
         val fastbootPath = getFastbootPath()
         val wipeOption = if (wipe) "-w" else ""
-        val command = if (partition.isEmpty()) "update" else "flash"
-        return listOf("$fastbootPath -s $mSerial $wipeOption $command $partition $filename")
+        val command: String = if (partition == "update") "update" else "flash"
+        val part: String = if (partition == "update") "" else partition
+        return listOf("$fastbootPath -s $mSerial $wipeOption $command $part $filename")
     }
 
     override fun reboot() {

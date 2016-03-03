@@ -29,7 +29,7 @@ interface Device {
     fun reboot()
     fun canReboot(): Boolean
     fun canWrite(): Boolean
-    fun write(partition: String, filename: String = "", wipe: Boolean = false): List<String>
+    fun write(partition: String, filename: String, wipe: Boolean): List<String>
     fun getType(): DeviceType
     fun getDeviceName(): String
 }

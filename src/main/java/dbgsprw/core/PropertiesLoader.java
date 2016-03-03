@@ -16,7 +16,7 @@
  *
  */
 
-package dbgsprw.view;
+package dbgsprw.core;
 
 import com.intellij.openapi.diagnostic.Logger;
 

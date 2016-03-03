@@ -18,7 +18,6 @@
 package dbgsprw.app
 
 import com.intellij.openapi.Disposable
-import dbgsprw.device.DeviceManager
 
 /**
  * Created by ganadist on 16. 3. 1.

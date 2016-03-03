@@ -29,7 +29,7 @@
   <extensions defaultExtensionNs="com.intellij" >
     <projectService serviceImplementation="dbgsprw.app.StateStore"/>
     <projectService serviceInterface="dbgsprw.app.BuildToolbar"
-                    serviceImplementation="dbgsprw.view.AndroidBuilderView"/>
+                    serviceImplementation="dbgsprw.view.ToolbarViewImpl"/>
     <projectService serviceInterface="dbgsprw.app.BuildService"
                     serviceImplementation="dbgsprw.core.BuildServiceImpl"/>
     <projectService serviceInterface="dbgsprw.app.BuildConsole"
