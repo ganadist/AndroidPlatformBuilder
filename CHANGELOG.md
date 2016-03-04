@@ -1,3 +1,6 @@
+### 1.90.4 (2016-03-04) ###
+ * quick fix for Android Studio 2.0beta
+
 ### 1.90.3 (2016-03-04) ###
  * save state of all comboboxes and load when open project
  * fix extra commands combobox behaviors when have whitespace
