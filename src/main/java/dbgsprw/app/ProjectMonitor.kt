@@ -193,8 +193,15 @@ class ProjectMonitor(val mProject: Project) : ProjectComponent, ModuleListener {
         LOG.info("exclude dirs for \"$outDir\"")
 
         val info: ModuleInfo = ModuleInfo(module)
-        val excludedDirs = File(info.mRootPath).list { f, s -> (s != outDir && s.startsWith("out")) }.map { it -> "${info.mRootUrl}/$it" }
-        val unExcludedDirs = if (outDir == "") EMPTY_LIST else listOf("${info.mRootUrl}/$outDir")
+        val excludedDirs: MutableList<String> = mutableListOf()
+        val unExcludedDirs: List<String>
+        excludedDirs.addAll(File(info.mRootPath).list { f, s -> (s != outDir && s.startsWith("out")) }.map { it -> "${info.mRootUrl}/$it" })
+        if (outDir == "") {
+            unExcludedDirs = EMPTY_LIST
+        } else {
+            excludedDirs.addAll(EXCLUDE_FOLDER_TEMPLATES.map { it -> "${info.mRootUrl}/${outDir}/$it" })
+            unExcludedDirs = listOf("${info.mRootUrl}/$outDir")
+        }
 
         ModuleRootModificationUtil.updateExcludedFolders(info.mModule, info.mRootFile, unExcludedDirs, excludedDirs)
 
