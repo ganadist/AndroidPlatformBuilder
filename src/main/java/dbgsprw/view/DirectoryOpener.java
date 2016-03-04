@@ -18,7 +18,6 @@
 package dbgsprw.view;
 
 import dbgsprw.core.PropertiesLoader;
-import dbgsprw.exception.FileManagerNotFoundException;
 
 import java.util.ArrayList;
 import java.util.Properties;
@@ -34,11 +33,7 @@ public class DirectoryOpener {
         sFileManagerCommand = properties.getProperty(osName);
     }
 
-    public static void openDirectory(String path)
-            throws FileManagerNotFoundException {
-        if (sFileManagerCommand == null) {
-            throw new FileManagerNotFoundException();
-        }
+    public static void openDirectory(String path) {
         final ArrayList<String> command = new ArrayList<String>();
         command.add(sFileManagerCommand);
         command.add(path);
