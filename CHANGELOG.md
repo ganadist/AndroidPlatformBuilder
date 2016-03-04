@@ -1,3 +1,6 @@
+### 1.90.5 (2016-03-04) ###
+ * quick fix for auto exclude directories function
+
 ### 1.90.4 (2016-03-04) ###
  * quick fix for Android Studio 2.0beta
 
