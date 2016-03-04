@@ -5,7 +5,7 @@
  * save state of all comboboxes and load when open project
  * fix extra commands combobox behaviors when have whitespace
  * file chooser will open when press flash button, instead of argument combobox
- * while flashing with device, disable componets related flash function
+ * while flashing with device, disable components related flash function
  * internally, ui releated codes are rewritten with kotlin
 
 ### 1.90.2 (2016-03-03) ###
