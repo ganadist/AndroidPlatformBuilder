@@ -276,7 +276,7 @@ class ToolbarViewImpl(val mProject: Project) : AndroidBuilderForm(),
     }
 
     override fun doMake() {
-        mMakeRadioButton.isSelected = true
+        mMakeRadioButton.doClick()
         val builder = getBuilder()
         val target = mTargetComboBox.selectedItem as String
         builder.setTarget(target)
@@ -284,7 +284,7 @@ class ToolbarViewImpl(val mProject: Project) : AndroidBuilderForm(),
     }
 
     override fun doMm() {
-        mMmRadioButton.isSelected = true
+        mMmRadioButton.doClick()
         if (setupPartialMake(CURRENT_PATH)) {
             executeMake()
         }
