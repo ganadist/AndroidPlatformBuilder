@@ -1,3 +1,10 @@
+### 1.90.3 (2016-03-04) ###
+ * save state of all comboboxes and load when open project
+ * fix extra commands combobox behaviors when have whitespace
+ * file chooser will open when press flash button, instead of argument combobox
+ * while flashing with device, disable componets related flash function
+ * internally, ui releated codes are rewritten with kotlin
+
 ### 1.90.2 (2016-03-03) ###
  * fix IndexErrorException when cannot find LUNCH_COMBO_MENU value
  * find platform api level, and show notification when module sdk is set invalid
