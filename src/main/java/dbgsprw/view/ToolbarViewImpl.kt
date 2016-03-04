@@ -196,7 +196,7 @@ class ToolbarViewImpl(val mProject: Project) : AndroidBuilderForm(),
         mOpenDirectoryButton.isEnabled = false
         mFlashButton.isEnabled = false
 
-        ServiceManager.getService(mProject, ProjectMonitor::class.java).onOutDirChanged(path)
+        mProject.getComponent(ProjectMonitor::class.java).onOutDirChanged(path)
     }
 
     override fun onAndroidProductOutChanged(path: String) {
