@@ -5,8 +5,16 @@
   <vendor email="ganadist@gmail.com" url="https://github.com/ganadist/AndroidPlatformBuilder">Young Ho Cha</vendor>
 
   <description><![CDATA[
-      Android build & flash with Intellij plugin<br>
-      <em></em>
+      Build & Flash your own Android ROM with IntelliJ IDEA or Android Studio<br/>
+      The following features are available:
+      <ul>
+      <li>Support AOSP or CyanogenMod build system</li>
+      <li>Show available build configuration on your android platform sources.</li>
+      <li>Prints on Build console with link for source codes that have errors.</li>
+      <li>Support full or partial build.</li>
+      <li>Java compiler can be selected via module Sdk.</li>
+      <li>Flash ROM image on your devices with fastboot or adb</li>
+      </ul>
     ]]></description>
 
   <change-notes><![CDATA[
