@@ -56,7 +56,7 @@ class ToolbarViewImpl(val mProject: Project) : AndroidBuilderForm(),
     private val mState = StateStore.getState(mProject)
 
     private val CURRENT_PATH = "Current Path"
-    private val mProductComboModel = HistoryComboModel()
+    private val mProductComboModel = HistoryComboModel(null)
     private val mVariantComboModel = HistoryComboModel(null, *Utils.sVariants)
     private val mTargetComboModel = HistoryComboModel(null, *Utils.sTargets)
     private val mTargetDirectoryComboModel = HistoryComboModel(CURRENT_PATH)
