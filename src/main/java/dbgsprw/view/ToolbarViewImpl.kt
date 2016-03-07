@@ -256,14 +256,17 @@ class ToolbarViewImpl(val mProject: Project) : AndroidBuilderForm(),
         val jobs = mJobSpinner.value as Int
         val verbose = mVerboseCheckBox.isSelected
         val extras = mExtraArgumentsComboBox.selectedItem as String
+        val toBeDisabled: Array<JComponent> = arrayOf(mProductComboBox, mVariantComboBox, mFlashButton)
 
         builder.build(jobs, verbose, extras, object : BuildConsole.ExitListener {
             override fun onExit() {
                 mBuildProgress = false
+                toBeDisabled.forEach { it -> it.isEnabled = true }
                 updateMakeButton()
             }
         })
         mBuildProgress = true
+        toBeDisabled.forEach { it -> it.isEnabled = false }
         updateMakeButton()
     }
 
@@ -358,13 +361,17 @@ class ToolbarViewImpl(val mProject: Project) : AndroidBuilderForm(),
             return
         }
 
+        val toBeDisabled: Array<JComponent> = arrayOf(mProductComboBox, mVariantComboBox, mMakeButton)
+
         getBuilder().sync(device, partition, filename, wipe, listener = object : BuildConsole.ExitListener {
             override fun onExit() {
                 mSyncProgress = false
+                toBeDisabled.forEach { it -> it.isEnabled = true }
                 updateFlashUi()
             }
         })
         mSyncProgress = true
+        toBeDisabled.forEach { it -> it.isEnabled = false }
         updateFlashUi()
     }
 
