@@ -23,6 +23,7 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowAnchor
 import com.intellij.openapi.wm.ex.ToolWindowManagerEx
 import com.intellij.ui.content.ContentFactory
@@ -56,6 +57,7 @@ class ToolbarViewImpl(val mProject: Project) : AndroidBuilderForm(),
     private val mState = StateStore.getState(mProject)
 
     private val CURRENT_PATH = "Current Path"
+    private val mToolWindow: ToolWindow
     private val mProductComboModel = HistoryComboModel(null)
     private val mVariantComboModel = HistoryComboModel(null, *Utils.sVariants)
     private val mTargetComboModel = HistoryComboModel(null, *Utils.sTargets)
@@ -73,11 +75,11 @@ class ToolbarViewImpl(val mProject: Project) : AndroidBuilderForm(),
         LOG.info("init")
 
         val wm = ToolWindowManagerEx.getInstanceEx(mProject)
-        val window = wm.registerToolWindow(TOOLBAR_WINDOW_ID, false, ToolWindowAnchor.RIGHT,
+        mToolWindow = wm.registerToolWindow(TOOLBAR_WINDOW_ID, false, ToolWindowAnchor.RIGHT,
                 mProject, true)
         val contentFactory = ContentFactory.SERVICE.getInstance()
         val content = contentFactory.createContent(mAndroidBuilderContent, "", false)
-        window.contentManager.addContent(content)
+        mToolWindow.contentManager.addContent(content)
 
         getBuilder().setOutPathListener(this)
         ServiceManager.getService(DeviceManager::class.java).addDeviceStateListener(this)
@@ -278,7 +280,12 @@ class ToolbarViewImpl(val mProject: Project) : AndroidBuilderForm(),
         }
     }
 
+    private fun show() {
+        mToolWindow.activate(null, true)
+    }
+
     override fun doMake() {
+        show()
         mMakeRadioButton.doClick()
         val builder = getBuilder()
         val target = mTargetComboBox.selectedItem as String
@@ -287,8 +294,10 @@ class ToolbarViewImpl(val mProject: Project) : AndroidBuilderForm(),
     }
 
     override fun doMm() {
+        show()
         mMmRadioButton.doClick()
-        if (setupPartialMake(CURRENT_PATH)) {
+        val targetDirectory = mTargetComboBox.selectedItem as String
+        if (setupPartialMake(targetDirectory)) {
             executeMake()
         }
     }
