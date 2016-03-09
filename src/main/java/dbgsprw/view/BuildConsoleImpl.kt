@@ -26,6 +26,7 @@ import com.intellij.notification.NotificationType
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VfsUtil
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.wm.ToolWindowAnchor
 import com.intellij.openapi.wm.ex.ToolWindowManagerEx
 import com.intellij.ui.content.ContentFactory
@@ -38,6 +39,10 @@ import javax.swing.JPanel
 /**
  * Created by ganadist on 16. 3. 1.
  */
+
+fun String?.length() = if (this == null) 0 else this.length
+fun String?.toInt() = if (this == null) 0 else Integer.parseInt(this)
+
 class BuildConsoleImpl(val mProject: Project) : BuildConsole {
     private val LOG = Logger.getInstance(BuildConsoleImpl::class.java)
     private val CONSOLE_ID = "Android Builder Console"
@@ -101,22 +106,20 @@ class BuildConsoleImpl(val mProject: Project) : BuildConsole {
 
     override fun onError(line: String) {
         val m = FILE_POSITION_PATTERN.matcher(line)
+        var file: VirtualFile? = null
         if (m.find()) {
             val messageType = m.group(1)
             val filename = m.group(2)
-            val lineNo = Integer.parseInt(m.group(3)) - 1
-            val column = if (m.group(4) == null) -1 else Integer.parseInt(m.group(4)) - 1
+            val lineNo = m.group(3).toInt() - 1
+            val column = m.group(4).toInt() - 1
             val message = m.group(5)
             val location = m.group(0).substring(
-                    if (messageType == null) 0 else messageType.length,
+                    messageType.length(),
                     m.start(5) - SEPERATOR.length)
 
-            val file = VfsUtil.findRelativeFile(filename, mProject.baseDir)
-            if (file == null) {
-                mConsoleView.print(line, ConsoleViewContentType.ERROR_OUTPUT)
-            } else {
-                val linkInfo = OpenFileHyperlinkInfo(mProject,
-                        file, lineNo, column)
+            file = VfsUtil.findRelativeFile(filename, mProject.baseDir)
+            file?.apply {
+                val linkInfo = OpenFileHyperlinkInfo(mProject, file!!, lineNo, column)
                 if (messageType != null) {
                     mConsoleView.print(messageType, ConsoleViewContentType.ERROR_OUTPUT)
                 }
@@ -124,7 +127,8 @@ class BuildConsoleImpl(val mProject: Project) : BuildConsole {
                 mConsoleView.print(SEPERATOR, ConsoleViewContentType.ERROR_OUTPUT)
                 mConsoleView.print(message, ConsoleViewContentType.ERROR_OUTPUT)
             }
-        } else {
+        }
+        if (file == null) {
             mConsoleView.print(line, ConsoleViewContentType.ERROR_OUTPUT)
         }
         mConsoleView.print("\n", ConsoleViewContentType.ERROR_OUTPUT)
@@ -132,10 +136,9 @@ class BuildConsoleImpl(val mProject: Project) : BuildConsole {
 
     override fun onExit(code: Int) {
         LOG.info("exit with $code")
-        if (mExitListener != null) {
-            mExitListener!!.onExit()
-            mExitListener = null
-        }
+        mExitListener?.onExit()
+        mExitListener = null
+
         if (code == 0) {
             mWindow.hide(null)
         } else if (code < 128) {
