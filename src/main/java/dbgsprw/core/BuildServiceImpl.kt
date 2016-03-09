@@ -57,7 +57,7 @@ class BuildServiceImpl(val mProject: Project) : CommandExecutor(), BuildService 
 
     override fun dispose() {
         val processes = arrayOf(mComboProcess, mLunchProcess, mBuildProcess, mSyncProcess)
-        processes.forEach { p -> if (p != null) p.destroy() }
+        processes.forEach { p -> p?.destroy() }
     }
 
     override fun setProduct(product: String, variant: String) {
@@ -144,10 +144,8 @@ class BuildServiceImpl(val mProject: Project) : CommandExecutor(), BuildService 
     }
 
     override fun stopBuild() {
-        if (mBuildProcess != null) {
-            mBuildProcess!!.destroy()
-            mBuildProcess = null
-        }
+        mBuildProcess?.destroy()
+        mBuildProcess = null
     }
 
     override fun sync(device: Device, partition: String, filename: String, wipe: Boolean, listener: BuildConsole.ExitListener) {
@@ -159,10 +157,8 @@ class BuildServiceImpl(val mProject: Project) : CommandExecutor(), BuildService 
     }
 
     override fun stopSync() {
-        if (mSyncProcess != null) {
-            mSyncProcess!!.destroy()
-            mSyncProcess = null
-        }
+        mSyncProcess?.destroy()
+        mSyncProcess = null
     }
 
     override fun canBuild(): Boolean {
@@ -187,7 +183,10 @@ class BuildServiceImpl(val mProject: Project) : CommandExecutor(), BuildService 
     }
 
     private fun updateAndroidJavaHome() {
-        val module = getAndroidModule(mProject)!!
+        val module = getAndroidModule(mProject)
+        if (module == null) {
+            return
+        }
         val moduleSdk = ModuleRootManager.getInstance(module).sdk
 
         if (moduleSdk == null) {
@@ -217,9 +216,7 @@ class BuildServiceImpl(val mProject: Project) : CommandExecutor(), BuildService 
             mOutDir = outDir
             setenv("OUT_DIR", outDir)
             generateBuildSpec()
-            if (mLunchProcess != null) {
-                mLunchProcess!!.destroy()
-            }
+            mLunchProcess?.destroy()
             mLunchProcess = findProductOutPath()
         }
     }
