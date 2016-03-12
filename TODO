@@ -1,6 +1,7 @@
 * clean up codes
 * UI tweaks
  * Better user interaction
+* use com.intellij.execution.ProcessHandler instead of CommandExecutor
 * add testcases
  * following https://github.com/intellij-rust/intellij-rust/tree/master/src/test/kotlin/org/rust
 * blahblah
