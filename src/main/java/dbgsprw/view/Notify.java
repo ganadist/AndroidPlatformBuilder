@@ -26,11 +26,11 @@ import com.intellij.notification.Notifications;
  * Created by ganadist on 16. 3. 1.
  */
 public class Notify {
-    public static void show(String message, NotificationType type) {
-        show(message, type, null);
+    public static void show(String title, String message, NotificationType type) {
+        show(title, message, type, null);
     }
 
-    public static void show(String message, NotificationType type, NotificationListener listener) {
-        Notifications.Bus.notify(new Notification("Android Builder", "Android Builder", message, type, listener));
+    public static void show(String title, String message, NotificationType type, NotificationListener listener) {
+        Notifications.Bus.notify(new Notification("Android Builder", title, message, type, listener));
     }
 }

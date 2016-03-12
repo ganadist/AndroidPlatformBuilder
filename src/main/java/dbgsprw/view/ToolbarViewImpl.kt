@@ -230,11 +230,11 @@ class ToolbarViewImpl(val mProject: Project) : AndroidBuilderForm(),
                 val currentPath = FileDocumentManager.getInstance().getFile(currentDoc)!!
                 realPath = Utils.findAndroidMkOnParent(mProjectPath, currentPath.path)
             } catch (ex: NullPointerException) {
-                Notify.show("There is no opened file on editor.", NotificationType.ERROR)
+                Notify.show("Cannot start to build", "There is no opened file on editor.", NotificationType.ERROR)
                 return false;
             }
             if (realPath == null) {
-                Notify.show("cannot find Android.mk", NotificationType.ERROR)
+                Notify.show("Cannot start to build", "cannot find Android.mk", NotificationType.ERROR)
                 return false;
             }
 
@@ -251,7 +251,7 @@ class ToolbarViewImpl(val mProject: Project) : AndroidBuilderForm(),
         val builder = getBuilder()
 
         if (!builder.canBuild()) {
-            Notify.show("Project is not ready or other job is processing.", NotificationType.ERROR);
+            Notify.show("Cannot start to build", "Project is not ready or other job is processing.", NotificationType.ERROR);
             return;
         }
 
@@ -358,7 +358,7 @@ class ToolbarViewImpl(val mProject: Project) : AndroidBuilderForm(),
         val out = mProductOut
         if (!out.exists()) {
             if (!out.mkdirs()) {
-                Notify.show("cannot open ANDROID_PRODUCT_OUT directory.", NotificationType.ERROR)
+                Notify.show("Cannot open directory.", "cannot open ANDROID_PRODUCT_OUT directory.", NotificationType.ERROR)
             }
         }
         DirectoryOpener.openDirectory(out.getPath())
@@ -366,7 +366,7 @@ class ToolbarViewImpl(val mProject: Project) : AndroidBuilderForm(),
 
     private fun startSync(device: Device, partition: String, filename: String = "", wipe: Boolean = false) {
         if (!getBuilder().canSync()) {
-            Notify.show("Project is not ready or other job is processing.", NotificationType.ERROR);
+            Notify.show("Cannot start to sync", "Project is not ready or other job is processing.", NotificationType.ERROR);
             return
         }
 
@@ -428,7 +428,7 @@ class ToolbarViewImpl(val mProject: Project) : AndroidBuilderForm(),
                 if (selected.canRead()) {
                     filename = selected.canonicalPath
                 } else {
-                    Notify.show("cannot read selected file: ${selected.name}", NotificationType.WARNING)
+                    Notify.show("Cannot start to sync", "cannot read selected file: ${selected.name}", NotificationType.WARNING)
                     return
                 }
             } else {

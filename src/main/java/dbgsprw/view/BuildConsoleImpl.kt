@@ -142,8 +142,9 @@ class BuildConsoleImpl(val mProject: Project) : BuildConsole {
         if (code == 0) {
             mWindow.hide(null)
         } else if (code < 128) {
+            val title = "execution is failed."
             val message = "execution is failed with exit code: $code"
-            Notify.show(message, NotificationType.ERROR)
+            Notify.show(title, message, NotificationType.ERROR)
             mConsoleView.print(message, ConsoleViewContentType.SYSTEM_OUTPUT)
             mConsoleView.print("\n", ConsoleViewContentType.SYSTEM_OUTPUT)
         }

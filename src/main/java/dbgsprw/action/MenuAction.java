@@ -35,7 +35,7 @@ public abstract class MenuAction extends AnAction {
         BuildToolbar toolbar = ServiceManager.getService(e.getProject(), BuildToolbar.class);
 
         if (toolbar == null) {
-            Notify.show("Please Enable Tool Window First.\nSelect View -> Tool Windows -> Android Builder",
+            Notify.show("Cannot start to build", "Please Enable Tool Window First.\nSelect View -> Tool Windows -> Android Builder",
                     NotificationType.ERROR);
         }
         doAction(toolbar);
