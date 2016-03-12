@@ -1,3 +1,7 @@
+### 1.90.6 (2016-03-12) ###
+ * some widgets are disabled while build or sync
+ * show warning notification when project sdk is invalid
+
 ### 1.90.5 (2016-03-04) ###
  * quick fix for auto exclude directories function
 
