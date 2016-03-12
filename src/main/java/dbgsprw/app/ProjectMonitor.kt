@@ -249,7 +249,7 @@ class ProjectMonitor(val mProject: Project) : ProjectComponent, ModuleListener {
         }
     }
 
-    private fun showSdkSettingNotify(module: Module, javaVersion: String) {
+    private fun showModuleSdkSettingNotify(module: Module, javaVersion: String) {
         Notify.show("Module SDK is invalid.", "<br/>Please <a href=''>Set Module SDK</a> to ${javaVersion}",
                 NotificationType.ERROR,
                 com.intellij.notification.NotificationListener({ notification, event ->
@@ -261,20 +261,37 @@ class ProjectMonitor(val mProject: Project) : ProjectComponent, ModuleListener {
                 }));
     }
 
-    private fun checkModuleSdk(version: AndroidVersion, module: Module) {
-        val sdk = ModuleRootManager.getInstance(module).sdk
+    private fun showProjectSdksettingNotify(sdkName: String) {
+        Notify.show("Project SDK is invalid.", "<br/>Please <a href=''>Set Project SDK</a> to ${sdkName}",
+                NotificationType.WARNING,
+                com.intellij.notification.NotificationListener({ notification, event ->
+                    notification.hideBalloon()
+                    val config = ProjectStructureConfigurable.getInstance(mProject)
+                    config.selectProjectGeneralSettings(true);
+                    ShowSettingsUtil.getInstance().editConfigurable(mProject, config)
+                }));
+    }
 
-        if (sdk == null) {
-            showSdkSettingNotify(module, version.getRequiredModuleSdkName())
+    private fun checkSdkVersion(version: AndroidVersion, module: Module) {
+        val projectSdk = ProjectRootManager.getInstance(mProject).projectSdk
+        val requiredSdkName = version.getRequiredSdkName()
+        if (projectSdk == null || projectSdk.name != requiredSdkName) {
+            showProjectSdksettingNotify(requiredSdkName)
+        }
+
+        val moduleSdk = ModuleRootManager.getInstance(module).sdk
+
+        if (moduleSdk == null) {
+            showModuleSdkSettingNotify(module, version.getRequiredModuleSdkName())
             return
         }
 
-        val sdkName = sdk.name
-        val sdkVersion = if (sdk.versionString != null) sdk.versionString!! else ""
+        val sdkName = moduleSdk.name
+        val sdkVersion = if (moduleSdk.versionString != null) moduleSdk.versionString!! else ""
 
         LOG.info("detected module sdk = \"${sdkName}\" \"${sdkVersion}\"")
         if (version.checkNeededJavaSdk(sdkVersion)) {
-            showSdkSettingNotify(module, version.getRequiredModuleSdkName())
+            showModuleSdkSettingNotify(module, version.getRequiredModuleSdkName())
         }
     }
 
@@ -291,7 +308,7 @@ class ProjectMonitor(val mProject: Project) : ProjectComponent, ModuleListener {
         updateExcludeFoldersFirst(info)
         updateOutDir(module)
         updateFacet(module)
-        checkModuleSdk(version, module)
+        checkSdkVersion(version, module)
 
         if (mToolbar != null) {
             LOG.warn("duplicated ToolWindow lifecycle")
