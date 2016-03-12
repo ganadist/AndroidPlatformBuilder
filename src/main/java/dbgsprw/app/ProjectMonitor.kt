@@ -36,7 +36,9 @@ import com.intellij.openapi.roots.ui.configuration.ProjectStructureConfigurable
 import com.intellij.openapi.util.Computable
 import com.intellij.util.Consumer
 import com.intellij.util.Function
+import dbgsprw.core.AndroidVersion
 import dbgsprw.core.Utils
+import dbgsprw.core.isPlatformDirectory
 import dbgsprw.view.Notify
 import java.io.File
 
@@ -47,7 +49,6 @@ import java.io.File
 class ProjectMonitor(val mProject: Project) : ProjectComponent, ModuleListener {
     private val LOG = Logger.getInstance(ProjectMonitor::class.java)
     private val EMPTY_LIST: List<String> = listOf()
-    private var mPlatformVersion = -1
     private val mConnection = mProject.messageBus.connect()
     private var mToolbar: BuildToolbar? = null
 
@@ -248,21 +249,6 @@ class ProjectMonitor(val mProject: Project) : ProjectComponent, ModuleListener {
         }
     }
 
-    private fun findPlatformVersion(info: ModuleInfo) {
-        mPlatformVersion = -1
-        for (line in File(info.mRootPath, Utils.VERSION_DEFAULT_MK).readLines()) {
-            if (!line.contains("PLATFORM_SDK_VERSION := ")) {
-                continue
-            }
-            val versionStr = line.split(" := ")[1]
-            try {
-                mPlatformVersion = versionStr.toInt()
-            } catch (ex: NumberFormatException) {
-            }
-            break
-        }
-    }
-
     private fun showSdkSettingNotify(module: Module, javaVersion: String) {
         Notify.show("Module SDK is invalid.<br/>Please <a href=''>Set Module SDK</a> to ${javaVersion}",
                 NotificationType.ERROR,
@@ -275,33 +261,20 @@ class ProjectMonitor(val mProject: Project) : ProjectComponent, ModuleListener {
                 }));
     }
 
-    private val BELOW_K = 20
-    private val ABOVE_L = 21
-
-    private fun checkModuleSdk(module: Module) {
+    private fun checkModuleSdk(version: AndroidVersion, module: Module) {
         val sdk = ModuleRootManager.getInstance(module).sdk
-        var requiredVersion = ""
-        if (mPlatformVersion <= BELOW_K) {
-            requiredVersion = "Sun JDK SE 1.6"
-        } else {
-            requiredVersion = "OpenJDK 1.7"
-        }
 
         if (sdk == null) {
-            showSdkSettingNotify(module, requiredVersion)
+            showSdkSettingNotify(module, version.getRequiredModuleSdkName())
             return
         }
 
-        val name = sdk.name
-        val version = if (sdk.versionString != null) sdk.versionString!! else ""
+        val sdkName = sdk.name
+        val sdkVersion = if (sdk.versionString != null) sdk.versionString!! else ""
 
-        LOG.info("detected module sdk = \"${name}\" \"${version}\"")
-        if (mPlatformVersion <= BELOW_K && version.contains("1.6")) {
-            // below kitkat,
-        } else if (mPlatformVersion >= ABOVE_L && version.contains("1.7")) {
-            // above lollipop
-        } else {
-            showSdkSettingNotify(module, requiredVersion)
+        LOG.info("detected module sdk = \"${sdkName}\" \"${sdkVersion}\"")
+        if (version.checkNeededJavaSdk(sdkVersion)) {
+            showSdkSettingNotify(module, version.getRequiredModuleSdkName())
         }
     }
 
@@ -309,17 +282,16 @@ class ProjectMonitor(val mProject: Project) : ProjectComponent, ModuleListener {
         LOG.info("android module is added")
 
         val info = ModuleInfo(module)
-        findPlatformVersion(info)
-        if (mPlatformVersion < 0) {
+        val version = AndroidVersion(info.mRootPath)
+        if (!version.hasValidVersion()) {
             LOG.warn("Cannot find platform version. This is not android platform project.")
-            return
+            return;
         }
 
         updateExcludeFoldersFirst(info)
         updateOutDir(module)
         updateFacet(module)
-        checkModuleSdk(module)
-
+        checkModuleSdk(version, module)
 
         if (mToolbar != null) {
             LOG.warn("duplicated ToolWindow lifecycle")
@@ -345,7 +317,7 @@ class ProjectMonitor(val mProject: Project) : ProjectComponent, ModuleListener {
 
     override fun moduleAdded(project: Project, module: Module) {
         LOG.info("module is added")
-        if (isAndroidModule(module)) {
+        if (module.isAndroidModule()) {
             androidModuleAdded(module)
             return
         }
@@ -358,7 +330,7 @@ class ProjectMonitor(val mProject: Project) : ProjectComponent, ModuleListener {
 
     override fun beforeModuleRemoved(project: Project, module: Module) {
         LOG.info("module before removed")
-        if (isAndroidModule(module)) {
+        if (module.isAndroidModule()) {
             if (mToolbar != null) {
                 androidModuleRemoved()
             }
@@ -367,7 +339,7 @@ class ProjectMonitor(val mProject: Project) : ProjectComponent, ModuleListener {
 
     override fun modulesRenamed(project: Project, modules: MutableList<Module>, func: Function<Module, String>) {
         LOG.info("module is renamed")
-        val module = getAndroidModule(project)
+        val module = mProject.getAndroidModule()
         if (module != null) {
             androidModuleAdded(module)
         } else if (mToolbar != null) {
@@ -376,7 +348,7 @@ class ProjectMonitor(val mProject: Project) : ProjectComponent, ModuleListener {
     }
 
     fun onOutDirChanged(outDir: String) {
-        val module = getAndroidModule(mProject)
+        val module = mProject.getAndroidModule()
         if (module != null) {
             updateOutDir(module, outDir)
         }
@@ -385,22 +357,18 @@ class ProjectMonitor(val mProject: Project) : ProjectComponent, ModuleListener {
 
 private val ANDROID_MODULE_NAME = "android"
 
-private fun isAndroidModule(module: Module?): Boolean {
-    if (module == null) {
+fun Module?.isAndroidModule(): Boolean {
+    if (this == null) {
         return false
     }
-    if (module.name != ANDROID_MODULE_NAME) {
+    if (this.name != ANDROID_MODULE_NAME) {
         return false
     }
-    val root = module.moduleFile!!.parent.path
-    val files = arrayOf(Utils.MAKEFILE,
-            Utils.ENVSETUP_SH,
-            Utils.VERSION_DEFAULT_MK
-    )
-    return files.all { f -> File(root, f).canRead() }
+    val root = this.moduleFile!!.parent.path
+    return isPlatformDirectory(root)
 }
 
-fun getAndroidModule(project: Project): Module? {
-    val module = ModuleManager.getInstance(project).findModuleByName(ANDROID_MODULE_NAME)
-    return if (isAndroidModule(module)) module else null
+fun Project.getAndroidModule(): Module? {
+    val module = ModuleManager.getInstance(this).findModuleByName(ANDROID_MODULE_NAME)
+    return module?.let { if (it.isAndroidModule()) it else null }
 }

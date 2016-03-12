@@ -183,7 +183,7 @@ class BuildServiceImpl(val mProject: Project) : CommandExecutor(), BuildService 
     }
 
     private fun updateAndroidJavaHome() {
-        val module = getAndroidModule(mProject)
+        val module = mProject.getAndroidModule()
         if (module == null) {
             return
         }
