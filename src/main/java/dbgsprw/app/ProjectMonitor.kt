@@ -130,8 +130,8 @@ class ProjectMonitor(val mProject: Project) : ProjectComponent, ModuleListener {
     private val TARGET_COMMON_LIBPATH = "/target/common/obj/JAVA_LIBRARIES/"
 
     private class ModuleInfo(val mModule: Module) {
-        val mRootFile = mModule.getModuleFile()!!.parent
-        val mRootPath = mRootFile.path
+        val mRootPath = mModule.project.basePath
+        val mRootFile = mModule.project.baseDir
         val mRootUrl = mRootFile.url
         val mRootUrlForJar = "jar" + mRootUrl.substring(4)
     }
@@ -320,7 +320,6 @@ class ProjectMonitor(val mProject: Project) : ProjectComponent, ModuleListener {
 
     private fun androidModuleRemoved() {
         LOG.info("android module is removed")
-
     }
 
     override fun projectClosed() {
@@ -333,7 +332,7 @@ class ProjectMonitor(val mProject: Project) : ProjectComponent, ModuleListener {
     }
 
     override fun moduleAdded(project: Project, module: Module) {
-        LOG.info("module is added")
+        LOG.info("module ${module.name} is added")
         if (module.isAndroidModule()) {
             androidModuleAdded(module)
             return
@@ -342,7 +341,7 @@ class ProjectMonitor(val mProject: Project) : ProjectComponent, ModuleListener {
     }
 
     override fun moduleRemoved(project: Project, module: Module) {
-        LOG.info("module is removed")
+        LOG.info("module ${module.name} is removed")
     }
 
     override fun beforeModuleRemoved(project: Project, module: Module) {
@@ -374,14 +373,11 @@ class ProjectMonitor(val mProject: Project) : ProjectComponent, ModuleListener {
 
 private val ANDROID_MODULE_NAME = "android"
 
-fun Module?.isAndroidModule(): Boolean {
-    if (this == null) {
-        return false
-    }
+fun Module.isAndroidModule(): Boolean {
     if (this.name != ANDROID_MODULE_NAME) {
         return false
     }
-    val root = this.moduleFile!!.parent.path
+    val root = this.project.basePath
     return isPlatformDirectory(root)
 }
 
