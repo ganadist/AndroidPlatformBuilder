@@ -14,8 +14,9 @@ usage() {
 }
 
 commit() {
-  local VERSION=$1
-  local FORCE=$2
+  local OLD_VERSION=$1
+  local VERSION=$2
+  local FORCE=$3
 
   local CHANGELOG_MD_NEW=${CHANGELOG_MD}.template
 
@@ -23,9 +24,12 @@ commit() {
   echo " *" >> ${CHANGELOG_MD_NEW}
   echo  >> ${CHANGELOG_MD_NEW}
   cat ${CHANGELOG_MD} >> ${CHANGELOG_MD_NEW}
-  mv -f ${CHANGELOG_MD_NEW} ${CHANGELOG_MD}
 
-  vim +2 ${CHANGELOG_MD}
+  mv -f ${CHANGELOG_MD_NEW} ${CHANGELOG_MD}
+  TEMPFILE=`mktemp gitlog-XXXXX`
+  git log v$OLD_VERSION.. > $TEMPFILE
+  vim -c "new|e ${CHANGELOG_MD}|2" $TEMPFILE
+  rm -f $TEMPFILE
 
   git diff ${CHANGELOG_MD} ${VERSION_PROPERTIES}
 
@@ -33,6 +37,7 @@ commit() {
     echo -n Do you want to commit? [Y/n]
     read R
     if [ x$R != x'Y' ];then
+	git checkout ${CHANGELOG_MD} ${VERSION_PROPERTIES}
 	echo "aborted!" >&2
 	return
     fi
@@ -63,5 +68,7 @@ fi
 
 VERSION=$@
 
+source $VERSION_PROPERTIES
+OLD_VERSION=$version
 apply_version $VERSION
-commit $VERSION $FORCE
+commit $OLD_VERSION $VERSION $FORCE
