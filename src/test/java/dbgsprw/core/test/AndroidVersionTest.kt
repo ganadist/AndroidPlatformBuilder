@@ -16,6 +16,7 @@
 
 package dbgsprw.core.test
 
+import dbgsprw.core.AndroidJdk
 import dbgsprw.core.AndroidVersion
 import dbgsprw.core.parseMakefileLine
 import junit.framework.TestCase
@@ -44,5 +45,6 @@ class AndroidVersionTest : TestCase() {
         val projectRoot = "testproject"
         val version = AndroidVersion(projectRoot)
         assertEquals(23, version.mPlatformApiLevel)
+        assertEquals(AndroidJdk.JDK_1_7, version.mJdk)
     }
 }

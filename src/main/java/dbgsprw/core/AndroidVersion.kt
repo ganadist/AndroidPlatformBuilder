@@ -42,18 +42,46 @@ fun parseMakefileLine(line: String): Pair<String, String> {
     return Pair(m.group(2), m.group(3))
 }
 
+enum class AndroidJdk {
+    JDK_NOT_SUPPORTED,
+    JDK_1_5,
+    JDK_1_6,
+    JDK_1_7,
+    JDK_1_8,
+    JDK_1_9,
+}
+
+// android api levels
+private val CUPCAKE = 3
+private val FROYO = 8
+private val GINGERBREAD = 9
+private val KITKAT_WATCH = 20
+private val LOLLIPOP = 21
+private val M = 23
+private val N = 24
+
+fun getAndroidJdk(apiLevel: Int): AndroidJdk {
+    when (apiLevel) {
+        in CUPCAKE..FROYO -> return AndroidJdk.JDK_1_5
+        in GINGERBREAD..KITKAT_WATCH -> return AndroidJdk.JDK_1_6
+        in LOLLIPOP..M -> return AndroidJdk.JDK_1_7
+        else ->
+            return if (apiLevel < CUPCAKE) AndroidJdk.JDK_NOT_SUPPORTED else AndroidJdk.JDK_1_8
+    }
+}
+
 class AndroidVersion(val mBasePath: String) {
     val mPlatformApiLevel: Int
     val mPlatformApiStr: String
     val mPlatformVersionStr: String
-    private val BELOW_K = 20
-    private val ABOVE_L = 21
+    val mJdk: AndroidJdk
 
     init {
         val m = parseMakefile(VERSION_DEFAULT_MK)
         mPlatformApiStr = m.getOrElse("PLATFORM_SDK_VERSION", { "-1" })
         mPlatformApiLevel = mPlatformApiStr.toInt()
         mPlatformVersionStr = m.getOrElse("PLATFORM_VERSION", { "" })
+        mJdk = getAndroidJdk(mPlatformApiLevel)
     }
 
     private fun parseMakefile(filename: String): Map<String, String> {
@@ -70,15 +98,28 @@ class AndroidVersion(val mBasePath: String) {
     }
 
     fun checkNeededJavaSdk(sdkVersion: String): Boolean {
-        if (mPlatformApiLevel <= BELOW_K && sdkVersion.contains("1.6")) {
-            return false
-        } else if (mPlatformApiLevel >= ABOVE_L && sdkVersion.contains("1.7")) {
-            return false
+        when (mJdk) {
+            AndroidJdk.JDK_NOT_SUPPORTED -> return false
+            AndroidJdk.JDK_1_5 -> return sdkVersion.contains("1.5")
+            AndroidJdk.JDK_1_6 -> return sdkVersion.contains("1.6")
+            AndroidJdk.JDK_1_7 -> return sdkVersion.contains("1.7")
+            AndroidJdk.JDK_1_8 -> return sdkVersion.contains("1.8")
+            AndroidJdk.JDK_1_9 -> return sdkVersion.contains("1.9")
         }
-        return true
+    }
+
+    fun getRequiredModuleSdkName(): String {
+        val jdkName = if (System.getProperty("os.name") == "Linux") "OpenJDK" else "Oracle JDK"
+        when (mJdk) {
+            AndroidJdk.JDK_1_5 -> return "Sun JDK 1.5"
+            AndroidJdk.JDK_1_6 -> return "Sun JDK SE 1.6"
+            AndroidJdk.JDK_1_7 -> return "${jdkName} 1.7"
+            AndroidJdk.JDK_1_8 -> return "${jdkName} 1.8"
+            AndroidJdk.JDK_1_9 -> return "${jdkName} 1.9"
+        }
+        return "not supported"
     }
 
     fun hasValidVersion() = mPlatformApiLevel > 0
-    fun getRequiredModuleSdkName(): String = if (mPlatformApiLevel <= BELOW_K) "Sun JDK SE 1.6" else "OpenJDK 1.7"
     fun getRequiredSdkName(): String = "Android API ${mPlatformApiLevel} Platform"
 }

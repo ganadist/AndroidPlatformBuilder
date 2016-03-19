@@ -290,7 +290,7 @@ class ProjectMonitor(val mProject: Project) : ProjectComponent, ModuleListener {
         val sdkVersion = if (moduleSdk.versionString != null) moduleSdk.versionString!! else ""
 
         LOG.info("detected module sdk = \"${sdkName}\" \"${sdkVersion}\"")
-        if (version.checkNeededJavaSdk(sdkVersion)) {
+        if (!version.checkNeededJavaSdk(sdkVersion)) {
             showModuleSdkSettingNotify(module, version.getRequiredModuleSdkName())
         }
     }
