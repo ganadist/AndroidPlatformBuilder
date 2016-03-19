@@ -16,7 +16,9 @@
 
 package dbgsprw.core
 
+import dbgsprw.view.toInt
 import java.io.File
+import java.util.regex.Pattern
 
 /**
  * Created by ganadist on 16. 3. 12.
@@ -31,32 +33,40 @@ private val ANDROID_PLATFORM_FILES = arrayOf(MAKEFILE, ENVSETUP_SH, VERSION_DEFA
 
 fun isPlatformDirectory(path: String): Boolean = ANDROID_PLATFORM_FILES.all { File(path, it).canRead() }
 
+private val KEY_VAL_REGEX = "(export){0,1}\\s*(\\S+)\\s*[:]{0,1}=\\s*(\\S+)\\s*"
+private val KEY_VAL_PATTERN = Pattern.compile(KEY_VAL_REGEX)
+
+fun parseMakefileLine(line: String): Pair<String, String> {
+    val m = KEY_VAL_PATTERN.matcher(line)
+    m.matches()
+    return Pair(m.group(2), m.group(3))
+}
+
 class AndroidVersion(val mBasePath: String) {
-    var mPlatformApiLevel = -1
-    var mPlatformApiStr = ""
-    var mPlatformVersionStr = ""
+    val mPlatformApiLevel: Int
+    val mPlatformApiStr: String
+    val mPlatformVersionStr: String
     private val BELOW_K = 20
     private val ABOVE_L = 21
 
     init {
-        parsePlatformVersion()
+        val m = parseMakefile(VERSION_DEFAULT_MK)
+        mPlatformApiStr = m.getOrElse("PLATFORM_SDK_VERSION", { "-1" })
+        mPlatformApiLevel = mPlatformApiStr.toInt()
+        mPlatformVersionStr = m.getOrElse("PLATFORM_VERSION", { "" })
     }
 
-    private fun parsePlatformVersion() {
-        for (line in File(mBasePath, VERSION_DEFAULT_MK).readLines()) {
-            if (line.contains("PLATFORM_SDK_VERSION := ")) {
-                mPlatformApiStr = line.split(" := ")[1]
-                try {
-                    mPlatformApiLevel = mPlatformApiStr.toInt()
-                } catch (ex: NumberFormatException) {
-                }
+    private fun parseMakefile(filename: String): Map<String, String> {
+        val map: MutableMap<String, String> = mutableMapOf()
+        for (line in File(mBasePath, filename).readLines()) {
+            if (line.startsWith("#")) {
                 continue
             }
-            if (line.contains("PLATFORM_VERSION := ")) {
-                mPlatformVersionStr = line.split(" := ")[1]
-                continue
+            if (line.contains("=")) {
+                map.plusAssign(parseMakefileLine(line))
             }
         }
+        return map
     }
 
     fun checkNeededJavaSdk(sdkVersion: String): Boolean {
@@ -67,6 +77,7 @@ class AndroidVersion(val mBasePath: String) {
         }
         return true
     }
+
     fun hasValidVersion() = mPlatformApiLevel > 0
     fun getRequiredModuleSdkName(): String = if (mPlatformApiLevel <= BELOW_K) "Sun JDK SE 1.6" else "OpenJDK 1.7"
     fun getRequiredSdkName(): String = "Android API ${mPlatformApiLevel} Platform"
