@@ -1,3 +1,8 @@
+### 1.90.7 (2016-03-19) ###
+ * use kotlin 1.0.1
+ * when project is directory base (has .idea), load properly
+ * support n preview
+
 ### 1.90.6 (2016-03-12) ###
  * some widgets are disabled while build or sync
  * show warning notification when project sdk is invalid
