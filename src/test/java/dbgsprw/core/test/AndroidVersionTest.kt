@@ -45,6 +45,7 @@ class AndroidVersionTest : TestCase() {
         val projectRoot = "testproject"
         val version = AndroidVersion(projectRoot)
         assertEquals(23, version.mPlatformApiLevel)
-        assertEquals(AndroidJdk.JDK_1_7, version.mJdk)
+        assertEquals("MASTER", version.mBuildId)
+        assertEquals(AndroidJdk.JDK_1_8, version.mJdk)
     }
 }
