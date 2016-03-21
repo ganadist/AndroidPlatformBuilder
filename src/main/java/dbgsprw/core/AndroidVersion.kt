@@ -34,13 +34,15 @@ private val ANDROID_PLATFORM_FILES = arrayOf(MAKEFILE, ENVSETUP_SH, BUILD_ID_MK,
 
 fun isPlatformDirectory(path: String): Boolean = ANDROID_PLATFORM_FILES.all { File(path, it).canRead() }
 
-private val KEY_VAL_REGEX = "(export){0,1}\\s*(\\S+)\\s*[:]{0,1}=\\s*(\\S+)\\s*"
+private val KEY_VAL_REGEX = "(export){0,1}\\s*(\\S+)\\s*[:]{0,1}=\\s*(\\S*)\\s*"
 private val KEY_VAL_PATTERN = Pattern.compile(KEY_VAL_REGEX)
 
 fun parseMakefileLine(line: String): Pair<String, String> {
     val m = KEY_VAL_PATTERN.matcher(line)
-    m.matches()
-    return Pair(m.group(2), m.group(3))
+    if (m.matches()) {
+        return Pair(m.group(2), m.group(3))
+    }
+    return Pair("", "")
 }
 
 enum class AndroidJdk {
