@@ -39,13 +39,34 @@ class AndroidVersionTest : TestCase() {
         parseAndCheckLine(" Hello = World ", "Hello", "World")
         parseAndCheckLine("Hello := World", "Hello", "World")
         parseAndCheckLine("export Hello := World", "Hello", "World")
+        parseAndCheckLine("Hello =", "Hello", "")
+        parseAndCheckLine("Hello =  ", "Hello", "")
+        parseAndCheckLine("\tHello =  ", "Hello", "")
+    }
+
+    fun performTestParseMakefile(root: String, expectedApiLevel: Int, expectedJdkVersion: AndroidJdk) {
+        val version = AndroidVersion(root)
+        assertEquals(expectedApiLevel, version.mPlatformApiLevel)
+        assertEquals(expectedJdkVersion, version.mJdk)
     }
 
     fun testParseMakefile() {
-        val projectRoot = "testproject"
-        val version = AndroidVersion(projectRoot)
-        assertEquals(23, version.mPlatformApiLevel)
-        assertEquals("MASTER", version.mBuildId)
-        assertEquals(AndroidJdk.JDK_1_8, version.mJdk)
+        performTestParseMakefile("src/test/build/api-4", 4, AndroidJdk.JDK_1_5)
+        performTestParseMakefile("src/test/build/api-6", 6, AndroidJdk.JDK_1_5)
+        performTestParseMakefile("src/test/build/api-7", 7, AndroidJdk.JDK_1_5)
+        performTestParseMakefile("src/test/build/api-8", 8, AndroidJdk.JDK_1_5)
+        performTestParseMakefile("src/test/build/api-9", 9, AndroidJdk.JDK_1_6)
+        performTestParseMakefile("src/test/build/api-10", 10, AndroidJdk.JDK_1_6)
+        performTestParseMakefile("src/test/build/api-14", 14, AndroidJdk.JDK_1_6)
+        performTestParseMakefile("src/test/build/api-15", 15, AndroidJdk.JDK_1_6)
+        performTestParseMakefile("src/test/build/api-16", 16, AndroidJdk.JDK_1_6)
+        performTestParseMakefile("src/test/build/api-17", 17, AndroidJdk.JDK_1_6)
+        performTestParseMakefile("src/test/build/api-18", 18, AndroidJdk.JDK_1_6)
+        performTestParseMakefile("src/test/build/api-19", 19, AndroidJdk.JDK_1_6)
+        performTestParseMakefile("src/test/build/api-21", 21, AndroidJdk.JDK_1_7)
+        performTestParseMakefile("src/test/build/api-22", 22, AndroidJdk.JDK_1_7)
+        performTestParseMakefile("src/test/build/api-23", 23, AndroidJdk.JDK_1_7)
+        performTestParseMakefile("src/test/build/api-N", 23, AndroidJdk.JDK_1_8)
+
     }
 }
