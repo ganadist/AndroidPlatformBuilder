@@ -29,7 +29,7 @@ sourceSets {
 }
 
 intellij {
-    version 'IC-14.0.3'
+    version 'IC-2016.1'
     plugins 'coverage'
     plugins 'android'
     pluginName 'AndroidBuilder'

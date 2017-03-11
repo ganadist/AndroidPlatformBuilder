@@ -299,6 +299,9 @@ class ProjectMonitor(val mProject: Project) : ProjectComponent, ModuleListener {
         LOG.info("android module is added")
 
         val info = ModuleInfo(module)
+        if (info == null || info.mRootPath == null) {
+            return;
+        }
         val version = AndroidVersion(info.mRootPath)
         if (!version.hasValidVersion()) {
             LOG.warn("Cannot find platform version. This is not android platform project.")
@@ -378,6 +381,9 @@ fun Module.isAndroidModule(): Boolean {
         return false
     }
     val root = this.project.basePath
+    if (root == null) {
+        return false
+    };
     return isPlatformDirectory(root)
 }
 
