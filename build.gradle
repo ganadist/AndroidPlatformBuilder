@@ -2,6 +2,8 @@ buildscript {
     ext.kotlin_version = '1.0.1'
     repositories {
         mavenCentral()
+        maven { url 'http://dl.bintray.com/jetbrains/intellij-plugin-service' }
+
     }
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
@@ -9,17 +11,16 @@ buildscript {
 }
 
 plugins {
-    id "org.jetbrains.intellij" version "0.0.42"
+    id "org.jetbrains.intellij" version "0.2.5"
 }
 
-apply plugin: 'org.jetbrains.intellij'
 apply plugin: 'kotlin'
 apply plugin: 'java'
 apply plugin: 'idea'
 
 compileJava {
-    sourceCompatibility = 1.6
-    targetCompatibility = 1.6
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
 }
 
 sourceSets {
@@ -32,12 +33,11 @@ intellij {
     plugins 'coverage'
     plugins 'android'
     pluginName 'AndroidBuilder'
-    updateSinceUntilBuild false
-    publish {
-        pluginId '8216'
-	username publishUsername
-	password publishPassword
-    }
+}
+
+publishPlugin {
+    username publishUsername
+    password publishPassword
 }
 
 apply from: "version.properties"
