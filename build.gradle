@@ -15,8 +15,6 @@ plugins {
 }
 
 apply plugin: 'kotlin'
-apply plugin: 'java'
-apply plugin: 'idea'
 
 compileJava {
     sourceCompatibility = 1.8
@@ -30,7 +28,7 @@ sourceSets {
 
 intellij {
     version 'IC-2016.1'
-    plugins ('coverage', 'android')
+    plugins 'android'
     pluginName 'AndroidBuilder'
 }
 
