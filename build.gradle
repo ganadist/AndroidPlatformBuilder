@@ -30,9 +30,14 @@ sourceSets {
 
 intellij {
     version 'IC-2016.1'
-    plugins 'coverage'
-    plugins 'android'
+    plugins ('coverage', 'android')
     pluginName 'AndroidBuilder'
+}
+
+patchPluginXml {
+    // see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/build_number_ranges.html
+    sinceBuild "145"
+    untilBuild "*"
 }
 
 publishPlugin {
@@ -51,4 +56,3 @@ dependencies {
   testCompile 'junit:junit:4.12'
   compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
 }
-
