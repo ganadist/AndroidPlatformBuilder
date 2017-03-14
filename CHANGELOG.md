@@ -1,3 +1,6 @@
+### 1.90.9 (2017-03-14) ###
+ * do not use patchPluginXml rule
+
 ### 1.90.8 (2017-03-14) ###
  * add ninja workaround
  * update platform version to IC-2016.1
