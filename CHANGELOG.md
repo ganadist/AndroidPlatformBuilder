@@ -1,3 +1,10 @@
+### 1.90.8 (2017-03-14) ###
+ * add ninja workaround
+ * update platform version to IC-2016.1
+ * bump up kotlin to 1.1.0
+ * bump up intellij gradle plugin to 0.2.5
+ * bump up gradle version to 2.14.1
+
 ### 1.90.7 (2016-03-19) ###
  * use kotlin 1.0.1
  * when project is directory base (has .idea), load properly
