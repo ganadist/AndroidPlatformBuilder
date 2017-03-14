@@ -52,10 +52,12 @@ class BuildConsoleImpl(val mProject: Project) : BuildConsole {
     private val mConsoleView = TextConsoleBuilderFactory.getInstance().createBuilder(mProject).console
     private val mWindow = ToolWindowManagerEx.getInstanceEx(mProject).registerToolWindow(TOOL_WINDOW_ID, false,
             ToolWindowAnchor.BOTTOM, mProject, true)
-
+    private var mOutputHandler : OutputHandler
     init {
         LOG.info("init")
         setupToolWindow()
+        mOutputHandler = MakeOutputHandler(this);
+
     }
 
     override fun dispose() {
@@ -86,6 +88,7 @@ class BuildConsoleImpl(val mProject: Project) : BuildConsole {
         LOG.info("run")
         assert(mExitListener == null)
         mExitListener = listener
+        mOutputHandler = MakeOutputHandler(this);
         mConsoleView.clear()
         show(true)
         return this
@@ -96,8 +99,35 @@ class BuildConsoleImpl(val mProject: Project) : BuildConsole {
         mConsoleView.print("\n", ConsoleViewContentType.NORMAL_OUTPUT)
     }
 
+    interface OutputHandler {
+        fun onOut(line: String)
+    }
+
+    class MakeOutputHandler(val console: BuildConsoleImpl) : OutputHandler {
+        override fun onOut(line: String) {
+            console.print(line)
+            if (line.startsWith("ninja: ")) {
+                console.mOutputHandler = NinjaOutputHandler(console)
+            }
+        }
+    }
+
+    class NinjaOutputHandler(val console: BuildConsoleImpl) : OutputHandler {
+        var failed = false
+        override fun onOut(line: String) {
+            if (failed) {
+                console.onError(line)
+            } else {
+                if (line.startsWith("FAILED: ")) {
+                    failed = true
+                }
+                console.print(line)
+            }
+        }
+    }
+
     override fun onOut(line: String) {
-        print(line)
+        mOutputHandler.onOut(line)
     }
 
     private val FILE_POSITION_REGEX = "(.*: )?(.+?):(\\d+):(?:(\\d+):)? (.*)$"
