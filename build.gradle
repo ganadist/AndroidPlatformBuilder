@@ -29,13 +29,14 @@ sourceSets {
 intellij {
     version 'IC-2016.1'
     plugins 'android'
+    updateSinceUntilBuild false
     pluginName 'AndroidBuilder'
 }
 
 patchPluginXml {
     // see http://www.jetbrains.org/intellij/sdk/docs/basics/getting_started/build_number_ranges.html
-    sinceBuild "145"
-    untilBuild "*"
+    //sinceBuild "145"
+    //untilBuild "*"
 }
 
 publishPlugin {
