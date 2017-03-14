@@ -21,7 +21,15 @@ commit() {
   local CHANGELOG_MD_NEW=${CHANGELOG_MD}.template
 
   echo "### ${VERSION} ($(env LC_ALL=C date +%F)) ###" > ${CHANGELOG_MD_NEW}
-  echo " *" >> ${CHANGELOG_MD_NEW}
+  GITLOG=`git log --pretty=format:%s v$OLD_VERSION..`
+  (
+     IFS=$'\n'
+     for L in $GITLOG
+     do
+	echo ' * '$L
+     done
+  
+  ) >> ${CHANGELOG_MD_NEW}
   echo  >> ${CHANGELOG_MD_NEW}
   cat ${CHANGELOG_MD} >> ${CHANGELOG_MD_NEW}
 
