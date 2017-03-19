@@ -25,7 +25,7 @@ import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.wm.ToolWindow
 import com.intellij.openapi.wm.ToolWindowAnchor
-import com.intellij.openapi.wm.ex.ToolWindowManagerEx
+import com.intellij.openapi.wm.ToolWindowManager
 import com.intellij.ui.content.ContentFactory
 import dbgsprw.app.*
 import dbgsprw.core.Utils
@@ -74,12 +74,12 @@ class ToolbarViewImpl(val mProject: Project) : AndroidBuilderForm(),
     init {
         LOG.info("init")
 
-        val wm = ToolWindowManagerEx.getInstanceEx(mProject)
-        mToolWindow = wm.registerToolWindow(TOOLBAR_WINDOW_ID, false, ToolWindowAnchor.RIGHT,
-                mProject, true)
-        val contentFactory = ContentFactory.SERVICE.getInstance()
-        val content = contentFactory.createContent(mAndroidBuilderContent, "", false)
-        mToolWindow.contentManager.addContent(content)
+        val content =  ContentFactory.SERVICE.getInstance()
+                .createContent(mAndroidBuilderContent, "", false)
+        mToolWindow = ToolWindowManager.getInstance(mProject)
+                .registerToolWindow(TOOLBAR_WINDOW_ID,
+                        false, ToolWindowAnchor.RIGHT, mProject, true)
+        mToolWindow.getContentManager().addContent(content)
 
         getBuilder().setOutPathListener(this)
         ServiceManager.getService(DeviceManager::class.java).addDeviceStateListener(this)
@@ -91,7 +91,7 @@ class ToolbarViewImpl(val mProject: Project) : AndroidBuilderForm(),
         LOG.info("dispose")
         getBuilder().setOutPathListener(null)
         ServiceManager.getService(DeviceManager::class.java).removeDeviceStateListener(this)
-        ToolWindowManagerEx.getInstanceEx(mProject).unregisterToolWindow(TOOLBAR_WINDOW_ID)
+        ToolWindowManager.getInstance(mProject).unregisterToolWindow(TOOLBAR_WINDOW_ID)
     }
 
     private fun initUi() {
