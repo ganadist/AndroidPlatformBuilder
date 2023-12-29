@@ -1,5 +1,8 @@
-# Android Platform Builder plugin for Intellij Idea
+# This project is deprecated.
 
+Please use [Android Studio for Platform](https://d.android.com/studio/platform) instead of this plugin.
+
+# Android Platform Builder plugin for Intellij Idea
 [![Build Status](https://travis-ci.org/ganadist/AndroidPlatformBuilder.svg?branch=develop)](https://travis-ci.org/ganadist/AndroidPlatformBuilder)
 
 ## Features
